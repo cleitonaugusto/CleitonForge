@@ -1,0 +1,11 @@
+[package]
+name = "cforge-metrics"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Standardized metrics computation for CleitonForge"
+
+[dependencies]
+cforge-core = { path = "../cforge-core" }

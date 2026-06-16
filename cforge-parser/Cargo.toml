@@ -1,0 +1,11 @@
+[package]
+name = "cforge-parser"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Multi-format quantum circuit parsing (OpenQASM 2/3) for CleitonForge"
+
+[dependencies]
+cforge-core = { path = "../cforge-core" }

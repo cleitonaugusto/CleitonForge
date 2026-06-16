@@ -1,0 +1,18 @@
+[package]
+name = "cforge-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Command-line interface for CleitonForge"
+
+[[bin]]
+name = "cforge"
+path = "src/main.rs"
+
+[dependencies]
+cforge-core = { path = "../cforge-core" }
+cforge-parser = { path = "../cforge-parser" }
+cforge-backends = { path = "../cforge-backends" }
+cforge-metrics = { path = "../cforge-metrics" }

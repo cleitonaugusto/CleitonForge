@@ -1,0 +1,11 @@
+[package]
+name = "cforge-backends"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Pluggable simulation backends for CleitonForge"
+
+[dependencies]
+cforge-core = { path = "../cforge-core" }
