@@ -9,3 +9,7 @@ description = "Multi-format quantum circuit parsing (OpenQASM 2/3) for CleitonFo
 
 [dependencies]
 cforge-core = { path = "../cforge-core" }
+oq3_parser = "0.7.0"
+oq3_semantics = "0.7.0"
+oq3_syntax = "0.7.0"
+qasm = "1.0.0"
