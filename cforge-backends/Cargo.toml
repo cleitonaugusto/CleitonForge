@@ -9,3 +9,9 @@ description = "Pluggable simulation backends for CleitonForge"
 
 [dependencies]
 cforge-core = { path = "../cforge-core" }
+num-complex = "0.4.6"
+quantrs2 = "0.2.0"
+quantrs2-core = "0.2.0"
+
+[dev-dependencies]
+num-complex = "0.4.6"
