@@ -267,7 +267,9 @@ version = "0.1.0"
 name = "cforge-metrics"
 version = "0.1.0"
 dependencies = [
+ "cforge-backends",
  "cforge-core",
+ "num-complex",
 ]
 
 [[package]]
