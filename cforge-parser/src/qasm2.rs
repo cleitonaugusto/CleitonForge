@@ -12,7 +12,7 @@ use std::path::Path;
 use cforge_core::{Circuit, Operation};
 
 use crate::error::ParseError;
-use crate::translate::gate_kind_from_name;
+use crate::translate::translate_gate;
 
 /// Parses an OpenQASM 2.0 source string and returns the canonical circuit.
 ///
@@ -45,18 +45,19 @@ pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseErro
             continue;
         };
 
-        let kind = gate_kind_from_name(gate_name)
-            .ok_or_else(|| ParseError::UnknownGate(gate_name.clone()))?;
-
         let qubits = args
             .iter()
             .map(|arg| resolve_qubit(arg, &reg_map))
             .collect::<Result<Vec<_>, _>>()?;
 
-        let params = params
+        // Evaluate params first so translate_gate can rewrite them (e.g. u2).
+        let raw_params = params
             .iter()
             .map(|s| eval_param(s))
             .collect::<Result<Vec<_>, _>>()?;
+
+        let (kind, params) = translate_gate(gate_name, raw_params)
+            .ok_or_else(|| ParseError::UnknownGate(gate_name.clone()))?;
 
         let mut op = Operation::new(kind, qubits, params);
         op.source_framework = Some("openqasm2".to_string());
@@ -166,5 +167,21 @@ measure q[1] -> c[1];
         assert_eq!(circuit.operations[0].kind, GateKind::Rz);
         let expected = std::f64::consts::FRAC_PI_2;
         assert!((circuit.operations[0].params[0] - expected).abs() < 1e-10);
+    }
+
+    #[test]
+    fn u2_gate_rewrites_to_u_qasm2() {
+        // u2(phi, lam) is common in IBM/Qiskit exported circuits.
+        // It must parse as U(pi/2, phi, lam) rather than UnknownGate.
+        let source = "OPENQASM 2.0;\nqreg q[1];\nu2(0,pi) q[0];\n";
+        let dir = std::env::current_dir().unwrap();
+        let circuit = parse_qasm2(source, &dir).unwrap();
+        assert_eq!(circuit.operations.len(), 1);
+        let op = &circuit.operations[0];
+        assert_eq!(op.kind, GateKind::U);
+        assert_eq!(op.params.len(), 3);
+        assert!((op.params[0] - std::f64::consts::FRAC_PI_2).abs() < 1e-10);
+        assert!((op.params[1] - 0.0).abs() < 1e-10);
+        assert!((op.params[2] - std::f64::consts::PI).abs() < 1e-10);
     }
 }
