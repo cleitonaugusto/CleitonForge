@@ -6,8 +6,10 @@
 
 pub mod circuit_stats;
 pub mod fidelity;
+pub mod memory;
 pub mod performance;
 
 pub use circuit_stats::{compute_stats, CircuitStats};
 pub use fidelity::statevector_fidelity;
+pub use memory::{current_rss_bytes, measure_rss_delta, statevector_memory_bytes};
 pub use performance::measure;

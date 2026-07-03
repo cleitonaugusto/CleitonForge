@@ -90,7 +90,7 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
 
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
-    table.set_header(["Backend", "Time (ms)", "Depth", "Gates", "Fidelity", "Shots"]);
+    table.set_header(["Backend", "Time (ms)", "Memory", "Depth", "Gates", "Fidelity", "Shots"]);
 
     for backend in &selected {
         match measure(backend.as_ref(), &circuit, shots, reference) {
@@ -100,9 +100,14 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
                     .map(|f| format!("{:.6}", f))
                     .unwrap_or_else(|| "—".to_string());
                 let shots_str = if shots > 0 { shots.to_string() } else { "—".to_string() };
+                let mem_str = m
+                    .memory_bytes
+                    .map(format_bytes)
+                    .unwrap_or_else(|| "—".to_string());
                 table.add_row([
                     m.backend_name.as_str(),
                     &format!("{:.3}", m.execution_time_ms),
+                    &mem_str,
                     &m.depth.to_string(),
                     &m.gate_count.to_string(),
                     &fidelity_str,
@@ -110,7 +115,7 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
                 ]);
             }
             Err(e) => {
-                table.add_row([backend.name(), "ERROR", "—", "—", &e.to_string(), "—"]);
+                table.add_row([backend.name(), "ERROR", "—", "—", "—", &e.to_string(), "—"]);
             }
         }
     }
@@ -152,6 +157,18 @@ fn cmd_validate(path: &PathBuf) {
 }
 
 // ── shared helpers ───────────────────────────────────────────────────────────
+
+fn format_bytes(bytes: u64) -> String {
+    const GB: u64 = 1 << 30;
+    const MB: u64 = 1 << 20;
+    const KB: u64 = 1 << 10;
+    match bytes {
+        b if b >= GB => format!("{:.1} GB", b as f64 / GB as f64),
+        b if b >= MB => format!("{:.1} MB", b as f64 / MB as f64),
+        b if b >= KB => format!("{:.0} KB", b as f64 / KB as f64),
+        b => format!("{} B", b),
+    }
+}
 
 fn load_circuit(source: &str, path: &PathBuf) -> cforge_core::Circuit {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
