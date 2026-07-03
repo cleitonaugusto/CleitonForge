@@ -1,3 +1,171 @@
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use comfy_table::{Table, presets::UTF8_FULL};
+
+use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_metrics::{compute_stats, measure};
+use cforge_parser::{parse_qasm2, parse_qasm3};
+
+#[derive(Parser)]
+#[command(
+    name = "cforge",
+    about = "CleitonForge — neutral benchmarking layer for quantum simulators",
+    version
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Run a circuit on one or more backends and compare metrics.
+    Run {
+        /// Path to a .qasm file (OpenQASM 2 or 3)
+        #[arg(long)]
+        circuit: PathBuf,
+
+        /// Comma-separated list of backends: statevector, quantrs2
+        #[arg(long, default_value = "statevector,quantrs2")]
+        backends: String,
+
+        /// Number of measurement shots (0 = statevector only)
+        #[arg(long, default_value_t = 0)]
+        shots: usize,
+    },
+
+    /// Parse a circuit and show its statistics without running simulation.
+    Validate {
+        /// Path to a .qasm file (OpenQASM 2 or 3)
+        #[arg(long)]
+        circuit: PathBuf,
+    },
+}
+
 fn main() {
-    println!("cforge: CleitonForge CLI — not yet implemented");
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::Run { circuit, backends, shots } => cmd_run(&circuit, &backends, shots),
+        Commands::Validate { circuit } => cmd_validate(&circuit),
+    }
+}
+
+// ── cforge run ───────────────────────────────────────────────────────────────
+
+fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
+    let source = std::fs::read_to_string(path).unwrap_or_else(|e| {
+        eprintln!("error: cannot read {:?}: {e}", path);
+        std::process::exit(1);
+    });
+
+    let circuit = load_circuit(&source, path);
+
+    let stats = compute_stats(&circuit);
+    println!(
+        "Circuit: {} qubits  |  {} gates  |  depth {}",
+        circuit.num_qubits(),
+        stats.gate_count,
+        stats.depth
+    );
+
+    let selected: Vec<Box<dyn SimulationBackend>> = backends_str
+        .split(',')
+        .map(|name| -> Box<dyn SimulationBackend> {
+            match name.trim() {
+                "statevector" | "native" => Box::new(NativeStateVectorBackend),
+                "quantrs2" => Box::new(QuantRS2Backend),
+                other => {
+                    eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
+                    std::process::exit(1);
+                }
+            }
+        })
+        .collect();
+
+    // Run native first to obtain a reference statevector.
+    let ref_result = NativeStateVectorBackend.run(&circuit, 0).ok();
+    let reference = ref_result.as_ref().map(|r| r.statevector.as_slice());
+
+    let mut table = Table::new();
+    table.load_preset(UTF8_FULL);
+    table.set_header(["Backend", "Time (ms)", "Depth", "Gates", "Fidelity", "Shots"]);
+
+    for backend in &selected {
+        match measure(backend.as_ref(), &circuit, shots, reference) {
+            Ok(m) => {
+                let fidelity_str = m
+                    .fidelity
+                    .map(|f| format!("{:.6}", f))
+                    .unwrap_or_else(|| "—".to_string());
+                let shots_str = if shots > 0 { shots.to_string() } else { "—".to_string() };
+                table.add_row([
+                    m.backend_name.as_str(),
+                    &format!("{:.3}", m.execution_time_ms),
+                    &m.depth.to_string(),
+                    &m.gate_count.to_string(),
+                    &fidelity_str,
+                    &shots_str,
+                ]);
+            }
+            Err(e) => {
+                table.add_row([backend.name(), "ERROR", "—", "—", &e.to_string(), "—"]);
+            }
+        }
+    }
+
+    println!("{table}");
+}
+
+// ── cforge validate ──────────────────────────────────────────────────────────
+
+fn cmd_validate(path: &PathBuf) {
+    let source = std::fs::read_to_string(path).unwrap_or_else(|e| {
+        eprintln!("error: cannot read {:?}: {e}", path);
+        std::process::exit(1);
+    });
+
+    let circuit = load_circuit(&source, path);
+    let stats = compute_stats(&circuit);
+
+    println!("File   : {}", path.display());
+    println!("Qubits : {}", circuit.num_qubits());
+    println!("Gates  : {}", stats.gate_count);
+    println!("Depth  : {}", stats.depth);
+
+    if !stats.gate_counts_by_kind.is_empty() {
+        let mut kinds: Vec<_> = stats.gate_counts_by_kind.iter().collect();
+        kinds.sort_by_key(|(k, _)| k.qasm_name());
+        println!("By gate:");
+        for (kind, count) in kinds {
+            println!("  {:8} {}", kind.qasm_name(), count);
+        }
+    }
+
+    if circuit.validate().is_ok() {
+        println!("Status : OK");
+    } else {
+        println!("Status : INVALID");
+        std::process::exit(1);
+    }
+}
+
+// ── shared helpers ───────────────────────────────────────────────────────────
+
+fn load_circuit(source: &str, path: &PathBuf) -> cforge_core::Circuit {
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+    let is_qasm3 = source.trim_start().starts_with("OPENQASM 3");
+
+    let result = if is_qasm3 {
+        parse_qasm3(source)
+    } else {
+        let dir = path.parent().unwrap_or(std::path::Path::new("."));
+        parse_qasm2(source, dir)
+    };
+
+    result.unwrap_or_else(|e| {
+        eprintln!("error: failed to parse {:?} ({}): {e}", path, ext);
+        std::process::exit(1);
+    })
 }
