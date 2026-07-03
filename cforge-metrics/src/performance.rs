@@ -22,6 +22,7 @@ pub fn measure(
     backend: &dyn SimulationBackend,
     circuit: &Circuit,
     shots: usize,
+    seed: u64,
     reference: Option<&[num_complex::Complex64]>,
 ) -> Result<MetricsResult, BackendError> {
     let stats = compute_stats(circuit);
@@ -31,7 +32,7 @@ pub fn measure(
     let rss_before = memory::current_rss_bytes();
 
     let t0 = Instant::now();
-    let result: SimulationResult = backend.run(circuit, shots)?;
+    let result: SimulationResult = backend.run(circuit, shots, seed)?;
     let elapsed_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
     // Sample RSS while the statevector is still live inside `result`.

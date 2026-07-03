@@ -10,8 +10,8 @@ fn fidelity(a: &[num_complex::Complex64], b: &[num_complex::Complex64]) -> f64 {
 }
 
 fn run_both(circuit: &Circuit) -> (Vec<num_complex::Complex64>, Vec<num_complex::Complex64>) {
-    let r1 = NativeStateVectorBackend.run(circuit, 0).unwrap();
-    let r2 = QuantRS2Backend.run(circuit, 0).unwrap();
+    let r1 = NativeStateVectorBackend.run(circuit, 0, 0).unwrap();
+    let r2 = QuantRS2Backend.run(circuit, 0, 0).unwrap();
     (r1.statevector, r2.statevector)
 }
 

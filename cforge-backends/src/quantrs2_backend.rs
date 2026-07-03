@@ -42,7 +42,7 @@ impl SimulationBackend for QuantRS2Backend {
         "statevector-quantrs2"
     }
 
-    fn run(&self, circuit: &Circuit, shots: usize) -> Result<SimulationResult, BackendError> {
+    fn run(&self, circuit: &Circuit, shots: usize, seed: u64) -> Result<SimulationResult, BackendError> {
         let n = circuit.num_qubits();
         if n > MAX_QUBITS {
             return Err(BackendError(format!(
@@ -59,7 +59,7 @@ impl SimulationBackend for QuantRS2Backend {
         }
 
         let counts = if shots > 0 {
-            sample_counts(&sv, shots)
+            sample_counts(&sv, shots, seed)
         } else {
             HashMap::new()
         };

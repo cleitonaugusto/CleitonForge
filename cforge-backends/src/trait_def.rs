@@ -57,11 +57,22 @@ pub trait SimulationBackend {
 
     /// Simulate `circuit` and return the final quantum state.
     ///
-    /// When `shots > 0`, also sample `shots` measurements from the
-    /// resulting probability distribution and populate `counts`.
+    /// When `shots > 0`, sample `shots` measurements and populate `counts`.
+    /// `seed` initialises the deterministic PRNG used for sampling —
+    /// use [`DEFAULT_SEED`] for the canonical default or any `u64` to
+    /// produce different but fully reproducible counts. Ignored when
+    /// `shots == 0`.
     fn run(
         &self,
         circuit: &Circuit,
         shots: usize,
+        seed: u64,
     ) -> Result<SimulationResult, BackendError>;
 }
+
+/// Default seed for the shot-sampling PRNG.
+///
+/// Using this constant produces the same counts that CleitonForge
+/// generated before the `--seed` flag was introduced, ensuring that
+/// existing benchmarks remain reproducible.
+pub const DEFAULT_SEED: u64 = 0xdeadbeef_cafebabe;

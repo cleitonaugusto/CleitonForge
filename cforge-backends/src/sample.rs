@@ -5,7 +5,10 @@ use num_complex::Complex64;
 
 /// Samples `shots` measurements from the probability distribution |sv|²
 /// and returns a map from bitstring (MSB-first, e.g. "01") to count.
-pub fn sample_counts(sv: &[Complex64], shots: usize) -> HashMap<String, usize> {
+///
+/// `seed` initialises the deterministic LCG — identical seed + circuit
+/// always produces the same counts, enabling reproducible benchmarks.
+pub fn sample_counts(sv: &[Complex64], shots: usize, seed: u64) -> HashMap<String, usize> {
     let probs: Vec<f64> = sv.iter().map(|a| a.norm_sqr()).collect();
     let n_qubits = probs.len().trailing_zeros() as usize;
 
@@ -18,8 +21,7 @@ pub fn sample_counts(sv: &[Complex64], shots: usize) -> HashMap<String, usize> {
         cdf.push(acc);
     }
 
-    // Deterministic LCG for reproducible results in tests.
-    let mut rng = Lcg64::new(0xdeadbeef_cafebabe);
+    let mut rng = Lcg64::new(seed);
     for _ in 0..shots {
         let r: f64 = rng.next_f64();
         let idx = cdf.partition_point(|&c| c < r).min(probs.len() - 1);

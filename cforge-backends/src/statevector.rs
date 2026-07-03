@@ -25,7 +25,7 @@ impl SimulationBackend for NativeStateVectorBackend {
         "statevector-native"
     }
 
-    fn run(&self, circuit: &Circuit, shots: usize) -> Result<SimulationResult, BackendError> {
+    fn run(&self, circuit: &Circuit, shots: usize, seed: u64) -> Result<SimulationResult, BackendError> {
         let n = circuit.num_qubits();
         if n > MAX_QUBITS {
             return Err(BackendError(format!(
@@ -42,7 +42,7 @@ impl SimulationBackend for NativeStateVectorBackend {
         }
 
         let counts = if shots > 0 {
-            sample_counts(&sv, shots)
+            sample_counts(&sv, shots, seed)
         } else {
             HashMap::new()
         };
@@ -216,17 +216,14 @@ fn gate_tdg() -> U2 {
     [[c(1.0, 0.0), c(0.0, 0.0)], [c(0.0, 0.0), e]]
 }
 fn gate_sx() -> U2 {
-    let h = c(0.5, 0.0);
-    let hi = c(0.5, 0.5);
-    let him = c(0.5, -0.5);
-    [[hi * c(2.0, 0.0) * h, him * c(2.0, 0.0) * h],
-     [him * c(2.0, 0.0) * h, hi * c(2.0, 0.0) * h]]
+    // SX = √X = (1/2)[[1+i, 1-i], [1-i, 1+i]]
+    [[c(0.5,  0.5), c(0.5, -0.5)],
+     [c(0.5, -0.5), c(0.5,  0.5)]]
 }
 fn gate_sxdg() -> U2 {
-    let hi = c(0.5, -0.5);
-    let him = c(0.5, 0.5);
-    [[hi * c(2.0, 0.0) * c(0.5, 0.0), him * c(2.0, 0.0) * c(0.5, 0.0)],
-     [him * c(2.0, 0.0) * c(0.5, 0.0), hi * c(2.0, 0.0) * c(0.5, 0.0)]]
+    // SX† = (√X)† = (1/2)[[1-i, 1+i], [1+i, 1-i]]
+    [[c(0.5, -0.5), c(0.5,  0.5)],
+     [c(0.5,  0.5), c(0.5, -0.5)]]
 }
 
 fn gate_rx(theta: f64) -> U2 {
@@ -277,7 +274,7 @@ mod tests {
     #[test]
     fn bell_state_amplitudes() {
         let backend = NativeStateVectorBackend;
-        let result = backend.run(&bell_circuit(), 0).unwrap();
+        let result = backend.run(&bell_circuit(), 0, 0).unwrap();
         let sv = &result.statevector;
         let f = 1.0 / 2f64.sqrt();
         assert!((sv[0].re - f).abs() < 1e-10);
@@ -290,7 +287,7 @@ mod tests {
     fn x_gate_flips_zero_to_one() {
         let mut c = Circuit::new(1);
         c.push(Operation::new(GateKind::X, vec![0], vec![]));
-        let result = NativeStateVectorBackend.run(&c, 0).unwrap();
+        let result = NativeStateVectorBackend.run(&c, 0, 0).unwrap();
         let sv = &result.statevector;
         assert!(sv[0].norm() < 1e-10);
         assert!((sv[1].re - 1.0).abs() < 1e-10);
@@ -301,14 +298,14 @@ mod tests {
         let angle = std::f64::consts::FRAC_PI_2;
         let mut c = Circuit::new(1);
         c.push(Operation::new(GateKind::Rz, vec![0], vec![angle]));
-        let result = NativeStateVectorBackend.run(&c, 0).unwrap();
+        let result = NativeStateVectorBackend.run(&c, 0, 0).unwrap();
         let expected = Complex64::from_polar(1.0, -angle / 2.0);
         assert!((result.statevector[0] - expected).norm() < 1e-10);
     }
 
     #[test]
     fn shot_counts_bell_state() {
-        let result = NativeStateVectorBackend.run(&bell_circuit(), 2000).unwrap();
+        let result = NativeStateVectorBackend.run(&bell_circuit(), 2000, 0).unwrap();
         let n00 = result.counts.get("00").copied().unwrap_or(0);
         let n11 = result.counts.get("11").copied().unwrap_or(0);
         assert_eq!(n00 + n11, 2000);

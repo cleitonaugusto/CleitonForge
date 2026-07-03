@@ -8,7 +8,7 @@
 
 use std::time::Instant;
 
-use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_backends::{DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::{compute_stats, statevector_fidelity};
 
@@ -74,7 +74,7 @@ fn main() {
 
     // Reference statevector from the native backend (shots=0 → exact SV).
     let ref_sv = NativeStateVectorBackend
-        .run(&circuit, 0)
+        .run(&circuit, 0, DEFAULT_SEED)
         .expect("native run failed")
         .statevector;
 
@@ -85,7 +85,7 @@ fn main() {
 
     for (_, backend) in &backends {
         let t0 = Instant::now();
-        let result = backend.run(&circuit, 1024).expect("run failed");
+        let result = backend.run(&circuit, 1024, DEFAULT_SEED).expect("run failed");
         let elapsed_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
         // State with highest probability amplitude.
@@ -125,11 +125,11 @@ fn main() {
 
     // Cross-backend fidelity.
     let sv_native = NativeStateVectorBackend
-        .run(&circuit, 0)
+        .run(&circuit, 0, DEFAULT_SEED)
         .expect("native re-run failed")
         .statevector;
     let sv_quantrs2 = QuantRS2Backend
-        .run(&circuit, 0)
+        .run(&circuit, 0, DEFAULT_SEED)
         .expect("quantrs2 re-run failed")
         .statevector;
     let cross = statevector_fidelity(&sv_native, &sv_quantrs2).unwrap_or(0.0);

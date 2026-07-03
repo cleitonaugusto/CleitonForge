@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand, ValueEnum};
 use comfy_table::{Table, presets::UTF8_FULL};
 
-use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_backends::{DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
 use cforge_core::MetricsResult;
 use cforge_metrics::{compute_stats, measure};
 use cforge_parser::{parse_qasm2, parse_qasm3};
@@ -44,6 +44,12 @@ enum Commands {
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Table)]
         format: OutputFormat,
+
+        /// Seed for the shot-sampling PRNG (default: 0xdeadbeef_cafebabe).
+        /// Setting this to a fixed value makes shot counts reproducible across
+        /// runs; changing it lets you measure statistical variance.
+        #[arg(long, default_value_t = DEFAULT_SEED)]
+        seed: u64,
     },
 
     /// Parse a circuit and show its statistics without running simulation.
@@ -58,8 +64,8 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Run { circuit, backends, shots, format } => {
-            cmd_run(&circuit, &backends, shots, format);
+        Commands::Run { circuit, backends, shots, format, seed } => {
+            cmd_run(&circuit, &backends, shots, format, seed);
         }
         Commands::Validate { circuit } => cmd_validate(&circuit),
     }
@@ -67,7 +73,7 @@ fn main() {
 
 // ── cforge run ───────────────────────────────────────────────────────────────
 
-fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize, format: OutputFormat) {
+fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize, format: OutputFormat, seed: u64) {
     let source = std::fs::read_to_string(path).unwrap_or_else(|e| {
         eprintln!("error: cannot read {:?}: {e}", path);
         std::process::exit(1);
@@ -90,18 +96,18 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize, format: OutputForma
         })
         .collect();
 
-    // Native statevector used as fidelity reference.
-    let ref_result = NativeStateVectorBackend.run(&circuit, 0).ok();
+    // Native statevector used as fidelity reference (shots=0 → seed irrelevant).
+    let ref_result = NativeStateVectorBackend.run(&circuit, 0, DEFAULT_SEED).ok();
     let reference = ref_result.as_ref().map(|r| r.statevector.as_slice());
 
     let results: Vec<Result<MetricsResult, _>> = selected
         .iter()
-        .map(|b| measure(b.as_ref(), &circuit, shots, reference))
+        .map(|b| measure(b.as_ref(), &circuit, shots, seed, reference))
         .collect();
 
     match format {
-        OutputFormat::Table => print_table(&circuit, &stats, shots, &selected, &results),
-        OutputFormat::Json => print_json(path, &circuit, &stats, shots, &selected, &results),
+        OutputFormat::Table => print_table(&circuit, &stats, shots, seed, &selected, &results),
+        OutputFormat::Json => print_json(path, &circuit, &stats, shots, seed, &selected, &results),
     }
 }
 
@@ -109,14 +115,16 @@ fn print_table(
     circuit: &cforge_core::Circuit,
     stats: &cforge_metrics::CircuitStats,
     shots: usize,
+    seed: u64,
     backends: &[Box<dyn SimulationBackend>],
     results: &[Result<MetricsResult, cforge_backends::BackendError>],
 ) {
     println!(
-        "Circuit: {} qubits  |  {} gates  |  depth {}",
+        "Circuit: {} qubits  |  {} gates  |  depth {}{}",
         circuit.num_qubits(),
         stats.gate_count,
-        stats.depth
+        stats.depth,
+        if shots > 0 { format!("  |  seed 0x{seed:x}") } else { String::new() },
     );
 
     let mut table = Table::new();
@@ -155,6 +163,7 @@ fn print_json(
     circuit: &cforge_core::Circuit,
     stats: &cforge_metrics::CircuitStats,
     shots: usize,
+    seed: u64,
     backends: &[Box<dyn SimulationBackend>],
     results: &[Result<MetricsResult, cforge_backends::BackendError>],
 ) {
@@ -186,7 +195,8 @@ fn print_json(
             "gates":  stats.gate_count,
             "depth":  stats.depth,
         },
-        "shots":   shots,
+        "shots": shots,
+        "seed":  seed,
         "results": backend_results,
     });
 
