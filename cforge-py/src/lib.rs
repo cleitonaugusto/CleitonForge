@@ -310,7 +310,7 @@ fn validate_qasm(source: &str) -> PyResult<HashMap<&'static str, usize>> {
 // ── Module ────────────────────────────────────────────────────────────────────
 
 #[pymodule]
-fn cforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn cleitonforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCircuit>()?;
     m.add_class::<PyRunResult>()?;
     m.add_function(wrap_pyfunction!(run, m)?)?;

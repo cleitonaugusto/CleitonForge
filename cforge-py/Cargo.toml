@@ -8,7 +8,7 @@ repository.workspace = true
 description = "Python bindings for CleitonForge quantum simulator benchmarking"
 
 [lib]
-name = "cforge"
+name = "cleitonforge"
 crate-type = ["cdylib"]
 
 [dependencies]
