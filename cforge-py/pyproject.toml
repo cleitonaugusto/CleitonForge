@@ -5,14 +5,34 @@ build-backend = "maturin"
 [project]
 name = "cleitonforge"
 version = "0.1.0"
-description = "CleitonForge — neutral benchmarking layer for quantum simulators"
+description = "CleitonForge — neutral benchmarking layer for quantum circuit simulators"
+readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "Apache-2.0" }
-keywords = ["quantum", "simulation", "benchmarking", "qasm", "openqasm", "rust"]
+authors = [
+    { name = "Cleiton Augusto Correa Bezerra", email = "augusto.cleiton@gmail.com" },
+]
+maintainers = [
+    { name = "Cleiton Augusto Correa Bezerra", email = "augusto.cleiton@gmail.com" },
+]
+keywords = [
+    "quantum",
+    "quantum-computing",
+    "simulation",
+    "benchmarking",
+    "qasm",
+    "openqasm",
+    "rust",
+    "statevector",
+    "circuit",
+]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
     "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Rust",
     "Programming Language :: Python :: 3",
@@ -21,7 +41,13 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
 ]
+
+[project.urls]
+Homepage = "https://github.com/cleitonaugusto/CleitonForge"
+Repository = "https://github.com/cleitonaugusto/CleitonForge"
+"Bug Tracker" = "https://github.com/cleitonaugusto/CleitonForge/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
