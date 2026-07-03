@@ -309,6 +309,7 @@ dependencies = [
  "cforge-parser",
  "clap",
  "comfy-table",
+ "serde_json",
 ]
 
 [[package]]

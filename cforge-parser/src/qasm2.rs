@@ -45,11 +45,6 @@ pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseErro
             continue;
         };
 
-        let qubits = args
-            .iter()
-            .map(|arg| resolve_qubit(arg, &reg_map))
-            .collect::<Result<Vec<_>, _>>()?;
-
         // Evaluate params first so translate_gate can rewrite them (e.g. u2).
         let raw_params = params
             .iter()
@@ -59,34 +54,66 @@ pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseErro
         let (kind, params) = translate_gate(gate_name, raw_params)
             .ok_or_else(|| ParseError::UnknownGate(gate_name.clone()))?;
 
-        let mut op = Operation::new(kind, qubits, params);
-        op.source_framework = Some("openqasm2".to_string());
-        op.original_gate_name = Some(gate_name.clone());
-        circuit.push(op);
+        // Each argument is either a single indexed qubit or a whole register.
+        // Whole-register args broadcast: `h q;` on q[3] → h q[0]; h q[1]; h q[2].
+        let arg_lists: Vec<Vec<usize>> = args
+            .iter()
+            .map(|arg| resolve_arg(arg, &reg_map))
+            .collect::<Result<_, _>>()?;
+
+        // broadcast_n: 1 for all-indexed, N for register application.
+        let broadcast_n = arg_lists.iter().map(|v| v.len()).max().unwrap_or(1);
+
+        // All register-typed args must agree on size.
+        for v in &arg_lists {
+            if v.len() != 1 && v.len() != broadcast_n {
+                return Err(ParseError::SyntaxError(format!(
+                    "register size mismatch in gate '{gate_name}'"
+                )));
+            }
+        }
+
+        for i in 0..broadcast_n {
+            let qubits: Vec<usize> = arg_lists
+                .iter()
+                .map(|v| if v.len() == 1 { v[0] } else { v[i] })
+                .collect();
+            let mut op = Operation::new(kind, qubits, params.clone());
+            op.source_framework = Some("openqasm2".to_string());
+            op.original_gate_name = Some(gate_name.clone());
+            circuit.push(op);
+        }
     }
 
     circuit.validate().map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
     Ok(circuit)
 }
 
-fn resolve_qubit(
+/// Resolves a gate argument to a list of flat qubit indices.
+///
+/// - `Qubit(name, i)` → `[base + i]` (single qubit)
+/// - `Register(name)` → `[base, base+1, …, base+size-1]` (whole-register
+///   broadcast: `h q;` on a 3-qubit register expands to three H gates)
+fn resolve_arg(
     arg: &qasm::Argument,
     reg_map: &HashMap<String, (usize, usize)>,
-) -> Result<usize, ParseError> {
+) -> Result<Vec<usize>, ParseError> {
     match arg {
         qasm::Argument::Qubit(name, index) => {
-            let (base, _) = reg_map
+            let (base, size) = reg_map
                 .get(name)
                 .ok_or_else(|| ParseError::UndeclaredQubit(name.clone()))?;
-            Ok(base + *index as usize)
+            let idx = *index as usize;
+            if idx >= *size {
+                return Err(ParseError::UndeclaredQubit(format!("{name}[{idx}]")));
+            }
+            Ok(vec![base + idx])
         }
         qasm::Argument::Register(name) => {
-            // Full-register application: not supported in this translator
-            // (would need to broadcast over all elements).
-            Err(ParseError::SyntaxError(format!(
-                "whole-register gate application on '{name}' is not yet supported; \
-                 use indexed qubits (e.g. {name}[0])"
-            )))
+            let (base, size) = reg_map
+                .get(name)
+                .ok_or_else(|| ParseError::UndeclaredQubit(name.clone()))?;
+            Ok((*base..*base + *size).collect())
         }
     }
 }
@@ -167,6 +194,33 @@ measure q[1] -> c[1];
         assert_eq!(circuit.operations[0].kind, GateKind::Rz);
         let expected = std::f64::consts::FRAC_PI_2;
         assert!((circuit.operations[0].params[0] - expected).abs() < 1e-10);
+    }
+
+    #[test]
+    fn whole_register_single_qubit_gate() {
+        // `h q;` on a 3-qubit register must expand to h q[0]; h q[1]; h q[2].
+        let source = "OPENQASM 2.0;\nqreg q[3];\nh q;\n";
+        let dir = std::env::current_dir().unwrap();
+        let circuit = parse_qasm2(source, &dir).unwrap();
+        assert_eq!(circuit.num_qubits(), 3);
+        assert_eq!(circuit.operations.len(), 3);
+        for (i, op) in circuit.operations.iter().enumerate() {
+            assert_eq!(op.kind, GateKind::H);
+            assert_eq!(op.qubits, vec![i]);
+        }
+    }
+
+    #[test]
+    fn whole_register_two_qubit_gate() {
+        // `cx q, r;` where both are 2-qubit registers →
+        // cx q[0],r[0]; cx q[1],r[1];
+        let source = "OPENQASM 2.0;\nqreg q[2];\nqreg r[2];\ncx q,r;\n";
+        let dir = std::env::current_dir().unwrap();
+        let circuit = parse_qasm2(source, &dir).unwrap();
+        assert_eq!(circuit.num_qubits(), 4);
+        assert_eq!(circuit.operations.len(), 2);
+        assert_eq!(circuit.operations[0].qubits, vec![0, 2]); // q[0], r[0]
+        assert_eq!(circuit.operations[1].qubits, vec![1, 3]); // q[1], r[1]
     }
 
     #[test]

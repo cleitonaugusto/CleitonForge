@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use comfy_table::{Table, presets::UTF8_FULL};
 
 use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_core::MetricsResult;
 use cforge_metrics::{compute_stats, measure};
 use cforge_parser::{parse_qasm2, parse_qasm3};
 
@@ -16,6 +17,12 @@ use cforge_parser::{parse_qasm2, parse_qasm3};
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+#[derive(Clone, ValueEnum)]
+enum OutputFormat {
+    Table,
+    Json,
 }
 
 #[derive(Subcommand)]
@@ -33,6 +40,10 @@ enum Commands {
         /// Number of measurement shots (0 = statevector only)
         #[arg(long, default_value_t = 0)]
         shots: usize,
+
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Table)]
+        format: OutputFormat,
     },
 
     /// Parse a circuit and show its statistics without running simulation.
@@ -47,28 +58,23 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Run { circuit, backends, shots } => cmd_run(&circuit, &backends, shots),
+        Commands::Run { circuit, backends, shots, format } => {
+            cmd_run(&circuit, &backends, shots, format);
+        }
         Commands::Validate { circuit } => cmd_validate(&circuit),
     }
 }
 
 // ── cforge run ───────────────────────────────────────────────────────────────
 
-fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
+fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize, format: OutputFormat) {
     let source = std::fs::read_to_string(path).unwrap_or_else(|e| {
         eprintln!("error: cannot read {:?}: {e}", path);
         std::process::exit(1);
     });
 
     let circuit = load_circuit(&source, path);
-
     let stats = compute_stats(&circuit);
-    println!(
-        "Circuit: {} qubits  |  {} gates  |  depth {}",
-        circuit.num_qubits(),
-        stats.gate_count,
-        stats.depth
-    );
 
     let selected: Vec<Box<dyn SimulationBackend>> = backends_str
         .split(',')
@@ -84,26 +90,47 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
         })
         .collect();
 
-    // Run native first to obtain a reference statevector.
+    // Native statevector used as fidelity reference.
     let ref_result = NativeStateVectorBackend.run(&circuit, 0).ok();
     let reference = ref_result.as_ref().map(|r| r.statevector.as_slice());
+
+    let results: Vec<Result<MetricsResult, _>> = selected
+        .iter()
+        .map(|b| measure(b.as_ref(), &circuit, shots, reference))
+        .collect();
+
+    match format {
+        OutputFormat::Table => print_table(&circuit, &stats, shots, &selected, &results),
+        OutputFormat::Json => print_json(path, &circuit, &stats, shots, &selected, &results),
+    }
+}
+
+fn print_table(
+    circuit: &cforge_core::Circuit,
+    stats: &cforge_metrics::CircuitStats,
+    shots: usize,
+    backends: &[Box<dyn SimulationBackend>],
+    results: &[Result<MetricsResult, cforge_backends::BackendError>],
+) {
+    println!(
+        "Circuit: {} qubits  |  {} gates  |  depth {}",
+        circuit.num_qubits(),
+        stats.gate_count,
+        stats.depth
+    );
 
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
     table.set_header(["Backend", "Time (ms)", "Memory", "Depth", "Gates", "Fidelity", "Shots"]);
 
-    for backend in &selected {
-        match measure(backend.as_ref(), &circuit, shots, reference) {
+    for (backend, result) in backends.iter().zip(results) {
+        match result {
             Ok(m) => {
-                let fidelity_str = m
-                    .fidelity
+                let fidelity_str = m.fidelity
                     .map(|f| format!("{:.6}", f))
                     .unwrap_or_else(|| "—".to_string());
                 let shots_str = if shots > 0 { shots.to_string() } else { "—".to_string() };
-                let mem_str = m
-                    .memory_bytes
-                    .map(format_bytes)
-                    .unwrap_or_else(|| "—".to_string());
+                let mem_str = m.memory_bytes.map(format_bytes).unwrap_or_else(|| "—".to_string());
                 table.add_row([
                     m.backend_name.as_str(),
                     &format!("{:.3}", m.execution_time_ms),
@@ -121,6 +148,49 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize) {
     }
 
     println!("{table}");
+}
+
+fn print_json(
+    path: &PathBuf,
+    circuit: &cforge_core::Circuit,
+    stats: &cforge_metrics::CircuitStats,
+    shots: usize,
+    backends: &[Box<dyn SimulationBackend>],
+    results: &[Result<MetricsResult, cforge_backends::BackendError>],
+) {
+    let backend_results: Vec<serde_json::Value> = backends
+        .iter()
+        .zip(results)
+        .map(|(backend, result)| match result {
+            Ok(m) => serde_json::json!({
+                "backend":      m.backend_name,
+                "time_ms":      m.execution_time_ms,
+                "memory_bytes": m.memory_bytes,
+                "depth":        m.depth,
+                "gates":        m.gate_count,
+                "fidelity":     m.fidelity,
+                "shots":        if shots > 0 { Some(shots) } else { None::<usize> },
+                "error":        null,
+            }),
+            Err(e) => serde_json::json!({
+                "backend": backend.name(),
+                "error":   e.to_string(),
+            }),
+        })
+        .collect();
+
+    let output = serde_json::json!({
+        "circuit": {
+            "file":   path.display().to_string(),
+            "qubits": circuit.num_qubits(),
+            "gates":  stats.gate_count,
+            "depth":  stats.depth,
+        },
+        "shots":   shots,
+        "results": backend_results,
+    });
+
+    println!("{}", serde_json::to_string_pretty(&output).unwrap());
 }
 
 // ── cforge validate ──────────────────────────────────────────────────────────
