@@ -6,6 +6,15 @@ members = [
     "cforge-backends",
     "cforge-metrics",
     "cforge-cli",
+    "cforge-py",
+]
+# cforge-py requires Python headers; exclude from default cargo build/test
+default-members = [
+    "cforge-core",
+    "cforge-parser",
+    "cforge-backends",
+    "cforge-metrics",
+    "cforge-cli",
 ]
 
 [workspace.package]
