@@ -334,6 +334,7 @@ dependencies = [
  "cforge-parser",
  "clap",
  "comfy-table",
+ "num-complex 0.4.6",
  "rand 0.10.1",
  "serde_json",
 ]

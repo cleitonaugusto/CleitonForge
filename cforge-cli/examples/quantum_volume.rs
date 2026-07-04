@@ -24,7 +24,6 @@
 
 use std::f64::consts::PI;
 
-use num_complex::Complex64;
 use rand::rngs::SmallRng;
 use rand::{Rng, RngExt, SeedableRng};
 
