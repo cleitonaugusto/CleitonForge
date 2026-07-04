@@ -19,3 +19,4 @@ cforge-metrics = { path = "../cforge-metrics" }
 clap = { version = "4", features = ["derive"] }
 comfy-table = "7"
 serde_json = "1"
+rand = { version = "0.10", features = ["std_rng"] }

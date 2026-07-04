@@ -16,6 +16,7 @@ roqoqo = "1.22"
 ndarray = "0.17"
 qoqo_calculator = "~1.9"
 rand = { version = "0.10", features = ["std_rng"] }
+q1tsim = "0.5"
 
 [dev-dependencies]
 num-complex = "0.4.6"

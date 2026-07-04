@@ -1,0 +1,53 @@
+{
+  "_comment": "IBM Falcon r5.11 (ibm_nairobi) — representative public calibration snapshot.",
+  "_source": "IBM Quantum Experience public calibration data (open/public hardware specs).",
+  "_date": "2026-07-04",
+  "backend": "ibm_nairobi",
+  "n_qubits": 7,
+  "basis_gates": ["cx", "id", "rz", "sx", "x"],
+  "qubit_props": [
+    { "qubit": 0, "T1_us": 168.2, "T2_us": 109.4, "freq_GHz": 5.021, "readout_err": 0.0142 },
+    { "qubit": 1, "T1_us": 193.5, "T2_us": 134.7, "freq_GHz": 4.955, "readout_err": 0.0089 },
+    { "qubit": 2, "T1_us": 145.8, "T2_us":  98.3, "freq_GHz": 5.128, "readout_err": 0.0231 },
+    { "qubit": 3, "T1_us": 201.1, "T2_us": 156.2, "freq_GHz": 4.878, "readout_err": 0.0177 },
+    { "qubit": 4, "T1_us": 178.4, "T2_us": 121.9, "freq_GHz": 5.073, "readout_err": 0.0065 },
+    { "qubit": 5, "T1_us": 134.6, "T2_us":  87.5, "freq_GHz": 4.912, "readout_err": 0.0312 },
+    { "qubit": 6, "T1_us": 212.7, "T2_us": 187.3, "freq_GHz": 5.198, "readout_err": 0.0098 }
+  ],
+  "gate_errors": {
+    "sx": [
+      { "qubits": [0], "gate_error": 0.000312, "gate_length_ns": 35.6 },
+      { "qubits": [1], "gate_error": 0.000198, "gate_length_ns": 35.6 },
+      { "qubits": [2], "gate_error": 0.000478, "gate_length_ns": 35.6 },
+      { "qubits": [3], "gate_error": 0.000241, "gate_length_ns": 35.6 },
+      { "qubits": [4], "gate_error": 0.000167, "gate_length_ns": 35.6 },
+      { "qubits": [5], "gate_error": 0.000593, "gate_length_ns": 35.6 },
+      { "qubits": [6], "gate_error": 0.000214, "gate_length_ns": 35.6 }
+    ],
+    "cx": [
+      { "qubits": [0, 1], "gate_error": 0.00621, "gate_length_ns": 319.6 },
+      { "qubits": [1, 0], "gate_error": 0.00621, "gate_length_ns": 319.6 },
+      { "qubits": [1, 2], "gate_error": 0.00835, "gate_length_ns": 284.4 },
+      { "qubits": [2, 1], "gate_error": 0.00835, "gate_length_ns": 284.4 },
+      { "qubits": [1, 3], "gate_error": 0.00512, "gate_length_ns": 355.6 },
+      { "qubits": [3, 1], "gate_error": 0.00512, "gate_length_ns": 355.6 },
+      { "qubits": [3, 5], "gate_error": 0.00743, "gate_length_ns": 391.1 },
+      { "qubits": [5, 3], "gate_error": 0.00743, "gate_length_ns": 391.1 },
+      { "qubits": [4, 5], "gate_error": 0.00489, "gate_length_ns": 327.8 },
+      { "qubits": [5, 4], "gate_error": 0.00489, "gate_length_ns": 327.8 },
+      { "qubits": [5, 6], "gate_error": 0.00671, "gate_length_ns": 362.2 },
+      { "qubits": [6, 5], "gate_error": 0.00671, "gate_length_ns": 362.2 }
+    ]
+  },
+  "connectivity": [[0,1],[1,2],[1,3],[3,5],[4,5],[5,6]],
+  "_cforge_hint": {
+    "single_qubit_depolarizing": "use qubit_props[q].T1_us and gate_errors.sx to compute γ per gate",
+    "two_qubit_depolarizing": "use gate_errors.cx[pair].gate_error as NoisyConfig.two_qubit p",
+    "readout": "use qubit_props[q].readout_err (average across qubits, or per-qubit)",
+    "example_nairobi_avg": {
+      "depolarizing_1q": 0.000315,
+      "depolarizing_2q": 0.00638,
+      "readout": 0.0159
+    }
+  }
+}

@@ -7,8 +7,10 @@ members = [
     "cforge-metrics",
     "cforge-cli",
     "cforge-py",
+    "cforge-enterprise",
 ]
 # cforge-py requires Python headers; exclude from default cargo build/test
+# cforge-enterprise is private/commercial — included in workspace for IDE support
 default-members = [
     "cforge-core",
     "cforge-parser",

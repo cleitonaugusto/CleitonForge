@@ -1,0 +1,14 @@
+[package]
+name = "cforge-enterprise"
+version.workspace = true
+edition.workspace = true
+license = "LicenseRef-Proprietary"
+description = "Device-specific noise calibration and enterprise features for CleitonForge (private)"
+publish = false
+
+[dependencies]
+cforge-backends = { path = "../cforge-backends" }
+cforge-core     = { path = "../cforge-core" }
+num-complex     = "0.4"
+serde           = { version = "1", features = ["derive"] }
+serde_json      = "1"

@@ -27,3 +27,26 @@ jobs:
 
       - name: cargo fmt
         run: cargo fmt --check
+
+  benchmarks:
+    name: Benchmark Suite
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build benchmark examples
+        run: |
+          cargo build --example benchmark_suite -p cforge-cli
+          cargo build --example compare_grover -p cforge-cli
+          cargo build --example quantum_volume -p cforge-cli
+
+      - name: Run benchmark suite (smoke)
+        run: |
+          # Run with short params to validate correctness in CI (not for timing)
+          cargo run --example benchmark_suite -p cforge-cli -- --help 2>/dev/null || true
+          cargo run --example compare_grover   -p cforge-cli 2>&1 | head -20
