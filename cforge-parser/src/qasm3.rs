@@ -1,10 +1,12 @@
 //! OpenQASM 3 parser wrapping the `oq3_semantics` crate.
 //!
 //! Translates a QASM 3 source string into CleitonForge's canonical IR.
-//! Supports: qubit register declarations and gate applications from the
-//! stdgates.inc gate set. Measurements, classical registers, and control
-//! flow are silently skipped — they are irrelevant to the unitary
-//! simulation layer.
+//! Supports: qubit register declarations, gate applications from the stdgates
+//! gate set, and user-defined `gate { }` definitions (inlined recursively at
+//! every call site with qubit and parameter substitution).
+//!
+//! Measurements, classical registers, and control flow are silently skipped —
+//! they are irrelevant to the unitary simulation layer.
 
 use std::collections::HashMap;
 
@@ -16,6 +18,23 @@ use oq3_semantics::types::Type;
 
 use crate::error::ParseError;
 use crate::translate::translate_gate;
+
+// ── User-defined gate representation ─────────────────────────────────────────
+
+struct UserGateDef3 {
+    /// Formal qubit parameter SymbolIds, in declaration order.
+    qubit_sym_ids: Vec<SymbolId>,
+    /// Formal angle parameter SymbolIds, in declaration order.
+    angle_sym_ids: Vec<SymbolId>,
+    /// Gate body: a sequence of gate call statements.
+    body: Vec<asg::Stmt>,
+}
+
+type UserGateMap3 = HashMap<String, UserGateDef3>;
+
+const MAX_INLINE_DEPTH: usize = 32;
+
+// ── Main entry point ──────────────────────────────────────────────────────────
 
 /// Parses an OpenQASM 3 source string and returns the canonical circuit.
 pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
@@ -36,16 +55,13 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
         )));
     }
 
-    // First pass: collect qubit register declarations and assign flat indices.
-    // qubit_base: SymbolId of the register → base flat index
+    // First pass: collect qubit register declarations.
     let mut qubit_base: HashMap<SymbolId, usize> = HashMap::new();
     let mut total_qubits: usize = 0;
     let mut named_qubits: Vec<Qubit> = Vec::new();
 
     for stmt in program.stmts() {
-        let asg::Stmt::DeclareQuantum(dq) = stmt else {
-            continue;
-        };
+        let asg::Stmt::DeclareQuantum(dq) = stmt else { continue };
         let sym_id = match dq.name() {
             Ok(id) => id.clone(),
             Err(_) => continue,
@@ -66,16 +82,17 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
         total_qubits += width;
     }
 
+    // Second pass: collect user-defined gate definitions.
+    let user_gates = collect_user_gates3(program.stmts(), &symbol_table);
+
     let mut circuit = Circuit {
         qubits: named_qubits,
         operations: Vec::new(),
     };
 
-    // Second pass: translate gate applications.
+    // Third pass: translate top-level gate applications.
     for stmt in program.stmts() {
-        let asg::Stmt::GateCall(gc) = stmt else {
-            continue;
-        };
+        let asg::Stmt::GateCall(gc) = stmt else { continue };
         let sym_id = match gc.name() {
             Ok(id) => id.clone(),
             Err(_) => continue,
@@ -88,59 +105,169 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
             .map(|texpr| extract_qubit_index(texpr, &qubit_base))
             .collect::<Result<Vec<_>, _>>()?;
 
-        // Evaluate params before translate_gate so it can rewrite them (e.g. u2).
         let raw_params = match gc.params() {
             None => vec![],
             Some(plist) => plist
                 .iter()
-                .map(|texpr| eval_texpr(texpr, &symbol_table))
+                .map(|texpr| eval_texpr(texpr, &symbol_table, &HashMap::new()))
                 .collect::<Result<Vec<_>, _>>()?,
         };
 
-        let (kind, params) = translate_gate(&gate_name, raw_params)
-            .ok_or_else(|| ParseError::UnknownGate(gate_name.clone()))?;
-
-        let mut op = Operation::new(kind, qubits, params);
-        op.source_framework = Some("openqasm3".to_string());
-        op.original_gate_name = Some(gate_name);
-        circuit.push(op);
+        apply_gate_call3(
+            &gate_name,
+            &qubits,
+            &raw_params,
+            &user_gates,
+            &symbol_table,
+            &mut circuit,
+            0,
+        )?;
     }
 
     circuit.validate().map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
     Ok(circuit)
 }
 
-/// Extracts a flat qubit index from a gate operand expression.
+// ── Collect user-defined gate definitions ─────────────────────────────────────
+
+fn collect_user_gates3(stmts: &[asg::Stmt], symbol_table: &SymbolTable) -> UserGateMap3 {
+    let mut map = UserGateMap3::new();
+    for stmt in stmts {
+        let asg::Stmt::GateDefinition(gd) = stmt else { continue };
+        let Ok(name_sym) = gd.name() else { continue };
+        let gate_name = symbol_table[name_sym].name().to_string();
+
+        let qubit_sym_ids: Vec<SymbolId> = gd.qubits().iter()
+            .filter_map(|r| r.as_ref().ok().cloned())
+            .collect();
+
+        let angle_sym_ids: Vec<SymbolId> = gd.params()
+            .map(|ps| ps.iter().filter_map(|r| r.as_ref().ok().cloned()).collect())
+            .unwrap_or_default();
+
+        let body: Vec<asg::Stmt> = gd.block().statements().to_vec();
+
+        map.insert(gate_name, UserGateDef3 { qubit_sym_ids, angle_sym_ids, body });
+    }
+    map
+}
+
+// ── Gate application (built-in + user-defined) ────────────────────────────────
+
+fn apply_gate_call3(
+    gate_name:    &str,
+    qubits:       &[usize],
+    params:       &[f64],
+    user_gates:   &UserGateMap3,
+    symbol_table: &SymbolTable,
+    circuit:      &mut Circuit,
+    depth:        usize,
+) -> Result<(), ParseError> {
+    if depth > MAX_INLINE_DEPTH {
+        return Err(ParseError::SyntaxError(format!(
+            "gate inline depth limit ({MAX_INLINE_DEPTH}) exceeded at '{gate_name}'"
+        )));
+    }
+
+    if let Some((kind, final_params)) = translate_gate(gate_name, params.to_vec()) {
+        let mut op = Operation::new(kind, qubits.to_vec(), final_params);
+        op.source_framework = Some("openqasm3".to_string());
+        op.original_gate_name = Some(gate_name.to_string());
+        circuit.push(op);
+        return Ok(());
+    }
+
+    if let Some(def) = user_gates.get(gate_name) {
+        if qubits.len() != def.qubit_sym_ids.len() {
+            return Err(ParseError::SyntaxError(format!(
+                "gate '{gate_name}' expects {} qubits, got {}",
+                def.qubit_sym_ids.len(), qubits.len()
+            )));
+        }
+        return inline_user_gate3(def, qubits, params, user_gates, symbol_table, circuit, depth + 1);
+    }
+
+    Err(ParseError::UnknownGate(gate_name.to_string()))
+}
+
+/// Recursively inlines a user-defined gate body by substituting formal
+/// qubit/param SymbolIds with actual flat indices / f64 values.
+fn inline_user_gate3(
+    def:          &UserGateDef3,
+    act_qubits:   &[usize],
+    act_params:   &[f64],
+    user_gates:   &UserGateMap3,
+    symbol_table: &SymbolTable,
+    circuit:      &mut Circuit,
+    depth:        usize,
+) -> Result<(), ParseError> {
+    // Build SymbolId → flat_index map for formal qubit params.
+    let qubit_sym_map: HashMap<SymbolId, usize> = def.qubit_sym_ids.iter()
+        .zip(act_qubits.iter().copied())
+        .map(|(id, q)| (id.clone(), q))
+        .collect();
+
+    // Build SymbolId → f64 map for formal angle params.
+    let param_sym_map: HashMap<SymbolId, f64> = def.angle_sym_ids.iter()
+        .zip(act_params.iter().copied())
+        .map(|(id, v)| (id.clone(), v))
+        .collect();
+
+    for stmt in &def.body {
+        let asg::Stmt::GateCall(gc) = stmt else { continue };
+        let Ok(name_sym) = gc.name() else { continue };
+        let inner_name = symbol_table[name_sym].name().to_string();
+
+        let resolved_qubits: Vec<usize> = gc.qubits().iter()
+            .map(|texpr| extract_qubit_from_sym_map(texpr, &qubit_sym_map))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let evaluated_params: Vec<f64> = match gc.params() {
+            None => vec![],
+            Some(plist) => plist.iter()
+                .map(|texpr| eval_texpr(texpr, symbol_table, &param_sym_map))
+                .collect::<Result<Vec<_>, _>>()?,
+        };
+
+        apply_gate_call3(
+            &inner_name,
+            &resolved_qubits,
+            &evaluated_params,
+            user_gates,
+            symbol_table,
+            circuit,
+            depth,
+        )?;
+    }
+
+    Ok(())
+}
+
+// ── Qubit extraction ──────────────────────────────────────────────────────────
+
+/// Extracts a flat qubit index from a gate operand expression using the
+/// **register map** (for top-level GateCalls referencing declared qubit arrays).
 fn extract_qubit_index(
     texpr: &oq3_semantics::asg::TExpr,
     qubit_base: &HashMap<SymbolId, usize>,
 ) -> Result<usize, ParseError> {
     let go = match texpr.expression() {
         Expr::GateOperand(go) => go,
-        other => {
-            return Err(ParseError::SyntaxError(format!(
-                "expected gate operand, got {other:?}"
-            )))
-        }
+        other => return Err(ParseError::SyntaxError(format!(
+            "expected gate operand, got {other:?}"
+        ))),
     };
     match go {
         asg::GateOperand::Identifier(sym_id_result) => {
-            let sym_id = sym_id_result
-                .as_ref()
+            let sym_id = sym_id_result.as_ref()
                 .map_err(|_| ParseError::UndeclaredQubit("<error>".to_string()))?;
-            qubit_base
-                .get(sym_id)
-                .copied()
+            qubit_base.get(sym_id).copied()
                 .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))
         }
         asg::GateOperand::IndexedIdentifier(ii) => {
-            let sym_id = ii
-                .identifier()
-                .as_ref()
+            let sym_id = ii.identifier().as_ref()
                 .map_err(|_| ParseError::UndeclaredQubit("<error>".to_string()))?;
-            let base = qubit_base
-                .get(sym_id)
-                .copied()
+            let base = qubit_base.get(sym_id).copied()
                 .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))?;
             let idx = extract_index_from_operator(ii.indexes())?;
             Ok(base + idx)
@@ -152,18 +279,43 @@ fn extract_qubit_index(
     }
 }
 
-/// Extracts an integer index from the first index operator of an `IndexedIdentifier`.
-fn extract_index_from_operator(
-    indexes: &[asg::IndexOperator],
+/// Extracts a flat qubit index from a gate body operand using the
+/// **qubit_sym_map** (formal SymbolId → actual flat index).
+fn extract_qubit_from_sym_map(
+    texpr: &oq3_semantics::asg::TExpr,
+    qubit_sym_map: &HashMap<SymbolId, usize>,
 ) -> Result<usize, ParseError> {
-    let op = indexes
-        .first()
+    let go = match texpr.expression() {
+        Expr::GateOperand(go) => go,
+        other => return Err(ParseError::SyntaxError(format!(
+            "expected gate operand in body, got {other:?}"
+        ))),
+    };
+    let sym_id = match go {
+        asg::GateOperand::Identifier(r) => {
+            r.as_ref().map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?
+        }
+        asg::GateOperand::IndexedIdentifier(ii) => {
+            ii.identifier().as_ref()
+                .map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?
+        }
+        asg::GateOperand::HardwareQubit(hq) => {
+            return Err(ParseError::SyntaxError(format!(
+                "hardware qubit '{}' in gate body", hq.identifier()
+            )));
+        }
+    };
+    qubit_sym_map.get(sym_id).copied()
+        .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))
+}
+
+/// Extracts an integer index from the first index operator of an `IndexedIdentifier`.
+fn extract_index_from_operator(indexes: &[asg::IndexOperator]) -> Result<usize, ParseError> {
+    let op = indexes.first()
         .ok_or_else(|| ParseError::SyntaxError("missing qubit index".to_string()))?;
     match op {
         asg::IndexOperator::ExpressionList(el) => {
-            let texpr = el
-                .expressions
-                .first()
+            let texpr = el.expressions.first()
                 .ok_or_else(|| ParseError::SyntaxError("empty index list".to_string()))?;
             match texpr.expression() {
                 Expr::Literal(Literal::Int(il)) => Ok(*il.value() as usize),
@@ -178,34 +330,46 @@ fn extract_index_from_operator(
     }
 }
 
+// ── Parameter evaluation ──────────────────────────────────────────────────────
+
 /// Evaluates a typed expression to an `f64` parameter value.
+///
+/// `param_sym_map` maps formal parameter SymbolIds to their concrete values,
+/// used when evaluating expressions inside user-defined gate bodies.
 fn eval_texpr(
     texpr: &oq3_semantics::asg::TExpr,
     symbol_table: &SymbolTable,
+    param_sym_map: &HashMap<SymbolId, f64>,
 ) -> Result<f64, ParseError> {
     match texpr.expression() {
-        Expr::Literal(Literal::Float(fl)) => fl
-            .value()
+        Expr::Literal(Literal::Float(fl)) => fl.value()
             .parse::<f64>()
             .map_err(|_| ParseError::InvalidParam(fl.value().to_string())),
         Expr::Literal(Literal::Int(il)) => Ok(*il.value() as f64),
         Expr::Identifier(sym_id_result) => {
-            let sym_id = sym_id_result
-                .as_ref()
+            let sym_id = sym_id_result.as_ref()
                 .map_err(|_| ParseError::InvalidParam("<error sym>".to_string()))?;
+            // Check formal param map first (gate body context).
+            if let Some(&v) = param_sym_map.get(sym_id) {
+                return Ok(v);
+            }
+            // Fall back to built-in constants (pi, euler, tau).
             let name = symbol_table[sym_id].name();
             builtin_const(name).ok_or_else(|| ParseError::InvalidParam(name.to_string()))
         }
         Expr::UnaryExpr(ue) => {
-            let operand = eval_texpr(ue.operand(), symbol_table)?;
+            let operand = eval_texpr(ue.operand(), symbol_table, param_sym_map)?;
             Ok(match ue.op() {
                 UnaryOp::Minus => -operand,
                 _ => operand,
             })
         }
+        // Implicit numeric casts (e.g. int literal in float context: pi/4).
+        // Just evaluate the inner operand — the numeric value is unchanged.
+        Expr::Cast(cast) => eval_texpr(cast.operand(), symbol_table, param_sym_map),
         Expr::BinaryExpr(be) => {
-            let left = eval_texpr(be.left(), symbol_table)?;
-            let right = eval_texpr(be.right(), symbol_table)?;
+            let left  = eval_texpr(be.left(),  symbol_table, param_sym_map)?;
+            let right = eval_texpr(be.right(), symbol_table, param_sym_map)?;
             match be.op() {
                 BinaryOp::ArithOp(ArithOp::Add) => Ok(left + right),
                 BinaryOp::ArithOp(ArithOp::Sub) => Ok(left - right),
@@ -225,12 +389,14 @@ fn eval_texpr(
 /// Maps built-in OpenQASM 3 constant names to their `f64` values.
 fn builtin_const(name: &str) -> Option<f64> {
     match name {
-        "pi" => Some(std::f64::consts::PI),
-        "euler" | "e" => Some(std::f64::consts::E),
-        "tau" => Some(std::f64::consts::TAU),
-        _ => None,
+        "pi"            => Some(std::f64::consts::PI),
+        "euler" | "e"   => Some(std::f64::consts::E),
+        "tau"           => Some(std::f64::consts::TAU),
+        _               => None,
     }
 }
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -266,18 +432,12 @@ cx q[0], q[1];
 
     #[test]
     fn u2_gate_rewrites_to_u_qasm3() {
-        // u2 is not in QASM3 stdgates.inc, but some transpiled circuits
-        // still emit it. The parser must handle it via translate_gate.
         let source = r#"
 OPENQASM 3.0;
 include "stdgates.inc";
 qubit[1] q;
 u2(0, pi) q[0];
 "#;
-        // oq3_semantics may not recognise u2 as a stdgate and would
-        // return a semantic error. This test documents current behaviour:
-        // if oq3_semantics accepts it, the rewrite must produce GateKind::U.
-        // If it rejects it, the parse returns Err (acceptable for QASM3).
         match parse_qasm3(source) {
             Ok(circuit) => {
                 let op = &circuit.operations[0];
@@ -286,8 +446,7 @@ u2(0, pi) q[0];
                 assert!((op.params[0] - std::f64::consts::FRAC_PI_2).abs() < 1e-10);
             }
             Err(_) => {
-                // oq3_semantics correctly rejects non-stdgate u2; that's fine.
-                // Callers should use QASM2 for u2 circuits.
+                // oq3_semantics correctly rejects non-stdgate u2; acceptable.
             }
         }
     }
@@ -308,5 +467,66 @@ x a[0];
         assert_eq!(circuit.operations.len(), 3);
         assert_eq!(circuit.operations[2].kind, GateKind::X);
         assert_eq!(circuit.operations[2].qubits, vec![2]);
+    }
+
+    // ── Custom gate definition tests ──────────────────────────────────────────
+
+    #[test]
+    fn custom_gate_no_params_qasm3() {
+        let source = r#"
+OPENQASM 3.0;
+include "stdgates.inc";
+gate ccz a, b, c {
+    h c;
+    ccx a, b, c;
+    h c;
+}
+qubit[3] q;
+ccz q[0], q[1], q[2];
+"#;
+        let circuit = parse_qasm3(source).unwrap();
+        assert_eq!(circuit.operations.len(), 3);
+        assert_eq!(circuit.operations[0].kind, GateKind::H);
+        assert_eq!(circuit.operations[0].qubits, vec![2]);
+        assert_eq!(circuit.operations[1].kind, GateKind::Ccx);
+        assert_eq!(circuit.operations[2].kind, GateKind::H);
+        assert_eq!(circuit.operations[2].qubits, vec![2]);
+    }
+
+    #[test]
+    fn custom_gate_with_params_qasm3() {
+        let source = r#"
+OPENQASM 3.0;
+include "stdgates.inc";
+gate rzz(theta) a, b {
+    cx a, b;
+    rz(theta) b;
+    cx a, b;
+}
+qubit[2] q;
+rzz(pi/4) q[0], q[1];
+"#;
+        let circuit = parse_qasm3(source).unwrap();
+        assert_eq!(circuit.operations.len(), 3);
+        assert_eq!(circuit.operations[0].kind, GateKind::Cx);
+        assert_eq!(circuit.operations[1].kind, GateKind::Rz);
+        assert!((circuit.operations[1].params[0] - std::f64::consts::FRAC_PI_4).abs() < 1e-10);
+        assert_eq!(circuit.operations[2].kind, GateKind::Cx);
+    }
+
+    #[test]
+    fn nested_custom_gate_qasm3() {
+        let source = r#"
+OPENQASM 3.0;
+include "stdgates.inc";
+gate my_cx a, b { cx a, b; }
+gate my_bell a, b { h a; my_cx a, b; }
+qubit[2] q;
+my_bell q[0], q[1];
+"#;
+        let circuit = parse_qasm3(source).unwrap();
+        assert_eq!(circuit.operations.len(), 2);
+        assert_eq!(circuit.operations[0].kind, GateKind::H);
+        assert_eq!(circuit.operations[1].kind, GateKind::Cx);
     }
 }
