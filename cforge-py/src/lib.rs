@@ -5,9 +5,10 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use cforge_backends::{
-    BackendError, DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, RoqoqoBackend,
-    SimulationBackend, SimulationResult,
+    BackendError, DEFAULT_SEED, NativeStateVectorBackend, NoisyConfig, NoisyStatevectorBackend,
+    QuantRS2Backend, RoqoqoBackend, SimulationBackend, SimulationResult,
 };
+use cforge_backends::noise::NoiseChannel;
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::compute_stats;
 use cforge_parser::{parse_qasm2, parse_qasm3};
@@ -199,10 +200,28 @@ fn backend_for(name: &str) -> PyResult<Box<dyn SimulationBackend>> {
         "statevector" | "native" => Ok(Box::new(NativeStateVectorBackend)),
         "quantrs2" => Ok(Box::new(QuantRS2Backend)),
         "roqoqo" => Ok(Box::new(RoqoqoBackend)),
+        "noisy" => Ok(Box::new(NoisyStatevectorBackend {
+            config: NoisyConfig::depolarizing(0.001, 0.01),
+        })),
         other => Err(PyValueError::new_err(format!(
-            "unknown backend '{other}'; available: statevector, quantrs2, roqoqo"
+            "unknown backend '{other}'; available: statevector, quantrs2, roqoqo, noisy"
         ))),
     }
+}
+
+fn build_noisy_backend(
+    depolarizing_1q: Option<f64>,
+    depolarizing_2q: Option<f64>,
+    amplitude_damping: Option<f64>,
+    readout_error: Option<f64>,
+) -> Box<dyn SimulationBackend> {
+    let single_qubit = depolarizing_1q.map(|p| NoiseChannel::Depolarizing { p })
+        .or_else(|| amplitude_damping.map(|g| NoiseChannel::AmplitudeDamping { gamma: g }));
+    let two_qubit = depolarizing_2q.map(|p| NoiseChannel::Depolarizing { p })
+        .or_else(|| amplitude_damping.map(|g| NoiseChannel::AmplitudeDamping { gamma: g }));
+    Box::new(NoisyStatevectorBackend {
+        config: NoisyConfig { single_qubit, two_qubit, readout: readout_error },
+    })
 }
 
 fn into_py_result(
@@ -242,21 +261,59 @@ fn parse_from_str(source: &str) -> PyResult<Circuit> {
 ///     circuit (Circuit): Circuit built with the builder API.
 ///     shots (int): Measurement samples. ``0`` returns exact statevector only.
 ///     seed (int): PRNG seed for reproducible counts. Default: ``cforge.DEFAULT_SEED``.
-///     backend (str): ``"statevector"`` (default), ``"quantrs2"``, or ``"roqoqo"``.
+///     backend (str): ``"statevector"`` (default), ``"quantrs2"``, ``"roqoqo"``, or ``"noisy"``.
+///     depolarizing_1q (float | None): Single-qubit depolarizing error rate (0–1).
+///         If set, activates the noisy backend regardless of ``backend`` kwarg.
+///     depolarizing_2q (float | None): Two-qubit depolarizing error rate (0–1).
+///     amplitude_damping (float | None): T1 decay rate γ per gate step.
+///     readout_error (float | None): Classical bit-flip probability at measurement.
 ///
 /// Returns:
 ///     RunResult: Simulation result with ``.counts``, ``.probabilities``, ``.statevector``.
 ///
-/// Example::
+/// Example (noiseless)::
 ///
 ///     c = cforge.Circuit(2)
 ///     c.h(0); c.cx(0, 1)
 ///     r = cforge.run(c, shots=1024)
 ///     print(r.top_states(2))   # [("11", 0.5), ("00", 0.5)]
+///
+/// Example (NISQ noise)::
+///
+///     r = cforge.run(c, shots=4096, depolarizing_1q=0.001, depolarizing_2q=0.01,
+///                    readout_error=0.02)
+///     print(r.counts)   # dominated by "00"/"11", some leakage to "01"/"10"
 #[pyfunction]
-#[pyo3(signature = (circuit, shots = 0, seed = DEFAULT_SEED, backend = "statevector"))]
-fn run(circuit: &PyCircuit, shots: usize, seed: u64, backend: &str) -> PyResult<PyRunResult> {
-    let b = backend_for(backend)?;
+#[pyo3(signature = (
+    circuit,
+    shots = 0,
+    seed = DEFAULT_SEED,
+    backend = "statevector",
+    depolarizing_1q = None,
+    depolarizing_2q = None,
+    amplitude_damping = None,
+    readout_error = None,
+))]
+#[allow(clippy::too_many_arguments)]
+fn run(
+    circuit: &PyCircuit,
+    shots: usize,
+    seed: u64,
+    backend: &str,
+    depolarizing_1q:   Option<f64>,
+    depolarizing_2q:   Option<f64>,
+    amplitude_damping: Option<f64>,
+    readout_error:     Option<f64>,
+) -> PyResult<PyRunResult> {
+    let b: Box<dyn SimulationBackend> = if depolarizing_1q.is_some()
+        || depolarizing_2q.is_some()
+        || amplitude_damping.is_some()
+        || readout_error.is_some()
+    {
+        build_noisy_backend(depolarizing_1q, depolarizing_2q, amplitude_damping, readout_error)
+    } else {
+        backend_for(backend)?
+    };
     let n = circuit.inner.num_qubits();
     into_py_result(b.run(&circuit.inner, shots, seed), n)
 }
@@ -270,7 +327,11 @@ fn run(circuit: &PyCircuit, shots: usize, seed: u64, backend: &str) -> PyResult<
 ///     source (str): OpenQASM 2.0 or 3.0 source string.
 ///     shots (int): Measurement samples. ``0`` = exact statevector only.
 ///     seed (int): PRNG seed.
-///     backend (str): ``"statevector"``, ``"quantrs2"``, or ``"roqoqo"``.
+///     backend (str): ``"statevector"``, ``"quantrs2"``, ``"roqoqo"``, or ``"noisy"``.
+///     depolarizing_1q (float | None): Single-qubit depolarizing error rate.
+///     depolarizing_2q (float | None): Two-qubit depolarizing error rate.
+///     amplitude_damping (float | None): T1 amplitude damping rate γ per gate step.
+///     readout_error (float | None): Classical readout bit-flip probability.
 ///
 /// Returns:
 ///     RunResult
@@ -285,10 +346,37 @@ fn run(circuit: &PyCircuit, shots: usize, seed: u64, backend: &str) -> PyResult<
 ///     """
 ///     r = cforge.run_qasm(qasm, shots=1024)
 #[pyfunction]
-#[pyo3(signature = (source, shots = 0, seed = DEFAULT_SEED, backend = "statevector"))]
-fn run_qasm(source: &str, shots: usize, seed: u64, backend: &str) -> PyResult<PyRunResult> {
+#[pyo3(signature = (
+    source,
+    shots = 0,
+    seed = DEFAULT_SEED,
+    backend = "statevector",
+    depolarizing_1q = None,
+    depolarizing_2q = None,
+    amplitude_damping = None,
+    readout_error = None,
+))]
+#[allow(clippy::too_many_arguments)]
+fn run_qasm(
+    source: &str,
+    shots: usize,
+    seed: u64,
+    backend: &str,
+    depolarizing_1q:   Option<f64>,
+    depolarizing_2q:   Option<f64>,
+    amplitude_damping: Option<f64>,
+    readout_error:     Option<f64>,
+) -> PyResult<PyRunResult> {
     let circuit = parse_from_str(source)?;
-    let b = backend_for(backend)?;
+    let b: Box<dyn SimulationBackend> = if depolarizing_1q.is_some()
+        || depolarizing_2q.is_some()
+        || amplitude_damping.is_some()
+        || readout_error.is_some()
+    {
+        build_noisy_backend(depolarizing_1q, depolarizing_2q, amplitude_damping, readout_error)
+    } else {
+        backend_for(backend)?
+    };
     let n = circuit.num_qubits();
     into_py_result(b.run(&circuit, shots, seed), n)
 }

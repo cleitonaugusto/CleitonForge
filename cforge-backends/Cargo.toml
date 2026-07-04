@@ -15,6 +15,7 @@ quantrs2-core = "0.2.0"
 roqoqo = "1.22"
 ndarray = "0.17"
 qoqo_calculator = "~1.9"
+rand = { version = "0.10", features = ["std_rng"] }
 
 [dev-dependencies]
 num-complex = "0.4.6"

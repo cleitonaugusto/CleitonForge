@@ -319,6 +319,7 @@ dependencies = [
  "qoqo_calculator",
  "quantrs2",
  "quantrs2-core",
+ "rand 0.10.1",
  "roqoqo",
 ]
 

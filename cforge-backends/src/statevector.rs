@@ -53,7 +53,7 @@ impl SimulationBackend for NativeStateVectorBackend {
 
 // ── Gate application ─────────────────────────────────────────────────────────
 
-fn apply_gate(
+pub(crate) fn apply_gate(
     sv: &mut [Complex64],
     kind: GateKind,
     qubits: &[usize],

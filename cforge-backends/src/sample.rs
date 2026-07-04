@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use num_complex::Complex64;
+use rand::{Rng, RngExt};
 
 /// Samples `shots` measurements from the probability distribution |sv|²
 /// and returns a map from bitstring (MSB-first, e.g. "01") to count.
@@ -29,6 +30,21 @@ pub fn sample_counts(sv: &[Complex64], shots: usize, seed: u64) -> HashMap<Strin
         *counts.entry(bitstring).or_insert(0) += 1;
     }
     counts
+}
+
+/// Samples one measurement from |sv|² using an external `rand` RNG.
+///
+/// Returns a `Vec<u8>` of bits, one per qubit, index 0 = qubit 0 (LSB).
+pub(crate) fn sample_once_rng(sv: &[Complex64], rng: &mut impl Rng) -> Vec<u8> {
+    let n_qubits = sv.len().trailing_zeros() as usize;
+    let mut cdf = 0.0f64;
+    let r: f64 = rng.random();
+    let mut idx = sv.len() - 1;
+    for (i, a) in sv.iter().enumerate() {
+        cdf += a.norm_sqr();
+        if r < cdf { idx = i; break; }
+    }
+    (0..n_qubits).map(|q| ((idx >> q) & 1) as u8).collect()
 }
 
 /// Tiny deterministic LCG PRNG — no external randomness dependency.
