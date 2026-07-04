@@ -13,8 +13,10 @@
 pub mod trait_def;
 pub mod statevector;
 pub mod quantrs2_backend;
+pub mod roqoqo_backend;
 mod sample;
 
 pub use trait_def::{BackendError, DEFAULT_SEED, SimulationBackend, SimulationResult};
 pub use statevector::NativeStateVectorBackend;
 pub use quantrs2_backend::QuantRS2Backend;
+pub use roqoqo_backend::RoqoqoBackend;

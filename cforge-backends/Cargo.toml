@@ -12,6 +12,9 @@ cforge-core = { path = "../cforge-core" }
 num-complex = "0.4.6"
 quantrs2 = "0.2.0"
 quantrs2-core = "0.2.0"
+roqoqo = "1.22"
+ndarray = "0.17"
+qoqo_calculator = "~1.9"
 
 [dev-dependencies]
 num-complex = "0.4.6"

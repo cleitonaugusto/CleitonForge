@@ -5,8 +5,8 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use cforge_backends::{
-    BackendError, DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend,
-    SimulationResult,
+    BackendError, DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, RoqoqoBackend,
+    SimulationBackend, SimulationResult,
 };
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::compute_stats;
@@ -198,8 +198,9 @@ fn backend_for(name: &str) -> PyResult<Box<dyn SimulationBackend>> {
     match name {
         "statevector" | "native" => Ok(Box::new(NativeStateVectorBackend)),
         "quantrs2" => Ok(Box::new(QuantRS2Backend)),
+        "roqoqo" => Ok(Box::new(RoqoqoBackend)),
         other => Err(PyValueError::new_err(format!(
-            "unknown backend '{other}'; available: statevector, quantrs2"
+            "unknown backend '{other}'; available: statevector, quantrs2, roqoqo"
         ))),
     }
 }
@@ -241,7 +242,7 @@ fn parse_from_str(source: &str) -> PyResult<Circuit> {
 ///     circuit (Circuit): Circuit built with the builder API.
 ///     shots (int): Measurement samples. ``0`` returns exact statevector only.
 ///     seed (int): PRNG seed for reproducible counts. Default: ``cforge.DEFAULT_SEED``.
-///     backend (str): ``"statevector"`` (default) or ``"quantrs2"``.
+///     backend (str): ``"statevector"`` (default), ``"quantrs2"``, or ``"roqoqo"``.
 ///
 /// Returns:
 ///     RunResult: Simulation result with ``.counts``, ``.probabilities``, ``.statevector``.
@@ -269,7 +270,7 @@ fn run(circuit: &PyCircuit, shots: usize, seed: u64, backend: &str) -> PyResult<
 ///     source (str): OpenQASM 2.0 or 3.0 source string.
 ///     shots (int): Measurement samples. ``0`` = exact statevector only.
 ///     seed (int): PRNG seed.
-///     backend (str): ``"statevector"`` or ``"quantrs2"``.
+///     backend (str): ``"statevector"``, ``"quantrs2"``, or ``"roqoqo"``.
 ///
 /// Returns:
 ///     RunResult
