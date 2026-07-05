@@ -47,8 +47,9 @@ jobs:
           cargo build --example normalize_qaoa   -p cforge-cli
 
       - name: Smoke — Grover search (cross-backend fidelity)
-        run: cargo run --example compare_grover -p cforge-cli 2>&1 | tee grover.log
-          && grep -q "Both backends agree: YES" grover.log
+        run: |
+          cargo run --example compare_grover -p cforge-cli 2>&1 | tee grover.log
+          grep -q "Both backends agree: YES" grover.log
 
       - name: Smoke — Convention normalization (fidelity restored to 1.0)
         run: |
