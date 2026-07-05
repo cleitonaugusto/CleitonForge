@@ -1,0 +1,445 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{physics}      % \ket, \bra, \braket
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{authblk}
+\usepackage{abstract}
+\usepackage{titlesec}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{caption}
+
+\geometry{margin=2.5cm}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black,
+  urlcolor=blue!60!black,
+}
+
+\definecolor{codegreen}{rgb}{0.13,0.55,0.13}
+\definecolor{codegray}{rgb}{0.45,0.45,0.45}
+\definecolor{codeblue}{rgb}{0.0,0.3,0.7}
+\definecolor{backcolor}{rgb}{0.96,0.96,0.98}
+
+\lstdefinestyle{rust}{
+  language=C,
+  backgroundcolor=\color{backcolor},
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  stringstyle=\color{codegreen},
+  breaklines=true,
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{gray!40},
+  xleftmargin=1em,
+  xrightmargin=1em,
+}
+\lstdefinestyle{python}{
+  language=Python,
+  backgroundcolor=\color{backcolor},
+  basicstyle=\footnotesize\ttfamily,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegray}\itshape,
+  stringstyle=\color{codegreen},
+  breaklines=true,
+  frame=single,
+  framesep=4pt,
+  rulecolor=\color{gray!40},
+  xleftmargin=1em,
+  xrightmargin=1em,
+}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\title{\textbf{Neutral Cross-Framework Benchmarking Reveals\\
+       $R_z$ Sign Convention Divergence in Quantum Simulation Backends}}
+
+\author{Cleiton Augusto Correa Bezerra}
+\affil{CleitonForge Project \\ \texttt{augusto.cleiton@gmail.com}}
+\date{July 2026}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We present \textsc{CleitonForge}, a neutral benchmarking layer for quantum
+circuit simulation implemented in Rust. The framework routes identical circuits
+through a canonical intermediate representation (IR) to multiple independent
+simulation backends, enabling direct cross-backend comparison without
+framework-specific assumptions.
+
+Benchmarking four backends---a native statevector implementation, \texttt{quantrs2},
+\texttt{roqoqo}, and \texttt{q1tsim}---we identify a sign convention
+disagreement in the $R_z$ rotation gate. The divergence produces
+cross-backend fidelity $F = 0.0$ on QAOA and VQE circuits but is
+\emph{invisible} to Clifford benchmarks and the IBM Quantum Volume test,
+because Haar-random circuits average over all rotation angles.
+
+We characterize the affected gate family ($R_z$, Phase, $CR_z$, $CP$, $U$,
+$CU$), implement a convention normalization transpiler that restores fidelity
+to unity, and discuss implications for variational quantum algorithm
+portability. \textsc{CleitonForge} is open source (Apache 2.0) and available
+at \url{https://github.com/cleitonaugusto/cleitonforge}.
+\end{abstract}
+
+\textbf{Keywords:} quantum simulation, benchmarking, convention normalization,
+QAOA, statevector simulation, Rust, open source.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+
+The quantum software ecosystem has produced several high-quality statevector
+simulation libraries in recent years. Users writing variational quantum algorithms
+(QAOA, VQE, ADAPT-VQE) often prototype on one framework and execute on another
+or on real hardware. Implicit in this workflow is an assumption: that the same
+circuit, expressed in the same notation, produces the same quantum state across
+all simulation backends.
+
+This assumption fails silently in the presence of gate convention
+disagreements. Unlike bugs that produce incorrect results on \emph{every} input,
+convention disagreements produce correct results on most circuits (Clifford
+gates, random circuits) while silently diverging on exactly the circuits that
+matter most in practice: parameterized circuits with specific, non-trivial
+angles.
+
+\textsc{CleitonForge} was designed to surface this class of discrepancy. By
+maintaining strict neutrality---no built-in preference for any framework, all
+backends fed the same canonical IR---we can attribute observed fidelity
+differences to backend-level convention choices rather than circuit-encoding
+artifacts.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{CleitonForge Architecture}
+
+\textsc{CleitonForge} is a Rust workspace with four crates: \texttt{cforge-core}
+(canonical IR), \texttt{cforge-parser} (OpenQASM~2/3 parsers and the normalization
+transpiler), \texttt{cforge-backends} (adapters for each simulator), and
+\texttt{cforge-metrics} (cross-backend comparison). Python bindings are provided
+via \texttt{cforge-py} (PyO3/maturin).
+
+\subsection{Canonical intermediate representation}
+
+Every backend adapter receives a \texttt{Circuit} value---a flat sequence of
+typed \texttt{Operation} records, each carrying a \texttt{GateKind} enum, qubit
+indices, and floating-point parameters. No framework-specific types cross the
+adapter boundary. The input to every backend is bit-for-bit identical.
+
+\begin{lstlisting}[style=rust, caption={Canonical IR excerpt (\texttt{cforge-core}).}]
+pub struct Operation {
+    pub kind:   GateKind,     // typed gate enum
+    pub qubits: Vec<usize>,   // qubit indices
+    pub params: Vec<f64>,     // rotation angles
+}
+\end{lstlisting}
+
+\subsection{Backends}
+
+Four statevector backends are integrated:
+\begin{enumerate}
+  \item \textbf{Native} --- handwritten statevector simulator in Rust (reference implementation).
+  \item \textbf{quantrs2} --- \texttt{quantrs2-core v0.2.0}, a Rust quantum simulation library.
+  \item \textbf{roqoqo} --- HQS Quantum Simulations' \texttt{roqoqo v1.22.1} backend.
+  \item \textbf{q1tsim} --- \texttt{q1tsim v0.5.0}, a gate-based Rust simulator.
+\end{enumerate}
+
+Additionally, \textsc{CleitonForge} provides a \textbf{DensityMatrixBackend}
+(exact Kraus noise, up to 12 qubits) and a \textbf{NoisyStatevectorBackend}
+(Monte Carlo wave-function trajectories).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The $R_z$ Sign Convention Divergence}
+
+\subsection{Gate definition}
+
+The $R_z(\lambda)$ gate is ubiquitous in quantum computing. IBM Quantum, Qiskit,
+and the OpenQASM 3 standard library (\texttt{stdgates.inc}) define it as:
+
+\begin{equation}
+  R_z(\lambda)_{\mathrm{IBM}} =
+  \begin{pmatrix} e^{-i\lambda/2} & 0 \\ 0 & e^{+i\lambda/2} \end{pmatrix}
+  \label{eq:rz-ibm}
+\end{equation}
+
+The three backends native, \texttt{roqoqo}, and \texttt{q1tsim} all implement
+\cref{eq:rz-ibm}. The \texttt{quantrs2-core} library uses the opposite sign:
+
+\begin{equation}
+  R_z(\lambda)_{\mathrm{reversed}} =
+  \begin{pmatrix} e^{+i\lambda/2} & 0 \\ 0 & e^{-i\lambda/2} \end{pmatrix}
+  \label{eq:rz-reversed}
+\end{equation}
+
+Both matrices are valid $R_z$ definitions---they differ by the global phase
+convention of the computational basis. The choice is internally consistent
+within each framework. However, when circuits are shared across frameworks
+assuming a single convention, the mismatch becomes observable.
+
+\subsection{Fidelity under the divergence}
+
+Consider $\lambda = \pi/4$. Under \cref{eq:rz-ibm}: $R_z(\pi/4)\ket{0} =
+e^{-i\pi/8}\ket{0}$. Under \cref{eq:rz-reversed}: $R_z(\pi/4)\ket{0} =
+e^{+i\pi/8}\ket{0}$. The states are related by a global phase and remain
+physically equivalent for single-qubit circuits.
+
+In multi-qubit circuits, however, the phase becomes \emph{relative} when the
+gate appears between entangling operations. For a QAOA cost layer
+$e^{-i\gamma Z_0 Z_1}$ implemented as $\mathrm{CX} \cdot R_z(2\gamma) \cdot \mathrm{CX}$,
+the effective two-qubit unitary differs between conventions. At $\gamma = -3\pi/4$:
+the output states of the two conventions are orthogonal, yielding fidelity
+
+\begin{equation}
+  F = \abs{\braket{\psi_{\mathrm{IBM}}}{\psi_{\mathrm{reversed}}}}^2 = 0.
+\end{equation}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Experimental Results}
+
+\subsection{QAOA MaxCut benchmark}
+
+We run the QAOA MaxCut circuit for the complete graph $K_2$ (2 qubits, 1 layer)
+with $\gamma = -3\pi/4$, $\beta = -\pi/8$. Cross-backend statevector fidelity
+$F = \abs{\braket{\psi_A}{\psi_B}}^2$ is measured for all pairs.
+
+\begin{table}[h!]
+\centering
+\caption{Cross-backend fidelity on QAOA MaxCut ($K_2$, $\gamma=-3\pi/4$, $\beta=-\pi/8$).}
+\label{tab:qaoa-fidelity}
+\begin{tabular}{llrc}
+\toprule
+Backend A & Backend B & Fidelity & Status \\
+\midrule
+native   & roqoqo   & 1.00000000 & Agree \\
+native   & q1tsim   & 1.00000000 & Agree \\
+roqoqo   & q1tsim   & 1.00000000 & Agree \\
+native   & quantrs2 & 0.00000000 & Diverge \\
+roqoqo   & quantrs2 & 0.00000000 & Diverge \\
+q1tsim   & quantrs2 & 0.00000000 & Diverge \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Clifford benchmarks: no divergence}
+
+Bell state, GHZ state, Bernstein--Vazirani, and Grover search all produce
+cross-backend fidelity $F = 1.0$ for every pair of backends. These circuits
+contain no $R_z$ gates at non-trivial angles, so the sign convention is
+immaterial.
+
+\subsection{Quantum Volume: also insensitive}
+
+The IBM Quantum Volume benchmark~\cite{cross2019validating} evaluates simulators
+using Haar-random $\mathrm{SU}(4)$ circuits. We compute the heavy-output
+generation (HOG) fraction across 100 trials per circuit width.
+
+\begin{table}[h!]
+\centering
+\caption{Quantum Volume HOG fractions (100 trials, seed fixed). All four backends
+         agree to 4 decimal places. QV$= 2^n$ where HOG~$> 2/3$.}
+\label{tab:qv}
+\begin{tabular}{ccccccc}
+\toprule
+Width $n$ & QV & native & quantrs2 & roqoqo & q1tsim \\
+\midrule
+2 & ---    & 0.5355 & 0.5355 & 0.5355 & 0.5355 \\
+3 & 8      & 0.7340 & 0.7340 & 0.7340 & 0.7340 \\
+4 & 16     & 0.7991 & 0.7991 & 0.7991 & 0.7991 \\
+5 & 32     & 0.8459 & 0.8459 & 0.8459 & 0.8459 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Why QV is insensitive.} Haar-random $\mathrm{SU}(4)$ circuits apply
+$R_z$ at uniformly-distributed random angles. The sign flip $\lambda \to
+-\lambda$ maps one random angle to another random angle drawn from the same
+distribution. In expectation, the HOG fraction is unchanged. Only circuits
+with \emph{specific} angles---such as QAOA's $\gamma$ and $\beta$---expose the
+divergence.
+
+\subsection{Performance}
+
+All benchmarks run in release mode on a single core.
+
+\begin{table}[h!]
+\centering
+\caption{Benchmark suite wall times (release build, single core).}
+\label{tab:timing}
+\begin{tabular}{lccr}
+\toprule
+Circuit & Qubits & Gates & Time (ms) \\
+\midrule
+Bell state                & 2 & 2  & 0.6 \\
+GHZ state                 & 3 & 3  & 0.4 \\
+QFT $\ket{100}$           & 3 & 8  & 0.4 \\
+Bernstein--Vazirani       & 3 & 8  & 0.3 \\
+Grover search             & 3 & 43 & 0.3 \\
+QAOA MaxCut ($K_2$)       & 2 & 7  & 0.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Convention Normalization Transpiler}
+
+We implement a circuit transformation that converts between the two conventions
+by negating angles on all $R_z$-family gates. The transformation is:
+
+\begin{equation}
+  \text{normalize}(R_z(\lambda)) = R_z(-\lambda)
+\end{equation}
+
+and analogously for $\text{Phase}(\lambda)$, $CR_z(\lambda)$, $CP(\lambda)$.
+For the general unitary $U(\theta, \phi, \lambda)$, only $\phi$ and $\lambda$
+are negated; $\theta$ is an $R_y$-style angle unaffected by the $R_z$
+convention. For $CU(\theta, \phi, \lambda, \gamma)$, the global phase offset
+$\gamma$ is also negated.
+
+The transformation is implemented in \texttt{cforge\_parser::normalizer} and
+exposed to Python as:
+
+\begin{lstlisting}[style=python, caption={Convention normalization in Python.}]
+import cforge
+
+# Normalize from quantrs2 convention to IBM/Qiskit convention:
+fixed = cforge.normalize(circuit, from_convention="reversed",
+                                  to_convention="standard")
+
+# Or directly from QASM source:
+fixed = cforge.normalize_qasm(qasm_source)
+\end{lstlisting}
+
+After normalization, cross-backend fidelity between native and quantrs2
+on the QAOA circuit is restored to $F = 1.00000000$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Discussion}
+
+\subsection{Implications for variational algorithms}
+
+QAOA, VQE, ADAPT-VQE, and quantum machine learning circuits all rely on
+$R_z$-family gates at angles determined by a classical optimizer. Users who
+develop and optimize these circuits using \texttt{quantrs2} and then execute
+them on IBM hardware, or compare with \texttt{roqoqo}-based simulators, will
+silently obtain incorrect variational parameter landscapes. The optimization
+will converge to the wrong parameters.
+
+This class of error is particularly dangerous because:
+\begin{enumerate}
+  \item It is invisible to unit tests using Clifford gates.
+  \item It is invisible to Quantum Volume and similar random-circuit benchmarks.
+  \item The magnitude of the error is maximal ($F=0$) rather than small---there is no gradual degradation to warn the user.
+\end{enumerate}
+
+\subsection{Why the divergence exists}
+
+The $R_z$ gate has two natural conventions depending on whether one considers
+it a rotation of the qubit state or a rotation of the coordinate frame. The
+IBM/Qiskit convention follows the standard physics rotation operator
+$e^{-i\lambda Z/2}$. The reversed convention is $e^{+i\lambda Z/2}$, which is
+the adjoint. Both are internally consistent and produce correct results for
+circuits that are written and executed entirely within the same framework.
+
+\subsection{Recommendation}
+
+Framework authors should document their $R_z$ matrix definition explicitly in
+the API reference, and ideally add a machine-readable metadata field in their
+circuit representations. The OpenQASM standard~\cite{cross2022openqasm3}
+specifies the IBM convention, and frameworks targeting hardware compatibility
+should follow it.
+
+Users exchanging circuits across frameworks should run a convention detection
+test (a simple QAOA or single-qubit $R_z(\pi/4)$ fidelity check) before trusting
+cross-framework results.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Related Work}
+
+Cross-platform quantum circuit compatibility has been studied in the context of
+hardware transpilation~\cite{qiskit2023}. The concept of neutral benchmarking
+layers draws from classical compiler testing~\cite{yang2011finding}. The Quantum
+Volume metric was introduced by Cross \emph{et al.}~\cite{cross2019validating}
+as a hardware-independent performance metric.
+
+To our knowledge, this is the first systematic multi-backend fidelity comparison
+that explicitly identifies $R_z$ sign convention divergence as a source of
+silent cross-backend disagreement in variational algorithm simulation.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+
+We have demonstrated that the $R_z$ gate sign convention is not universally
+agreed upon among Rust quantum simulation libraries, and that this disagreement
+produces catastrophic ($F=0$) fidelity loss on QAOA circuits while remaining
+invisible to standard benchmarks. The \textsc{CleitonForge} neutral benchmarking
+framework identified this discrepancy by routing identical circuits through four
+independent backends using a canonical intermediate representation.
+
+The normalization transpiler provided in \textsc{CleitonForge} allows users to
+correct circuits for any target backend convention. Future work includes extending
+the benchmark to additional frameworks, automating convention detection via backend
+introspection, and extending the enterprise edition to provide per-device convention
+calibration tables for hybrid classical-quantum workflows.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Reproducibility}
+
+All results are fully reproducible from the \textsc{CleitonForge} repository:
+
+\begin{lstlisting}[style=rust]
+git clone https://github.com/cleitonaugusto/cleitonforge
+cd cleitonforge
+cargo run --release --example benchmark_suite  -p cforge-cli
+cargo run --release --example quantum_volume   -p cforge-cli
+cargo run --release --example normalize_qaoa   -p cforge-cli
+\end{lstlisting}
+
+A Jupyter notebook reproducing all figures is at \texttt{notebooks/convention\_demo.ipynb}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section*{Acknowledgments}
+
+The author thanks the maintainers of quantrs2, roqoqo, and q1tsim for their
+work on open-source quantum simulation infrastructure, which made this
+comparison possible.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{cross2019validating}
+A.~W. Cross, L.~S. Bishop, S.~Sheldon, P.~D. Nation, and J.~M. Gambetta,
+\emph{Validating quantum computers using randomized model circuits},
+Physical Review A, 100:032328, 2019.
+
+\bibitem{cross2022openqasm3}
+A.~W. Cross, A.~Javadi-Abhari, T.~Alexander, N.~de~Beaudrap, L.~S. Bishop,
+S.~Heidel, \emph{et al.},
+\emph{OpenQASM 3: A broader and deeper quantum assembly language},
+ACM Transactions on Quantum Computing, 3(3):1--50, 2022.
+
+\bibitem{qiskit2023}
+Qiskit contributors,
+\emph{Qiskit: An open-source framework for quantum computing}, 2023.
+\url{https://github.com/Qiskit/qiskit}
+
+\bibitem{yang2011finding}
+X.~Yang, Y.~Chen, E.~Eide, and J.~Regehr,
+\emph{Finding and understanding bugs in C compilers},
+In \emph{PLDI '11}, pages 283--294, 2011.
+
+\end{thebibliography}
+
+\end{document}
