@@ -20,10 +20,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: cargo test
-        run: cargo test
+        run: cargo test --workspace
 
       - name: cargo clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --workspace -- -D warnings
 
       - name: cargo fmt
         run: cargo fmt --check
@@ -41,12 +41,34 @@ jobs:
 
       - name: Build benchmark examples
         run: |
-          cargo build --example benchmark_suite -p cforge-cli
-          cargo build --example compare_grover -p cforge-cli
-          cargo build --example quantum_volume -p cforge-cli
+          cargo build --example benchmark_suite  -p cforge-cli
+          cargo build --example compare_grover   -p cforge-cli
+          cargo build --example quantum_volume   -p cforge-cli
+          cargo build --example normalize_qaoa   -p cforge-cli
 
-      - name: Run benchmark suite (smoke)
+      - name: Smoke — Grover search (cross-backend fidelity)
+        run: cargo run --example compare_grover -p cforge-cli 2>&1 | tee grover.log
+          && grep -q "Both backends agree: YES" grover.log
+
+      - name: Smoke — Convention normalization (fidelity restored to 1.0)
         run: |
-          # Run with short params to validate correctness in CI (not for timing)
-          cargo run --example benchmark_suite -p cforge-cli -- --help 2>/dev/null || true
-          cargo run --example compare_grover   -p cforge-cli 2>&1 | head -20
+          cargo run --example normalize_qaoa -p cforge-cli 2>&1 | tee normalize.log
+          grep -q "Normalization working correctly" normalize.log
+
+      - name: Smoke — Quantum Volume (all 4 backends, HOG threshold)
+        run: |
+          cargo run --example quantum_volume -p cforge-cli 2>&1 | tee qv.log
+          grep -q "2^5=32" qv.log
+
+      - name: Smoke — Full benchmark suite
+        run: |
+          cargo run --example benchmark_suite -p cforge-cli 2>&1 | tee bench.log
+          grep -q "All benchmarks passed" bench.log
+
+      - name: Upload benchmark logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-logs
+          path: "*.log"
+          retention-days: 7

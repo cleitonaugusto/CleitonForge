@@ -8,11 +8,13 @@
 //! backends and metrics never need to understand a source format.
 
 pub mod error;
+pub mod normalizer;
 pub mod qasm2;
 pub mod qasm3;
 mod translate;
 
 pub use cforge_core::{Circuit, GateKind, Operation};
 pub use error::ParseError;
+pub use normalizer::{normalize_convention, RzConvention};
 pub use qasm2::parse_qasm2;
 pub use qasm3::parse_qasm3;
