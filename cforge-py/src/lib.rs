@@ -12,7 +12,7 @@ use cforge_backends::{
 use cforge_backends::noise::NoiseChannel;
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::compute_stats;
-use cforge_parser::{parse_qasm2, parse_qasm3};
+use cforge_parser::{normalize_convention, parse_qasm2, parse_qasm3, RzConvention};
 
 // ── PyCircuit ─────────────────────────────────────────────────────────────────
 
@@ -256,6 +256,18 @@ fn parse_from_str(source: &str) -> PyResult<Circuit> {
     }
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+fn convention_from_str(s: &str) -> PyResult<RzConvention> {
+    match s {
+        "standard" | "ibm" | "qiskit" => Ok(RzConvention::Standard),
+        "reversed" | "quantrs2"       => Ok(RzConvention::Reversed),
+        other => Err(PyValueError::new_err(format!(
+            "unknown convention '{other}'; use 'standard' (IBM/Qiskit) or 'reversed' (quantrs2)"
+        ))),
+    }
+}
+
 // ── Public functions ──────────────────────────────────────────────────────────
 
 /// Simulate a circuit and return measurement results.
@@ -399,6 +411,104 @@ fn validate_qasm(source: &str) -> PyResult<HashMap<&'static str, usize>> {
     Ok(m)
 }
 
+/// Rewrite a circuit's Rz-family gate angles to match a target convention.
+///
+/// Returns a **new** :class:`Circuit`; the original is unchanged.
+///
+/// Conventions
+/// -----------
+/// ``"standard"`` (aliases: ``"ibm"``, ``"qiskit"``)
+///     ``Rz(λ) = [[e^{-iλ/2}, 0], [0, e^{+iλ/2}]]``
+///     Used by: CleitonForge native, roqoqo, q1tsim, IBM Quantum hardware.
+///
+/// ``"reversed"`` (alias: ``"quantrs2"``)
+///     ``Rz(λ) = [[e^{+iλ/2}, 0], [0, e^{-iλ/2}]]``
+///     Used by: quantrs2-core.
+///
+/// Gates affected
+/// --------------
+/// ``rz``, ``p`` (phase), ``crz``, ``cp``, ``u`` (phi/lambda only), ``cu`` (phi/lambda/gamma).
+/// ``rx``, ``ry``, ``h``, ``cx`` and all Clifford gates are left unchanged.
+///
+/// Args:
+///     circuit (Circuit): Source circuit.
+///     from_convention (str): Convention the circuit was written for. Default: ``"reversed"``.
+///     to_convention (str): Target convention. Default: ``"standard"``.
+///
+/// Returns:
+///     Circuit: New normalized circuit.
+///
+/// Example::
+///
+///     import cforge, math
+///
+///     # QAOA circuit written assuming quantrs2 convention
+///     c = cforge.Circuit(2)
+///     c.h(0); c.h(1)
+///     c.cx(0, 1); c.rz(-3 * math.pi / 2, 1); c.cx(0, 1)
+///     c.rx(-math.pi / 4, 0); c.rx(-math.pi / 4, 1)
+///
+///     fixed = cforge.normalize(c)                   # Reversed → Standard
+///     r_native  = cforge.run(c,     backend="statevector")
+///     r_q2_raw  = cforge.run(c,     backend="quantrs2")
+///     r_q2_norm = cforge.run(fixed, backend="quantrs2")
+///
+///     # fidelity helper
+///     def fidelity(a, b):
+///         s = sum(complex(ar, ai).conjugate() * complex(br, bi)
+///                 for (ar, ai), (br, bi) in zip(a, b))
+///         return abs(s) ** 2
+///
+///     print(fidelity(r_native.statevector, r_q2_raw.statevector))   # ≈ 0.0
+///     print(fidelity(r_native.statevector, r_q2_norm.statevector))  # ≈ 1.0
+#[pyfunction]
+#[pyo3(signature = (circuit, from_convention = "reversed", to_convention = "standard"))]
+fn normalize(
+    circuit: &PyCircuit,
+    from_convention: &str,
+    to_convention: &str,
+) -> PyResult<PyCircuit> {
+    let from = convention_from_str(from_convention)?;
+    let to   = convention_from_str(to_convention)?;
+    Ok(PyCircuit { inner: normalize_convention(&circuit.inner, from, to) })
+}
+
+/// Parse an OpenQASM string and normalize its Rz convention in one step.
+///
+/// Equivalent to ``cforge.normalize(cforge.Circuit.from_qasm(source), ...)``.
+///
+/// Args:
+///     source (str): OpenQASM 2.0 or 3.0 source.
+///     from_convention (str): Convention assumed by the source. Default: ``"reversed"``.
+///     to_convention (str): Target convention. Default: ``"standard"``.
+///
+/// Returns:
+///     Circuit: Parsed and normalized circuit.
+///
+/// Example::
+///
+///     qaoa_qasm = """
+///     OPENQASM 2.0;
+///     qreg q[2];
+///     h q[0]; h q[1];
+///     cx q[0],q[1]; rz(-4.71238898) q[1]; cx q[0],q[1];
+///     rx(-0.39269908) q[0]; rx(-0.39269908) q[1];
+///     """
+///     fixed_circuit = cforge.normalize_qasm(qaoa_qasm)
+///     r = cforge.run(fixed_circuit, backend="quantrs2")
+#[pyfunction]
+#[pyo3(signature = (source, from_convention = "reversed", to_convention = "standard"))]
+fn normalize_qasm(
+    source: &str,
+    from_convention: &str,
+    to_convention: &str,
+) -> PyResult<PyCircuit> {
+    let circuit = parse_from_str(source)?;
+    let from = convention_from_str(from_convention)?;
+    let to   = convention_from_str(to_convention)?;
+    Ok(PyCircuit { inner: normalize_convention(&circuit, from, to) })
+}
+
 // ── Module ────────────────────────────────────────────────────────────────────
 
 #[pymodule]
@@ -408,6 +518,10 @@ fn cleitonforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run, m)?)?;
     m.add_function(wrap_pyfunction!(run_qasm, m)?)?;
     m.add_function(wrap_pyfunction!(validate_qasm, m)?)?;
+    m.add_function(wrap_pyfunction!(normalize, m)?)?;
+    m.add_function(wrap_pyfunction!(normalize_qasm, m)?)?;
     m.add("DEFAULT_SEED", DEFAULT_SEED)?;
+    m.add("CONVENTION_STANDARD", "standard")?;
+    m.add("CONVENTION_REVERSED", "reversed")?;
     Ok(())
 }
