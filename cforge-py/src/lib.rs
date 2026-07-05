@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 
 use cforge_backends::{
     BackendError, DEFAULT_SEED, DensityMatrixBackend, NativeStateVectorBackend, NoisyConfig,
-    NoisyStatevectorBackend, Q1tSimBackend, QuantRS2Backend, RoqoqoBackend,
+    NoisyStatevectorBackend, QuantRS2Backend, RoqoqoBackend,
     SimulationBackend, SimulationResult,
 };
 use cforge_backends::noise::NoiseChannel;
@@ -204,10 +204,9 @@ fn backend_for(name: &str) -> PyResult<Box<dyn SimulationBackend>> {
         "noisy" => Ok(Box::new(NoisyStatevectorBackend {
             config: NoisyConfig::depolarizing(0.001, 0.01),
         })),
-        "q1tsim" => Ok(Box::new(Q1tSimBackend)),
         "density-matrix" | "dm" => Ok(Box::new(DensityMatrixBackend::default())),
         other => Err(PyValueError::new_err(format!(
-            "unknown backend '{other}'; available: statevector, quantrs2, roqoqo, noisy, q1tsim, density-matrix"
+            "unknown backend '{other}'; available: statevector, quantrs2, roqoqo, noisy, density-matrix"
         ))),
     }
 }

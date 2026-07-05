@@ -14,7 +14,7 @@ path = "src/main.rs"
 [dependencies]
 cforge-core = { path = "../cforge-core" }
 cforge-parser = { path = "../cforge-parser" }
-cforge-backends = { path = "../cforge-backends" }
+cforge-backends = { path = "../cforge-backends", features = ["q1tsim"] }
 cforge-metrics = { path = "../cforge-metrics" }
 clap = { version = "4", features = ["derive"] }
 comfy-table = "7"
