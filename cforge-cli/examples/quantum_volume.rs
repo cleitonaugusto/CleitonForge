@@ -27,7 +27,7 @@ use std::f64::consts::PI;
 use rand::rngs::SmallRng;
 use rand::{Rng, RngExt, SeedableRng};
 
-use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, RoqoqoBackend, SimulationBackend};
+use cforge_backends::{NativeStateVectorBackend, Q1tSimBackend, QuantRS2Backend, RoqoqoBackend, SimulationBackend};
 use cforge_core::{Circuit, GateKind, Operation};
 
 const TRIALS:    usize = 100;
@@ -47,6 +47,7 @@ fn main() {
         ("native",   &NativeStateVectorBackend),
         ("quantrs2", &QuantRS2Backend),
         ("roqoqo",   &RoqoqoBackend),
+        ("q1tsim",   &Q1tSimBackend),
     ];
 
     // Header
