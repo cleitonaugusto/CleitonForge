@@ -1,6 +1,6 @@
 pub mod ibm_profile;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum};
 use comfy_table::{Table, presets::UTF8_FULL};
@@ -161,7 +161,7 @@ fn print_table(
 }
 
 fn print_json(
-    path: &PathBuf,
+    path: &Path,
     circuit: &cforge_core::Circuit,
     stats: &cforge_metrics::CircuitStats,
     shots: usize,

@@ -1,3 +1,6 @@
+// PyO3's ? operator triggers useless_conversion when PyErr propagates through PyResult functions.
+#![allow(clippy::useless_conversion)]
+
 use std::collections::HashMap;
 use std::path::Path;
 
