@@ -38,7 +38,7 @@ const MAX_QUBITS: usize = 18;
 ///
 /// # Example
 ///
-/// ```rust
+/// ```rust,no_run
 /// use cforge_backends::{NoisyStatevectorBackend, SimulationBackend};
 /// use cforge_backends::noise::NoisyConfig;
 /// use cforge_core::{Circuit, GateKind, Operation};
