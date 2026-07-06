@@ -77,7 +77,7 @@ impl SimulationBackend for NoisyStatevectorBackend {
 
         for _ in 0..trajectories {
             last_sv = run_trajectory(circuit, &self.config, &mut rng)
-                .map_err(|e| BackendError(e))?;
+                .map_err(BackendError)?;
 
             if shots > 0 {
                 let mut bits = sample_once_rng(&last_sv, &mut rng);

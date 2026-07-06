@@ -44,14 +44,9 @@ const MAX_QUBITS: usize = 12;
 ///
 /// With `config = None` it behaves as a noiseless simulator but tracks ρ
 /// rather than |ψ⟩, which is useful for testing and educational purposes.
+#[derive(Default)]
 pub struct DensityMatrixBackend {
     pub config: Option<NoisyConfig>,
-}
-
-impl Default for DensityMatrixBackend {
-    fn default() -> Self {
-        Self { config: None }
-    }
 }
 
 impl SimulationBackend for DensityMatrixBackend {

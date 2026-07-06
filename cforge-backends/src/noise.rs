@@ -137,8 +137,8 @@ fn apply_amplitude_damping(sv: &mut [Complex64], k: usize, gamma: f64, rng: &mut
     } else {
         // Apply K0: damp |1⟩ amplitude
         let s = (1.0 - gamma).sqrt();
-        for i in 0..sv.len() {
-            if i & bit != 0 { sv[i] *= s; }
+        for (i, amp) in sv.iter_mut().enumerate() {
+            if i & bit != 0 { *amp *= s; }
         }
     }
     renorm(sv);
