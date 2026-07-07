@@ -91,8 +91,8 @@ fn normalized_op(op: &Operation) -> Operation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::f64::consts::PI;
     use cforge_core::Operation;
+    use std::f64::consts::PI;
 
     fn rz_circuit(lambda: f64) -> Circuit {
         let mut c = Circuit::new(1);
@@ -103,14 +103,19 @@ mod tests {
     #[test]
     fn noop_when_same_convention() {
         let original = rz_circuit(PI / 4.0);
-        let normalized = normalize_convention(&original, RzConvention::Standard, RzConvention::Standard);
-        assert_eq!(original.operations[0].params[0], normalized.operations[0].params[0]);
+        let normalized =
+            normalize_convention(&original, RzConvention::Standard, RzConvention::Standard);
+        assert_eq!(
+            original.operations[0].params[0],
+            normalized.operations[0].params[0]
+        );
     }
 
     #[test]
     fn rz_angle_negated_on_convention_flip() {
         let circuit = rz_circuit(PI / 4.0);
-        let normalized = normalize_convention(&circuit, RzConvention::Reversed, RzConvention::Standard);
+        let normalized =
+            normalize_convention(&circuit, RzConvention::Reversed, RzConvention::Standard);
         assert!((normalized.operations[0].params[0] - (-PI / 4.0)).abs() < 1e-15);
     }
 
@@ -136,10 +141,14 @@ mod tests {
         let phi = 0.7;
         let lambda = -0.3;
         let mut c = Circuit::new(1);
-        c.push(Operation::new(GateKind::U, vec![0], vec![theta, phi, lambda]));
+        c.push(Operation::new(
+            GateKind::U,
+            vec![0],
+            vec![theta, phi, lambda],
+        ));
         let n = normalize_convention(&c, RzConvention::Reversed, RzConvention::Standard);
         let p = &n.operations[0].params;
-        assert!((p[0] - theta).abs() < 1e-15);  // θ unchanged
+        assert!((p[0] - theta).abs() < 1e-15); // θ unchanged
         assert!((p[1] - (-phi)).abs() < 1e-15);
         assert!((p[2] - (-lambda)).abs() < 1e-15);
     }
@@ -147,7 +156,7 @@ mod tests {
     #[test]
     fn non_rz_gates_unchanged() {
         let mut c = Circuit::new(2);
-        c.push(Operation::new(GateKind::H,  vec![0], vec![]));
+        c.push(Operation::new(GateKind::H, vec![0], vec![]));
         c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
         c.push(Operation::new(GateKind::Rx, vec![0], vec![PI / 2.0]));
         c.push(Operation::new(GateKind::Ry, vec![1], vec![PI / 3.0]));
@@ -159,7 +168,7 @@ mod tests {
     fn crz_and_cp_negated() {
         let mut c = Circuit::new(2);
         c.push(Operation::new(GateKind::Crz, vec![0, 1], vec![PI]));
-        c.push(Operation::new(GateKind::Cp,  vec![0, 1], vec![PI / 4.0]));
+        c.push(Operation::new(GateKind::Cp, vec![0, 1], vec![PI / 4.0]));
         let n = normalize_convention(&c, RzConvention::Reversed, RzConvention::Standard);
         assert!((n.operations[0].params[0] - (-PI)).abs() < 1e-15);
         assert!((n.operations[1].params[0] - (-PI / 4.0)).abs() < 1e-15);

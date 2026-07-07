@@ -24,9 +24,9 @@
 //! for community noise models — users can switch without changing their circuit code.
 
 pub mod device_noise;
-pub mod zne;
 pub mod readout_mitigation;
+pub mod zne;
 
 pub use device_noise::{DeviceNoiseModel, ThermalRelaxationChannel};
-pub use zne::ZneEstimator;
 pub use readout_mitigation::ReadoutMitigationMatrix;
+pub use zne::ZneEstimator;

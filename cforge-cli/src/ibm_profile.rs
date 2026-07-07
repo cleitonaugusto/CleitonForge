@@ -38,8 +38,8 @@ impl IbmProfile {
 /// It reads average SX, CX, and readout error rates from the JSON.
 pub fn parse_ibm_profile(json: &str) -> Result<IbmProfile, String> {
     // Use serde_json (already a dep in cforge-cli) for proper parsing
-    let v: serde_json::Value = serde_json::from_str(json)
-        .map_err(|e| format!("JSON parse error: {e}"))?;
+    let v: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| format!("JSON parse error: {e}"))?;
 
     let backend = v["backend"].as_str().unwrap_or("unknown").to_string();
 
@@ -50,9 +50,7 @@ pub fn parse_ibm_profile(json: &str) -> Result<IbmProfile, String> {
     // Average readout error across all qubits
     let avg_readout_error = {
         let arr = v["qubit_props"].as_array().ok_or("missing qubit_props")?;
-        let sum: f64 = arr.iter()
-            .filter_map(|q| q["readout_err"].as_f64())
-            .sum();
+        let sum: f64 = arr.iter().filter_map(|q| q["readout_err"].as_f64()).sum();
         sum / arr.len().max(1) as f64
     };
 
@@ -60,7 +58,12 @@ pub fn parse_ibm_profile(json: &str) -> Result<IbmProfile, String> {
         return Err("no gate error data found in profile".to_string());
     }
 
-    Ok(IbmProfile { backend, avg_sx_error, avg_cx_error, avg_readout_error })
+    Ok(IbmProfile {
+        backend,
+        avg_sx_error,
+        avg_cx_error,
+        avg_readout_error,
+    })
 }
 
 fn average_gate_errors(arr: &serde_json::Value) -> f64 {
@@ -68,10 +71,15 @@ fn average_gate_errors(arr: &serde_json::Value) -> f64 {
         Some(v) => v,
         None => return 0.0,
     };
-    let (sum, count) = entries.iter()
+    let (sum, count) = entries
+        .iter()
         .filter_map(|e| e["gate_error"].as_f64())
         .fold((0.0, 0usize), |(s, n), p| (s + p, n + 1));
-    if count == 0 { 0.0 } else { sum / count as f64 }
+    if count == 0 {
+        0.0
+    } else {
+        sum / count as f64
+    }
 }
 
 #[cfg(test)]
@@ -83,12 +91,21 @@ mod tests {
         let json = include_str!("../../examples/ibm_noise_profile.json");
         let p = parse_ibm_profile(json).expect("parse failed");
         assert_eq!(p.backend, "ibm_nairobi");
-        assert!(p.avg_sx_error > 1e-5 && p.avg_sx_error < 0.01,
-                "sx error = {}", p.avg_sx_error);
-        assert!(p.avg_cx_error > 0.001 && p.avg_cx_error < 0.05,
-                "cx error = {}", p.avg_cx_error);
-        assert!(p.avg_readout_error > 1e-4 && p.avg_readout_error < 0.1,
-                "readout = {}", p.avg_readout_error);
+        assert!(
+            p.avg_sx_error > 1e-5 && p.avg_sx_error < 0.01,
+            "sx error = {}",
+            p.avg_sx_error
+        );
+        assert!(
+            p.avg_cx_error > 0.001 && p.avg_cx_error < 0.05,
+            "cx error = {}",
+            p.avg_cx_error
+        );
+        assert!(
+            p.avg_readout_error > 1e-4 && p.avg_readout_error < 0.1,
+            "readout = {}",
+            p.avg_readout_error
+        );
     }
 
     #[test]

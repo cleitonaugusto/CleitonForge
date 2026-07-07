@@ -18,9 +18,8 @@ use num_complex::Complex64;
 use quantrs2_core::{
     gate::functions::{
         single::{
-            Hadamard, Identity, PGate, Phase, PhaseDagger, PauliX, PauliY, PauliZ,
-            RotationX, RotationY, RotationZ,
-            SqrtX, SqrtXDagger, T, TDagger, UGate,
+            Hadamard, Identity, PGate, PauliX, PauliY, PauliZ, Phase, PhaseDagger, RotationX,
+            RotationY, RotationZ, SqrtX, SqrtXDagger, TDagger, UGate, T,
         },
         GateOp,
     },
@@ -42,7 +41,12 @@ impl SimulationBackend for QuantRS2Backend {
         "statevector-quantrs2"
     }
 
-    fn run(&self, circuit: &Circuit, shots: usize, seed: u64) -> Result<SimulationResult, BackendError> {
+    fn run(
+        &self,
+        circuit: &Circuit,
+        shots: usize,
+        seed: u64,
+    ) -> Result<SimulationResult, BackendError> {
         let n = circuit.num_qubits();
         if n > MAX_QUBITS {
             return Err(BackendError(format!(
@@ -64,7 +68,10 @@ impl SimulationBackend for QuantRS2Backend {
             HashMap::new()
         };
 
-        Ok(SimulationResult { statevector: sv, counts })
+        Ok(SimulationResult {
+            statevector: sv,
+            counts,
+        })
     }
 }
 
@@ -80,7 +87,9 @@ fn apply_gate(
 ) -> Result<(), String> {
     match kind {
         GateKind::Id => {
-            let mat = Identity { target: Q0 }.matrix().map_err(|e| e.to_string())?;
+            let mat = Identity { target: Q0 }
+                .matrix()
+                .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::X => {
@@ -96,7 +105,9 @@ fn apply_gate(
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::H => {
-            let mat = Hadamard { target: Q0 }.matrix().map_err(|e| e.to_string())?;
+            let mat = Hadamard { target: Q0 }
+                .matrix()
+                .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::S => {
@@ -104,7 +115,9 @@ fn apply_gate(
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Sdg => {
-            let mat = PhaseDagger { target: Q0 }.matrix().map_err(|e| e.to_string())?;
+            let mat = PhaseDagger { target: Q0 }
+                .matrix()
+                .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::T => {
@@ -120,31 +133,45 @@ fn apply_gate(
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Sxdg => {
-            let mat = SqrtXDagger { target: Q0 }.matrix().map_err(|e| e.to_string())?;
+            let mat = SqrtXDagger { target: Q0 }
+                .matrix()
+                .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Rx => {
-            let mat = RotationX { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationX {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Ry => {
-            let mat = RotationY { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationY {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Rz => {
-            let mat = RotationZ { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationZ {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::Phase => {
-            let mat = PGate { target: Q0, lambda: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = PGate {
+                target: Q0,
+                lambda: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply1(sv, qubits[0], &to_u2(&mat));
         }
         GateKind::U => {
@@ -171,7 +198,9 @@ fn apply_gate(
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Ch => {
-            let mat = Hadamard { target: Q0 }.matrix().map_err(|e| e.to_string())?;
+            let mat = Hadamard { target: Q0 }
+                .matrix()
+                .map_err(|e| e.to_string())?;
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Csx => {
@@ -179,27 +208,39 @@ fn apply_gate(
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Crx => {
-            let mat = RotationX { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationX {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Cry => {
-            let mat = RotationY { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationY {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Crz => {
-            let mat = RotationZ { target: Q0, theta: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = RotationZ {
+                target: Q0,
+                theta: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Cp => {
-            let mat = PGate { target: Q0, lambda: params[0] }
-                .matrix()
-                .map_err(|e| e.to_string())?;
+            let mat = PGate {
+                target: Q0,
+                lambda: params[0],
+            }
+            .matrix()
+            .map_err(|e| e.to_string())?;
             apply_controlled1(sv, qubits[0], qubits[1], &to_u2(&mat));
         }
         GateKind::Cu => {

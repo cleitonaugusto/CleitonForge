@@ -16,7 +16,7 @@
 
 use std::time::Instant;
 
-use cforge_backends::{DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend, DEFAULT_SEED};
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::{compute_stats, statevector_fidelity};
 
@@ -26,14 +26,14 @@ const SHOTS: usize = 4096;
 
 fn bell_state() -> Circuit {
     let mut c = Circuit::new(2);
-    c.push(Operation::new(GateKind::H,  vec![0],    vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
     c
 }
 
 fn ghz_state() -> Circuit {
     let mut c = Circuit::new(3);
-    c.push(Operation::new(GateKind::H,  vec![0],    vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
     c.push(Operation::new(GateKind::Cx, vec![1, 2], vec![]));
     c
@@ -43,14 +43,14 @@ fn qft3_on_100() -> Circuit {
     use std::f64::consts::PI;
     let mut c = Circuit::new(3);
     // Initialise to |100⟩
-    c.push(Operation::new(GateKind::X,    vec![0],    vec![]));
+    c.push(Operation::new(GateKind::X, vec![0], vec![]));
     // QFT
-    c.push(Operation::new(GateKind::H,    vec![0],    vec![]));
-    c.push(Operation::new(GateKind::Cp,   vec![1, 0], vec![PI / 2.0]));
-    c.push(Operation::new(GateKind::Cp,   vec![2, 0], vec![PI / 4.0]));
-    c.push(Operation::new(GateKind::H,    vec![1],    vec![]));
-    c.push(Operation::new(GateKind::Cp,   vec![2, 1], vec![PI / 2.0]));
-    c.push(Operation::new(GateKind::H,    vec![2],    vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::Cp, vec![1, 0], vec![PI / 2.0]));
+    c.push(Operation::new(GateKind::Cp, vec![2, 0], vec![PI / 4.0]));
+    c.push(Operation::new(GateKind::H, vec![1], vec![]));
+    c.push(Operation::new(GateKind::Cp, vec![2, 1], vec![PI / 2.0]));
+    c.push(Operation::new(GateKind::H, vec![2], vec![]));
     c.push(Operation::new(GateKind::Swap, vec![0, 2], vec![]));
     c
 }
@@ -80,19 +80,27 @@ fn grover_101() -> Circuit {
     }
     for _ in 0..2 {
         // Oracle
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
         // Diffuser
-        for q in 0..3 { c.push(Operation::new(GateKind::H, vec![q], vec![])); }
-        for q in 0..3 { c.push(Operation::new(GateKind::X, vec![q], vec![])); }
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::H, vec![q], vec![]));
+        }
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::X, vec![q], vec![]));
+        }
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
-        for q in 0..3 { c.push(Operation::new(GateKind::X, vec![q], vec![])); }
-        for q in 0..3 { c.push(Operation::new(GateKind::H, vec![q], vec![])); }
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::X, vec![q], vec![]));
+        }
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::H, vec![q], vec![]));
+        }
     }
     c
 }
@@ -105,17 +113,17 @@ fn grover_101() -> Circuit {
 fn qaoa_maxcut_2q() -> Circuit {
     use std::f64::consts::PI;
     let gamma = -3.0 * PI / 4.0;
-    let beta  = -PI / 8.0;
+    let beta = -PI / 8.0;
     let mut c = Circuit::new(2);
-    c.push(Operation::new(GateKind::H,  vec![0],    vec![]));
-    c.push(Operation::new(GateKind::H,  vec![1],    vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::H, vec![1], vec![]));
     // Cost: RZZ(2γ) = CX, RZ(2γ), CX
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
-    c.push(Operation::new(GateKind::Rz, vec![1],    vec![2.0 * gamma]));
+    c.push(Operation::new(GateKind::Rz, vec![1], vec![2.0 * gamma]));
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
     // Mixer: RX(2β)
-    c.push(Operation::new(GateKind::Rx, vec![0],    vec![2.0 * beta]));
-    c.push(Operation::new(GateKind::Rx, vec![1],    vec![2.0 * beta]));
+    c.push(Operation::new(GateKind::Rx, vec![0], vec![2.0 * beta]));
+    c.push(Operation::new(GateKind::Rx, vec![1], vec![2.0 * beta]));
     c
 }
 
@@ -134,59 +142,73 @@ enum ExpectKind {
 }
 
 struct BenchResult {
-    name:       &'static str,
-    qubits:     usize,
-    gates:      usize,
-    depth:      usize,
-    label:      String,
-    fidelity:   f64,
+    name: &'static str,
+    qubits: usize,
+    gates: usize,
+    depth: usize,
+    label: String,
+    fidelity: f64,
     time_sv_ms: f64,
     time_q2_ms: f64,
-    pass:       bool,
-    note:       Option<&'static str>,
+    pass: bool,
+    note: Option<&'static str>,
 }
 
 fn run_benchmark(
-    name:     &'static str,
-    circuit:  &Circuit,
-    expect:   ExpectKind,
+    name: &'static str,
+    circuit: &Circuit,
+    expect: ExpectKind,
     min_prob: f64,
 ) -> BenchResult {
     let stats = compute_stats(circuit);
 
     let t0 = Instant::now();
-    let sv  = NativeStateVectorBackend.run(circuit, SHOTS, DEFAULT_SEED).expect("sv failed");
+    let sv = NativeStateVectorBackend
+        .run(circuit, SHOTS, DEFAULT_SEED)
+        .expect("sv failed");
     let time_sv_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
     let t0 = Instant::now();
-    let q2  = QuantRS2Backend.run(circuit, SHOTS, DEFAULT_SEED).expect("q2 failed");
+    let q2 = QuantRS2Backend
+        .run(circuit, SHOTS, DEFAULT_SEED)
+        .expect("q2 failed");
     let time_q2_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
     let fidelity = statevector_fidelity(&sv.statevector, &q2.statevector).unwrap_or(0.0);
 
-    let n        = circuit.num_qubits();
-    let total    = sv.counts.values().sum::<usize>() as f64;
+    let n = circuit.num_qubits();
+    let total = sv.counts.values().sum::<usize>() as f64;
     let mut note = None;
 
     let (effective_prob, label, fidelity_ok) = match &expect {
         ExpectKind::Entangled => {
             let zeros = "0".repeat(n);
-            let ones  = "1".repeat(n);
+            let ones = "1".repeat(n);
             let p0 = sv.counts.get(zeros.as_str()).copied().unwrap_or(0) as f64 / total;
             let p1 = sv.counts.get(ones.as_str()).copied().unwrap_or(0) as f64 / total;
-            (p0 + p1, format!("|{zeros}⟩+|{ones}⟩ {:.0}%", (p0+p1)*100.0), true)
+            (
+                p0 + p1,
+                format!("|{zeros}⟩+|{ones}⟩ {:.0}%", (p0 + p1) * 100.0),
+                true,
+            )
         }
         ExpectKind::Bitstring(s) => {
             let p = sv.counts.get(*s).copied().unwrap_or(0) as f64 / total;
-            (p, format!("|{s}⟩ {:.0}%", p*100.0), true)
+            (p, format!("|{s}⟩ {:.0}%", p * 100.0), true)
         }
         ExpectKind::Uniform => {
             // Check that all 2^n amplitudes have probability ≈ 1/2^n
             let expected_p = 1.0 / (1 << n) as f64;
-            let uniform = sv.statevector.iter()
+            let uniform = sv
+                .statevector
+                .iter()
                 .all(|a| (a.norm_sqr() - expected_p).abs() < 0.002);
             let eff = if uniform { 1.0 } else { 0.0 };
-            let lbl = if uniform { format!("uniform 1/{} ✓", 1<<n) } else { "not uniform".to_string() };
+            let lbl = if uniform {
+                format!("uniform 1/{} ✓", 1 << n)
+            } else {
+                "not uniform".to_string()
+            };
             (eff, lbl, true)
         }
         ExpectKind::MaxCut => {
@@ -196,18 +218,22 @@ fn run_benchmark(
             let cut = p01 + p10;
             note = Some("Rz convention divergence (by design)");
             // Cross-backend fidelity is NOT checked — divergence is intentional
-            (cut, format!("cut {:.0}%", cut*100.0), false)
+            (cut, format!("cut {:.0}%", cut * 100.0), false)
         }
     };
 
-    let fidelity_pass = if fidelity_ok { fidelity >= 0.9999 } else { true };
+    let fidelity_pass = if fidelity_ok {
+        fidelity >= 0.9999
+    } else {
+        true
+    };
     let pass = effective_prob >= min_prob && fidelity_pass;
 
     BenchResult {
         name,
-        qubits:     circuit.num_qubits(),
-        gates:      stats.gate_count,
-        depth:      stats.depth,
+        qubits: circuit.num_qubits(),
+        gates: stats.gate_count,
+        depth: stats.depth,
         label,
         fidelity,
         time_sv_ms,
@@ -227,12 +253,22 @@ fn main() {
     println!();
 
     let benchmarks: Vec<(&str, Circuit, ExpectKind, f64)> = vec![
-        ("Bell state",         bell_state(),             ExpectKind::Entangled,       0.95),
-        ("GHZ state",          ghz_state(),              ExpectKind::Entangled,       0.95),
-        ("QFT |100⟩",          qft3_on_100(),            ExpectKind::Uniform,         1.00),
-        ("Bernstein-Vazirani", bernstein_vazirani_101(), ExpectKind::Bitstring("101"),0.99),
-        ("Grover |101⟩",       grover_101(),             ExpectKind::Bitstring("101"),0.90),
-        ("QAOA MaxCut",        qaoa_maxcut_2q(),         ExpectKind::MaxCut,          0.90),
+        ("Bell state", bell_state(), ExpectKind::Entangled, 0.95),
+        ("GHZ state", ghz_state(), ExpectKind::Entangled, 0.95),
+        ("QFT |100⟩", qft3_on_100(), ExpectKind::Uniform, 1.00),
+        (
+            "Bernstein-Vazirani",
+            bernstein_vazirani_101(),
+            ExpectKind::Bitstring("101"),
+            0.99,
+        ),
+        (
+            "Grover |101⟩",
+            grover_101(),
+            ExpectKind::Bitstring("101"),
+            0.90,
+        ),
+        ("QAOA MaxCut", qaoa_maxcut_2q(), ExpectKind::MaxCut, 0.90),
     ];
 
     let mut results = Vec::new();
@@ -257,13 +293,18 @@ fn main() {
         };
         println!(
             "│ {:<19} │ {:>2} │  {:>4} │  {:>4} │ {:<16} │ {:>12} │ {:>10} │ {:>2} │",
-            r.name, r.qubits, r.gates, r.depth,
+            r.name,
+            r.qubits,
+            r.gates,
+            r.depth,
             r.label,
             fid_str,
             format!("{:.1}/{:.1}", r.time_sv_ms, r.time_q2_ms),
             if r.pass { "✅" } else { "❌" },
         );
-        if !r.pass { all_pass = false; }
+        if !r.pass {
+            all_pass = false;
+        }
     }
 
     println!("└─────────────────────┴────┴───────┴───────┴──────────────────┴──────────────┴────────────┴────┘");
@@ -271,8 +312,12 @@ fn main() {
 
     let has_notes = results.iter().any(|r| r.note.is_some());
     if has_notes {
-        println!("  * Fidelity not required — documented inter-framework Rz sign convention divergence.");
-        println!("    This is the value CleitonForge surfaces: same circuit, different backend math.");
+        println!(
+            "  * Fidelity not required — documented inter-framework Rz sign convention divergence."
+        );
+        println!(
+            "    This is the value CleitonForge surfaces: same circuit, different backend math."
+        );
         println!();
     }
 

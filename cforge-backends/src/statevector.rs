@@ -25,7 +25,12 @@ impl SimulationBackend for NativeStateVectorBackend {
         "statevector-native"
     }
 
-    fn run(&self, circuit: &Circuit, shots: usize, seed: u64) -> Result<SimulationResult, BackendError> {
+    fn run(
+        &self,
+        circuit: &Circuit,
+        shots: usize,
+        seed: u64,
+    ) -> Result<SimulationResult, BackendError> {
         let n = circuit.num_qubits();
         if n > MAX_QUBITS {
             return Err(BackendError(format!(
@@ -47,7 +52,10 @@ impl SimulationBackend for NativeStateVectorBackend {
             HashMap::new()
         };
 
-        Ok(SimulationResult { statevector: sv, counts })
+        Ok(SimulationResult {
+            statevector: sv,
+            counts,
+        })
     }
 }
 
@@ -217,13 +225,11 @@ fn gate_tdg() -> U2 {
 }
 fn gate_sx() -> U2 {
     // SX = √X = (1/2)[[1+i, 1-i], [1-i, 1+i]]
-    [[c(0.5,  0.5), c(0.5, -0.5)],
-     [c(0.5, -0.5), c(0.5,  0.5)]]
+    [[c(0.5, 0.5), c(0.5, -0.5)], [c(0.5, -0.5), c(0.5, 0.5)]]
 }
 fn gate_sxdg() -> U2 {
     // SX† = (√X)† = (1/2)[[1-i, 1+i], [1+i, 1-i]]
-    [[c(0.5, -0.5), c(0.5,  0.5)],
-     [c(0.5,  0.5), c(0.5, -0.5)]]
+    [[c(0.5, -0.5), c(0.5, 0.5)], [c(0.5, 0.5), c(0.5, -0.5)]]
 }
 
 fn gate_rx(theta: f64) -> U2 {
@@ -250,13 +256,19 @@ fn gate_u(theta: f64, phi: f64, lambda: f64) -> U2 {
     let sin = (theta / 2.0).sin();
     [
         [c(cos, 0.0), -Complex64::from_polar(sin, lambda)],
-        [Complex64::from_polar(sin, phi), Complex64::from_polar(cos, phi + lambda)],
+        [
+            Complex64::from_polar(sin, phi),
+            Complex64::from_polar(cos, phi + lambda),
+        ],
     ]
 }
 fn gate_cu(theta: f64, phi: f64, lambda: f64, gamma: f64) -> U2 {
     let phase = Complex64::from_polar(1.0, gamma);
     let u = gate_u(theta, phi, lambda);
-    [[phase * u[0][0], phase * u[0][1]], [phase * u[1][0], phase * u[1][1]]]
+    [
+        [phase * u[0][0], phase * u[0][1]],
+        [phase * u[1][0], phase * u[1][1]],
+    ]
 }
 
 #[cfg(test)]
@@ -305,7 +317,9 @@ mod tests {
 
     #[test]
     fn shot_counts_bell_state() {
-        let result = NativeStateVectorBackend.run(&bell_circuit(), 2000, 0).unwrap();
+        let result = NativeStateVectorBackend
+            .run(&bell_circuit(), 2000, 0)
+            .unwrap();
         let n00 = result.counts.get("00").copied().unwrap_or(0);
         let n11 = result.counts.get("11").copied().unwrap_or(0);
         assert_eq!(n00 + n11, 2000);

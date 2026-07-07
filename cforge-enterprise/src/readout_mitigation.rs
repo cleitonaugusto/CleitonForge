@@ -15,9 +15,10 @@ pub struct ReadoutMitigationMatrix {
 impl ReadoutMitigationMatrix {
     /// Build from device readout error rates (p_err = P(flip | prepared state)).
     pub fn from_readout_errors(readout_errs: &[f64]) -> Self {
-        let per_qubit = readout_errs.iter().map(|&p| {
-            [[1.0 - p, p], [p, 1.0 - p]]
-        }).collect();
+        let per_qubit = readout_errs
+            .iter()
+            .map(|&p| [[1.0 - p, p], [p, 1.0 - p]])
+            .collect();
         Self { per_qubit }
     }
 

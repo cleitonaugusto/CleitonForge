@@ -8,7 +8,7 @@
 
 use std::time::Instant;
 
-use cforge_backends::{DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend, DEFAULT_SEED};
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::{compute_stats, statevector_fidelity};
 
@@ -30,11 +30,11 @@ fn build_grover_circuit() -> Circuit {
     for _ in 0..2 {
         // ── Oracle: phase-flip |101⟩ (q0=1, q1=0, q2=1) ─────────────────
         // Map |101⟩ → |111⟩, then CCZ, then undo.
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
 
         // ── Diffuser: I − 2|s⟩⟨s|  (inversion about mean) ───────────────
         for q in 0..3 {
@@ -43,9 +43,9 @@ fn build_grover_circuit() -> Circuit {
         for q in 0..3 {
             c.push(Operation::new(GateKind::X, vec![q], vec![]));
         }
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         for q in 0..3 {
             c.push(Operation::new(GateKind::X, vec![q], vec![]));
         }
@@ -79,13 +79,15 @@ fn main() {
         .statevector;
 
     let backends: [(&str, Box<dyn SimulationBackend>); 2] = [
-        ("statevector-native",   Box::new(NativeStateVectorBackend)),
+        ("statevector-native", Box::new(NativeStateVectorBackend)),
         ("statevector-quantrs2", Box::new(QuantRS2Backend)),
     ];
 
     for (_, backend) in &backends {
         let t0 = Instant::now();
-        let result = backend.run(&circuit, 1024, DEFAULT_SEED).expect("run failed");
+        let result = backend
+            .run(&circuit, 1024, DEFAULT_SEED)
+            .expect("run failed");
         let elapsed_ms = t0.elapsed().as_secs_f64() * 1000.0;
 
         // State with highest probability amplitude.
@@ -107,7 +109,10 @@ fn main() {
         println!("Backend  : {}", backend.name());
         println!(
             "  Top state  : |{:03b}⟩  index {}  prob = {:.4} ({:.1} %)",
-            top_idx, top_idx, top_prob, top_prob * 100.0
+            top_idx,
+            top_idx,
+            top_prob,
+            top_prob * 100.0
         );
         println!("  Fidelity   : {:.8}", fidelity);
         println!("  Wall time  : {:.3} ms", elapsed_ms);
@@ -134,5 +139,8 @@ fn main() {
         .statevector;
     let cross = statevector_fidelity(&sv_native, &sv_quantrs2).unwrap_or(0.0);
     println!("Cross-backend fidelity (native vs quantrs2): {:.8}", cross);
-    println!("Both backends agree: {}", if cross > 0.9999 { "YES ✓" } else { "NO ✗" });
+    println!(
+        "Both backends agree: {}",
+        if cross > 0.9999 { "YES ✓" } else { "NO ✗" }
+    );
 }

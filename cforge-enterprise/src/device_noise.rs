@@ -4,8 +4,8 @@
 //! a full calibration table: different depolarizing rates per qubit pair,
 //! T1/T2 thermal relaxation channels, and gate-timing-aware noise.
 
-use cforge_backends::NoisyConfig;
 use cforge_backends::noise::NoiseChannel;
+use cforge_backends::NoisyConfig;
 use serde::{Deserialize, Serialize};
 
 /// Per-qubit properties loaded from a device calibration file.
@@ -49,13 +49,17 @@ impl DeviceNoiseModel {
     ///
     /// This provides a lossless downgrade path: enterprise → community backends.
     pub fn to_average_config(&self) -> NoisyConfig {
-        let avg_sx  = avg(&self.qubits.iter().map(|q| q.sx_err).collect::<Vec<_>>());
-        let avg_cx  = avg(&self.pairs.iter().map(|p| p.gate_error).collect::<Vec<_>>());
-        let avg_ro  = avg(&self.qubits.iter().map(|q| q.readout_err).collect::<Vec<_>>());
+        let avg_sx = avg(&self.qubits.iter().map(|q| q.sx_err).collect::<Vec<_>>());
+        let avg_cx = avg(&self.pairs.iter().map(|p| p.gate_error).collect::<Vec<_>>());
+        let avg_ro = avg(&self
+            .qubits
+            .iter()
+            .map(|q| q.readout_err)
+            .collect::<Vec<_>>());
         NoisyConfig {
             single_qubit: Some(NoiseChannel::Depolarizing { p: avg_sx }),
-            two_qubit:    Some(NoiseChannel::Depolarizing { p: avg_cx }),
-            readout:      Some(avg_ro),
+            two_qubit: Some(NoiseChannel::Depolarizing { p: avg_cx }),
+            readout: Some(avg_ro),
         }
     }
 
@@ -64,8 +68,8 @@ impl DeviceNoiseModel {
         let q = self.qubits.iter().find(|q| q.qubit == qubit)?;
         Some(NoisyConfig {
             single_qubit: Some(NoiseChannel::Depolarizing { p: q.sx_err }),
-            two_qubit:    None,
-            readout:      Some(q.readout_err),
+            two_qubit: None,
+            readout: Some(q.readout_err),
         })
     }
 }
@@ -92,11 +96,15 @@ impl ThermalRelaxationChannel {
 
     /// Community-compatible `NoiseChannel` approximation.
     pub fn to_noise_channel(&self, gate_ns: f64) -> NoiseChannel {
-        NoiseChannel::AmplitudeDamping { gamma: self.gamma_for_gate(gate_ns) }
+        NoiseChannel::AmplitudeDamping {
+            gamma: self.gamma_for_gate(gate_ns),
+        }
     }
 }
 
 fn avg(xs: &[f64]) -> f64 {
-    if xs.is_empty() { return 0.0; }
+    if xs.is_empty() {
+        return 0.0;
+    }
     xs.iter().sum::<f64>() / xs.len() as f64
 }

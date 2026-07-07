@@ -13,23 +13,23 @@
 //! - [`q1tsim_backend::Q1tSimBackend`] — uses q1tsim's gate matrices.
 //! - [`density_matrix::DensityMatrixBackend`] — exact noisy simulation via ρ.
 
-pub mod trait_def;
-pub mod statevector;
-pub mod quantrs2_backend;
-pub mod roqoqo_backend;
-#[cfg(feature = "q1tsim")]
-pub mod q1tsim_backend;
 pub mod density_matrix;
 pub mod noise;
 pub mod noisy_backend;
+#[cfg(feature = "q1tsim")]
+pub mod q1tsim_backend;
+pub mod quantrs2_backend;
+pub mod roqoqo_backend;
 mod sample;
+pub mod statevector;
+pub mod trait_def;
 
-pub use trait_def::{BackendError, DEFAULT_SEED, SimulationBackend, SimulationResult};
-pub use statevector::NativeStateVectorBackend;
-pub use quantrs2_backend::QuantRS2Backend;
-pub use roqoqo_backend::RoqoqoBackend;
+pub use density_matrix::DensityMatrixBackend;
+pub use noise::NoisyConfig;
+pub use noisy_backend::NoisyStatevectorBackend;
 #[cfg(feature = "q1tsim")]
 pub use q1tsim_backend::Q1tSimBackend;
-pub use density_matrix::DensityMatrixBackend;
-pub use noisy_backend::NoisyStatevectorBackend;
-pub use noise::NoisyConfig;
+pub use quantrs2_backend::QuantRS2Backend;
+pub use roqoqo_backend::RoqoqoBackend;
+pub use statevector::NativeStateVectorBackend;
+pub use trait_def::{BackendError, SimulationBackend, SimulationResult, DEFAULT_SEED};

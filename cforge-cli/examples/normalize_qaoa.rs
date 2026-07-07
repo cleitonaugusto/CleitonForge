@@ -25,7 +25,11 @@ fn main() {
 
     let circuit = qaoa_maxcut_circuit();
 
-    println!("Circuit: QAOA MaxCut ({} qubits, {} ops)", circuit.num_qubits(), circuit.operations.len());
+    println!(
+        "Circuit: QAOA MaxCut ({} qubits, {} ops)",
+        circuit.num_qubits(),
+        circuit.operations.len()
+    );
     println!("  γ = -3π/4 (cost layer),  β = -π/8 (mixer layer)");
     println!();
 
@@ -34,12 +38,19 @@ fn main() {
     println!("{:-<62}", "");
 
     let native_sv = run(&NativeStateVectorBackend, &circuit, "native  ");
-    let q2_sv_raw = run(&QuantRS2Backend,           &circuit, "quantrs2");
+    let q2_sv_raw = run(&QuantRS2Backend, &circuit, "quantrs2");
 
     let f_raw = fidelity(&native_sv, &q2_sv_raw);
     println!();
     println!("  Cross-backend fidelity (native ↔ quantrs2): {:.8}", f_raw);
-    println!("  Convention divergence: {}", if f_raw < 0.01 { "CONFIRMED ✗" } else { "not detected ✓" });
+    println!(
+        "  Convention divergence: {}",
+        if f_raw < 0.01 {
+            "CONFIRMED ✗"
+        } else {
+            "not detected ✓"
+        }
+    );
 
     // — Phase 2: normalized ——————————————————————————————————————————————————
     println!();
@@ -47,15 +58,27 @@ fn main() {
     println!("{:-<62}", "");
 
     let normalized = normalize_convention(&circuit, RzConvention::Reversed, RzConvention::Standard);
-    println!("  Ops modified: {} Rz-family gates had angles negated",
-        count_rz_ops(&circuit));
+    println!(
+        "  Ops modified: {} Rz-family gates had angles negated",
+        count_rz_ops(&circuit)
+    );
 
     let q2_sv_norm = run(&QuantRS2Backend, &normalized, "quantrs2");
 
     let f_norm = fidelity(&native_sv, &q2_sv_norm);
     println!();
-    println!("  Cross-backend fidelity (native ↔ quantrs2): {:.8}", f_norm);
-    println!("  Convention fixed: {}", if f_norm > 0.999 { "YES ✓" } else { "NO — unexpected ✗" });
+    println!(
+        "  Cross-backend fidelity (native ↔ quantrs2): {:.8}",
+        f_norm
+    );
+    println!(
+        "  Convention fixed: {}",
+        if f_norm > 0.999 {
+            "YES ✓"
+        } else {
+            "NO — unexpected ✗"
+        }
+    );
 
     // — Summary ——————————————————————————————————————————————————————————————
     println!();
@@ -83,12 +106,12 @@ fn main() {
 /// Circuit:   H⊗H → CX → Rz(2γ) → CX → Rx(2β)⊗Rx(2β)
 fn qaoa_maxcut_circuit() -> Circuit {
     let gamma = -3.0 * PI / 4.0;
-    let beta  = -PI / 8.0;
+    let beta = -PI / 8.0;
 
     let mut c = Circuit::new(2);
     // Initial superposition
-    c.push(Operation::new(GateKind::H,  vec![0], vec![]));
-    c.push(Operation::new(GateKind::H,  vec![1], vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::H, vec![1], vec![]));
     // Cost layer: e^{-iγ Z₀Z₁}
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
     c.push(Operation::new(GateKind::Rz, vec![1], vec![2.0 * gamma]));
@@ -101,14 +124,16 @@ fn qaoa_maxcut_circuit() -> Circuit {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-fn run(backend: &dyn SimulationBackend, circuit: &Circuit, label: &str) -> Vec<num_complex::Complex64> {
+fn run(
+    backend: &dyn SimulationBackend,
+    circuit: &Circuit,
+    label: &str,
+) -> Vec<num_complex::Complex64> {
     let result = backend.run(circuit, 0, 0).expect("backend failed");
     let sv = &result.statevector;
-    println!("  {label} |ψ⟩ = [{:.4}{:+.4}i, {:.4}{:+.4}i, {:.4}{:+.4}i, {:.4}{:+.4}i]",
-        sv[0].re, sv[0].im,
-        sv[1].re, sv[1].im,
-        sv[2].re, sv[2].im,
-        sv[3].re, sv[3].im,
+    println!(
+        "  {label} |ψ⟩ = [{:.4}{:+.4}i, {:.4}{:+.4}i, {:.4}{:+.4}i, {:.4}{:+.4}i]",
+        sv[0].re, sv[0].im, sv[1].re, sv[1].im, sv[2].re, sv[2].im, sv[3].re, sv[3].im,
     );
     sv.clone()
 }
@@ -119,8 +144,19 @@ fn fidelity(a: &[num_complex::Complex64], b: &[num_complex::Complex64]) -> f64 {
 }
 
 fn count_rz_ops(circuit: &Circuit) -> usize {
-    circuit.operations.iter().filter(|op| matches!(
-        op.kind,
-        GateKind::Rz | GateKind::Phase | GateKind::Crz | GateKind::Cp | GateKind::U | GateKind::Cu
-    )).count()
+    circuit
+        .operations
+        .iter()
+        .filter(|op| {
+            matches!(
+                op.kind,
+                GateKind::Rz
+                    | GateKind::Phase
+                    | GateKind::Crz
+                    | GateKind::Cp
+                    | GateKind::U
+                    | GateKind::Cu
+            )
+        })
+        .count()
 }

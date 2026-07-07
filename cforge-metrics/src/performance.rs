@@ -1,8 +1,8 @@
 //! Wall-clock timing and peak-memory measurement around backend calls.
 
-use std::time::Instant;
 use cforge_backends::{BackendError, SimulationBackend, SimulationResult};
 use cforge_core::{Circuit, MetricsResult};
+use std::time::Instant;
 
 use crate::circuit_stats::compute_stats;
 use crate::fidelity::statevector_fidelity;

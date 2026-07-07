@@ -7,12 +7,12 @@ use std::path::Path;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-use cforge_backends::{
-    BackendError, DEFAULT_SEED, DensityMatrixBackend, NativeStateVectorBackend, NoisyConfig,
-    NoisyStatevectorBackend, QuantRS2Backend, RoqoqoBackend,
-    SimulationBackend, SimulationResult,
-};
 use cforge_backends::noise::NoiseChannel;
+use cforge_backends::{
+    BackendError, DensityMatrixBackend, NativeStateVectorBackend, NoisyConfig,
+    NoisyStatevectorBackend, QuantRS2Backend, RoqoqoBackend, SimulationBackend, SimulationResult,
+    DEFAULT_SEED,
+};
 use cforge_core::{Circuit, GateKind, Operation};
 use cforge_metrics::compute_stats;
 use cforge_parser::{normalize_convention, parse_qasm2, parse_qasm3, RzConvention};
@@ -55,45 +55,99 @@ impl PyCircuit {
 impl PyCircuit {
     #[new]
     fn new(num_qubits: usize) -> Self {
-        Self { inner: Circuit::new(num_qubits) }
+        Self {
+            inner: Circuit::new(num_qubits),
+        }
     }
 
     // ── Single-qubit, no params ──────────────────────────────────────────────
-    fn id(&mut self, qubit: usize)   { self.push1(GateKind::Id,   qubit); }
-    fn x(&mut self, qubit: usize)    { self.push1(GateKind::X,    qubit); }
-    fn y(&mut self, qubit: usize)    { self.push1(GateKind::Y,    qubit); }
-    fn z(&mut self, qubit: usize)    { self.push1(GateKind::Z,    qubit); }
-    fn h(&mut self, qubit: usize)    { self.push1(GateKind::H,    qubit); }
-    fn s(&mut self, qubit: usize)    { self.push1(GateKind::S,    qubit); }
-    fn sdg(&mut self, qubit: usize)  { self.push1(GateKind::Sdg,  qubit); }
-    fn t(&mut self, qubit: usize)    { self.push1(GateKind::T,    qubit); }
-    fn tdg(&mut self, qubit: usize)  { self.push1(GateKind::Tdg,  qubit); }
-    fn sx(&mut self, qubit: usize)   { self.push1(GateKind::Sx,   qubit); }
-    fn sxdg(&mut self, qubit: usize) { self.push1(GateKind::Sxdg, qubit); }
+    fn id(&mut self, qubit: usize) {
+        self.push1(GateKind::Id, qubit);
+    }
+    fn x(&mut self, qubit: usize) {
+        self.push1(GateKind::X, qubit);
+    }
+    fn y(&mut self, qubit: usize) {
+        self.push1(GateKind::Y, qubit);
+    }
+    fn z(&mut self, qubit: usize) {
+        self.push1(GateKind::Z, qubit);
+    }
+    fn h(&mut self, qubit: usize) {
+        self.push1(GateKind::H, qubit);
+    }
+    fn s(&mut self, qubit: usize) {
+        self.push1(GateKind::S, qubit);
+    }
+    fn sdg(&mut self, qubit: usize) {
+        self.push1(GateKind::Sdg, qubit);
+    }
+    fn t(&mut self, qubit: usize) {
+        self.push1(GateKind::T, qubit);
+    }
+    fn tdg(&mut self, qubit: usize) {
+        self.push1(GateKind::Tdg, qubit);
+    }
+    fn sx(&mut self, qubit: usize) {
+        self.push1(GateKind::Sx, qubit);
+    }
+    fn sxdg(&mut self, qubit: usize) {
+        self.push1(GateKind::Sxdg, qubit);
+    }
 
     // ── Single-qubit, parametric ─────────────────────────────────────────────
-    fn rx(&mut self, theta: f64, qubit: usize) { self.push1p(GateKind::Rx,    qubit, vec![theta]); }
-    fn ry(&mut self, theta: f64, qubit: usize) { self.push1p(GateKind::Ry,    qubit, vec![theta]); }
-    fn rz(&mut self, theta: f64, qubit: usize) { self.push1p(GateKind::Rz,    qubit, vec![theta]); }
-    fn p(&mut self,  theta: f64, qubit: usize) { self.push1p(GateKind::Phase, qubit, vec![theta]); }
+    fn rx(&mut self, theta: f64, qubit: usize) {
+        self.push1p(GateKind::Rx, qubit, vec![theta]);
+    }
+    fn ry(&mut self, theta: f64, qubit: usize) {
+        self.push1p(GateKind::Ry, qubit, vec![theta]);
+    }
+    fn rz(&mut self, theta: f64, qubit: usize) {
+        self.push1p(GateKind::Rz, qubit, vec![theta]);
+    }
+    fn p(&mut self, theta: f64, qubit: usize) {
+        self.push1p(GateKind::Phase, qubit, vec![theta]);
+    }
 
     fn u(&mut self, theta: f64, phi: f64, lam: f64, qubit: usize) {
         self.push1p(GateKind::U, qubit, vec![theta, phi, lam]);
     }
 
     // ── Two-qubit ────────────────────────────────────────────────────────────
-    fn cx(&mut self, ctrl: usize, tgt: usize)   { self.push2(GateKind::Cx,   ctrl, tgt); }
-    fn cnot(&mut self, ctrl: usize, tgt: usize) { self.cx(ctrl, tgt); }
-    fn cy(&mut self, ctrl: usize, tgt: usize)   { self.push2(GateKind::Cy,   ctrl, tgt); }
-    fn cz(&mut self, ctrl: usize, tgt: usize)   { self.push2(GateKind::Cz,   ctrl, tgt); }
-    fn ch(&mut self, ctrl: usize, tgt: usize)   { self.push2(GateKind::Ch,   ctrl, tgt); }
-    fn csx(&mut self, ctrl: usize, tgt: usize)  { self.push2(GateKind::Csx,  ctrl, tgt); }
-    fn swap(&mut self, a: usize, b: usize)      { self.push2(GateKind::Swap, a, b); }
+    fn cx(&mut self, ctrl: usize, tgt: usize) {
+        self.push2(GateKind::Cx, ctrl, tgt);
+    }
+    fn cnot(&mut self, ctrl: usize, tgt: usize) {
+        self.cx(ctrl, tgt);
+    }
+    fn cy(&mut self, ctrl: usize, tgt: usize) {
+        self.push2(GateKind::Cy, ctrl, tgt);
+    }
+    fn cz(&mut self, ctrl: usize, tgt: usize) {
+        self.push2(GateKind::Cz, ctrl, tgt);
+    }
+    fn ch(&mut self, ctrl: usize, tgt: usize) {
+        self.push2(GateKind::Ch, ctrl, tgt);
+    }
+    fn csx(&mut self, ctrl: usize, tgt: usize) {
+        self.push2(GateKind::Csx, ctrl, tgt);
+    }
+    fn swap(&mut self, a: usize, b: usize) {
+        self.push2(GateKind::Swap, a, b);
+    }
 
-    fn crx(&mut self, theta: f64, ctrl: usize, tgt: usize) { self.push2p(GateKind::Crx, ctrl, tgt, vec![theta]); }
-    fn cry(&mut self, theta: f64, ctrl: usize, tgt: usize) { self.push2p(GateKind::Cry, ctrl, tgt, vec![theta]); }
-    fn crz(&mut self, theta: f64, ctrl: usize, tgt: usize) { self.push2p(GateKind::Crz, ctrl, tgt, vec![theta]); }
-    fn cp(&mut self,  theta: f64, ctrl: usize, tgt: usize) { self.push2p(GateKind::Cp,  ctrl, tgt, vec![theta]); }
+    fn crx(&mut self, theta: f64, ctrl: usize, tgt: usize) {
+        self.push2p(GateKind::Crx, ctrl, tgt, vec![theta]);
+    }
+    fn cry(&mut self, theta: f64, ctrl: usize, tgt: usize) {
+        self.push2p(GateKind::Cry, ctrl, tgt, vec![theta]);
+    }
+    fn crz(&mut self, theta: f64, ctrl: usize, tgt: usize) {
+        self.push2p(GateKind::Crz, ctrl, tgt, vec![theta]);
+    }
+    fn cp(&mut self, theta: f64, ctrl: usize, tgt: usize) {
+        self.push2p(GateKind::Cp, ctrl, tgt, vec![theta]);
+    }
 
     fn cu(&mut self, theta: f64, phi: f64, lam: f64, gamma: f64, ctrl: usize, tgt: usize) {
         self.push2p(GateKind::Cu, ctrl, tgt, vec![theta, phi, lam, gamma]);
@@ -101,26 +155,40 @@ impl PyCircuit {
 
     // ── Three-qubit ──────────────────────────────────────────────────────────
     fn ccx(&mut self, c0: usize, c1: usize, tgt: usize) {
-        self.inner.push(Operation::new(GateKind::Ccx, vec![c0, c1, tgt], vec![]));
+        self.inner
+            .push(Operation::new(GateKind::Ccx, vec![c0, c1, tgt], vec![]));
     }
-    fn toffoli(&mut self, c0: usize, c1: usize, tgt: usize) { self.ccx(c0, c1, tgt); }
+    fn toffoli(&mut self, c0: usize, c1: usize, tgt: usize) {
+        self.ccx(c0, c1, tgt);
+    }
 
     fn cswap(&mut self, ctrl: usize, a: usize, b: usize) {
-        self.inner.push(Operation::new(GateKind::Cswap, vec![ctrl, a, b], vec![]));
+        self.inner
+            .push(Operation::new(GateKind::Cswap, vec![ctrl, a, b], vec![]));
     }
-    fn fredkin(&mut self, ctrl: usize, a: usize, b: usize) { self.cswap(ctrl, a, b); }
+    fn fredkin(&mut self, ctrl: usize, a: usize, b: usize) {
+        self.cswap(ctrl, a, b);
+    }
 
     // ── Properties ───────────────────────────────────────────────────────────
     #[getter]
-    fn num_qubits(&self) -> usize { self.inner.num_qubits() }
+    fn num_qubits(&self) -> usize {
+        self.inner.num_qubits()
+    }
 
     #[getter]
-    fn gate_count(&self) -> usize { self.inner.operations.len() }
+    fn gate_count(&self) -> usize {
+        self.inner.operations.len()
+    }
 
     #[getter]
-    fn depth(&self) -> usize { compute_stats(&self.inner).depth }
+    fn depth(&self) -> usize {
+        compute_stats(&self.inner).depth
+    }
 
-    fn __len__(&self) -> usize { self.inner.operations.len() }
+    fn __len__(&self) -> usize {
+        self.inner.operations.len()
+    }
 
     fn __repr__(&self) -> String {
         let stats = compute_stats(&self.inner);
@@ -220,12 +288,18 @@ fn build_noisy_backend(
     amplitude_damping: Option<f64>,
     readout_error: Option<f64>,
 ) -> Box<dyn SimulationBackend> {
-    let single_qubit = depolarizing_1q.map(|p| NoiseChannel::Depolarizing { p })
+    let single_qubit = depolarizing_1q
+        .map(|p| NoiseChannel::Depolarizing { p })
         .or_else(|| amplitude_damping.map(|g| NoiseChannel::AmplitudeDamping { gamma: g }));
-    let two_qubit = depolarizing_2q.map(|p| NoiseChannel::Depolarizing { p })
+    let two_qubit = depolarizing_2q
+        .map(|p| NoiseChannel::Depolarizing { p })
         .or_else(|| amplitude_damping.map(|g| NoiseChannel::AmplitudeDamping { gamma: g }));
     Box::new(NoisyStatevectorBackend {
-        config: NoisyConfig { single_qubit, two_qubit, readout: readout_error },
+        config: NoisyConfig {
+            single_qubit,
+            two_qubit,
+            readout: readout_error,
+        },
     })
 }
 
@@ -236,7 +310,12 @@ fn into_py_result(
     let r = result.map_err(|e| PyValueError::new_err(e.to_string()))?;
     let probabilities = r.statevector.iter().map(|a| a.norm_sqr()).collect();
     let sv = r.statevector.iter().map(|a| (a.re, a.im)).collect();
-    Ok(PyRunResult { counts: r.counts, probabilities, sv, n_qubits })
+    Ok(PyRunResult {
+        counts: r.counts,
+        probabilities,
+        sv,
+        n_qubits,
+    })
 }
 
 /// Strip ``include`` directives that would require disk access.
@@ -263,7 +342,7 @@ fn parse_from_str(source: &str) -> PyResult<Circuit> {
 fn convention_from_str(s: &str) -> PyResult<RzConvention> {
     match s {
         "standard" | "ibm" | "qiskit" => Ok(RzConvention::Standard),
-        "reversed" | "quantrs2"       => Ok(RzConvention::Reversed),
+        "reversed" | "quantrs2" => Ok(RzConvention::Reversed),
         other => Err(PyValueError::new_err(format!(
             "unknown convention '{other}'; use 'standard' (IBM/Qiskit) or 'reversed' (quantrs2)"
         ))),
@@ -317,17 +396,22 @@ fn run(
     shots: usize,
     seed: u64,
     backend: &str,
-    depolarizing_1q:   Option<f64>,
-    depolarizing_2q:   Option<f64>,
+    depolarizing_1q: Option<f64>,
+    depolarizing_2q: Option<f64>,
     amplitude_damping: Option<f64>,
-    readout_error:     Option<f64>,
+    readout_error: Option<f64>,
 ) -> PyResult<PyRunResult> {
     let b: Box<dyn SimulationBackend> = if depolarizing_1q.is_some()
         || depolarizing_2q.is_some()
         || amplitude_damping.is_some()
         || readout_error.is_some()
     {
-        build_noisy_backend(depolarizing_1q, depolarizing_2q, amplitude_damping, readout_error)
+        build_noisy_backend(
+            depolarizing_1q,
+            depolarizing_2q,
+            amplitude_damping,
+            readout_error,
+        )
     } else {
         backend_for(backend)?
     };
@@ -379,10 +463,10 @@ fn run_qasm(
     shots: usize,
     seed: u64,
     backend: &str,
-    depolarizing_1q:   Option<f64>,
-    depolarizing_2q:   Option<f64>,
+    depolarizing_1q: Option<f64>,
+    depolarizing_2q: Option<f64>,
     amplitude_damping: Option<f64>,
-    readout_error:     Option<f64>,
+    readout_error: Option<f64>,
 ) -> PyResult<PyRunResult> {
     let circuit = parse_from_str(source)?;
     let b: Box<dyn SimulationBackend> = if depolarizing_1q.is_some()
@@ -390,7 +474,12 @@ fn run_qasm(
         || amplitude_damping.is_some()
         || readout_error.is_some()
     {
-        build_noisy_backend(depolarizing_1q, depolarizing_2q, amplitude_damping, readout_error)
+        build_noisy_backend(
+            depolarizing_1q,
+            depolarizing_2q,
+            amplitude_damping,
+            readout_error,
+        )
     } else {
         backend_for(backend)?
     };
@@ -408,8 +497,8 @@ fn validate_qasm(source: &str) -> PyResult<HashMap<&'static str, usize>> {
     let stats = compute_stats(&circuit);
     let mut m = HashMap::new();
     m.insert("qubits", circuit.num_qubits());
-    m.insert("gates",  stats.gate_count);
-    m.insert("depth",  stats.depth);
+    m.insert("gates", stats.gate_count);
+    m.insert("depth", stats.depth);
     Ok(m)
 }
 
@@ -471,8 +560,10 @@ fn normalize(
     to_convention: &str,
 ) -> PyResult<PyCircuit> {
     let from = convention_from_str(from_convention)?;
-    let to   = convention_from_str(to_convention)?;
-    Ok(PyCircuit { inner: normalize_convention(&circuit.inner, from, to) })
+    let to = convention_from_str(to_convention)?;
+    Ok(PyCircuit {
+        inner: normalize_convention(&circuit.inner, from, to),
+    })
 }
 
 /// Parse an OpenQASM string and normalize its Rz convention in one step.
@@ -500,15 +591,13 @@ fn normalize(
 ///     r = cforge.run(fixed_circuit, backend="quantrs2")
 #[pyfunction]
 #[pyo3(signature = (source, from_convention = "reversed", to_convention = "standard"))]
-fn normalize_qasm(
-    source: &str,
-    from_convention: &str,
-    to_convention: &str,
-) -> PyResult<PyCircuit> {
+fn normalize_qasm(source: &str, from_convention: &str, to_convention: &str) -> PyResult<PyCircuit> {
     let circuit = parse_from_str(source)?;
     let from = convention_from_str(from_convention)?;
-    let to   = convention_from_str(to_convention)?;
-    Ok(PyCircuit { inner: normalize_convention(&circuit, from, to) })
+    let to = convention_from_str(to_convention)?;
+    Ok(PyCircuit {
+        inner: normalize_convention(&circuit, from, to),
+    })
 }
 
 // ── Module ────────────────────────────────────────────────────────────────────

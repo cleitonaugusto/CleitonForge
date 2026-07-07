@@ -1,8 +1,8 @@
 //! Mapping from gate name strings to cforge-core `GateKind`,
 //! including parameter rewriting for aliased gates.
 
-use std::f64::consts::FRAC_PI_2;
 use cforge_core::GateKind;
+use std::f64::consts::FRAC_PI_2;
 
 /// Translates a gate name and its already-evaluated parameters into the
 /// canonical `(GateKind, params)` pair used in the circuit IR.

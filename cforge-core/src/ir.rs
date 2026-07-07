@@ -48,7 +48,10 @@ impl Operation {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CircuitError {
     /// An operation referenced a qubit index outside `0..num_qubits`.
-    QubitOutOfRange { operation_index: usize, qubit: usize },
+    QubitOutOfRange {
+        operation_index: usize,
+        qubit: usize,
+    },
     /// An operation's qubit count didn't match what its `GateKind` expects.
     WrongQubitCount {
         operation_index: usize,
@@ -76,7 +79,9 @@ impl Circuit {
     /// Creates an empty circuit with `num_qubits` unnamed qubits.
     pub fn new(num_qubits: usize) -> Self {
         Self {
-            qubits: (0..num_qubits).map(|index| Qubit { index, name: None }).collect(),
+            qubits: (0..num_qubits)
+                .map(|index| Qubit { index, name: None })
+                .collect(),
             operations: Vec::new(),
         }
     }
@@ -97,7 +102,10 @@ impl Circuit {
         for (operation_index, operation) in self.operations.iter().enumerate() {
             for &qubit in &operation.qubits {
                 if qubit >= num_qubits {
-                    return Err(CircuitError::QubitOutOfRange { operation_index, qubit });
+                    return Err(CircuitError::QubitOutOfRange {
+                        operation_index,
+                        qubit,
+                    });
                 }
             }
 
@@ -154,7 +162,10 @@ mod tests {
         circuit.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
         assert_eq!(
             circuit.validate(),
-            Err(CircuitError::QubitOutOfRange { operation_index: 0, qubit: 1 })
+            Err(CircuitError::QubitOutOfRange {
+                operation_index: 0,
+                qubit: 1
+            })
         );
     }
 
@@ -164,7 +175,11 @@ mod tests {
         circuit.push(Operation::new(GateKind::H, vec![0, 1], vec![]));
         assert_eq!(
             circuit.validate(),
-            Err(CircuitError::WrongQubitCount { operation_index: 0, expected: 1, found: 2 })
+            Err(CircuitError::WrongQubitCount {
+                operation_index: 0,
+                expected: 1,
+                found: 2
+            })
         );
     }
 
@@ -174,7 +189,11 @@ mod tests {
         circuit.push(Operation::new(GateKind::Rz, vec![0], vec![]));
         assert_eq!(
             circuit.validate(),
-            Err(CircuitError::WrongParamCount { operation_index: 0, expected: 1, found: 0 })
+            Err(CircuitError::WrongParamCount {
+                operation_index: 0,
+                expected: 1,
+                found: 0
+            })
         );
     }
 

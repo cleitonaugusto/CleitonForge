@@ -1,8 +1,8 @@
 //! Measurement sampling from a statevector probability distribution.
 
-use std::collections::HashMap;
 use num_complex::Complex64;
 use rand::{Rng, RngExt};
+use std::collections::HashMap;
 
 /// Samples `shots` measurements from the probability distribution |sv|²
 /// and returns a map from bitstring (MSB-first, e.g. "01") to count.
@@ -42,7 +42,10 @@ pub(crate) fn sample_once_rng(sv: &[Complex64], rng: &mut impl Rng) -> Vec<u8> {
     let mut idx = sv.len() - 1;
     for (i, a) in sv.iter().enumerate() {
         cdf += a.norm_sqr();
-        if r < cdf { idx = i; break; }
+        if r < cdf {
+            idx = i;
+            break;
+        }
     }
     (0..n_qubits).map(|q| ((idx >> q) & 1) as u8).collect()
 }
@@ -58,7 +61,8 @@ impl Lcg64 {
     }
 
     fn next_u64(&mut self) -> u64 {
-        self.state = self.state
+        self.state = self
+            .state
             .wrapping_mul(6_364_136_223_846_793_005)
             .wrapping_add(1_442_695_040_888_963_407);
         self.state

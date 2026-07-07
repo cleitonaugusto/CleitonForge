@@ -22,12 +22,12 @@
 use std::collections::HashMap;
 
 use num_complex::Complex64;
-use rand::SeedableRng;
 use rand::rngs::SmallRng;
+use rand::SeedableRng;
 
 use cforge_core::Circuit;
 
-use crate::noise::{NoisyConfig, apply_readout_error};
+use crate::noise::{apply_readout_error, NoisyConfig};
 use crate::sample::sample_once_rng;
 use crate::statevector::apply_gate;
 use crate::trait_def::{BackendError, SimulationBackend, SimulationResult};
@@ -62,7 +62,12 @@ impl SimulationBackend for NoisyStatevectorBackend {
         "noisy-statevector"
     }
 
-    fn run(&self, circuit: &Circuit, shots: usize, seed: u64) -> Result<SimulationResult, BackendError> {
+    fn run(
+        &self,
+        circuit: &Circuit,
+        shots: usize,
+        seed: u64,
+    ) -> Result<SimulationResult, BackendError> {
         let n = circuit.num_qubits();
         if n > MAX_QUBITS {
             return Err(BackendError(format!(
@@ -76,29 +81,35 @@ impl SimulationBackend for NoisyStatevectorBackend {
         let mut last_sv = vec![Complex64::new(0.0, 0.0); 1 << n];
 
         for _ in 0..trajectories {
-            last_sv = run_trajectory(circuit, &self.config, &mut rng)
-                .map_err(BackendError)?;
+            last_sv = run_trajectory(circuit, &self.config, &mut rng).map_err(BackendError)?;
 
             if shots > 0 {
                 let mut bits = sample_once_rng(&last_sv, &mut rng);
                 if let Some(p) = self.config.readout {
                     apply_readout_error(&mut bits, p, &mut rng);
                 }
-                let bitstring: String = bits.iter().rev().map(|b| char::from_digit(*b as u32, 10).unwrap()).collect();
+                let bitstring: String = bits
+                    .iter()
+                    .rev()
+                    .map(|b| char::from_digit(*b as u32, 10).unwrap())
+                    .collect();
                 *counts.entry(bitstring).or_insert(0) += 1;
             }
         }
 
-        Ok(SimulationResult { statevector: last_sv, counts })
+        Ok(SimulationResult {
+            statevector: last_sv,
+            counts,
+        })
     }
 }
 
 // ── Trajectory engine ─────────────────────────────────────────────────────────
 
 fn run_trajectory(
-    circuit:  &Circuit,
-    config:   &NoisyConfig,
-    rng:      &mut SmallRng,
+    circuit: &Circuit,
+    config: &NoisyConfig,
+    rng: &mut SmallRng,
 ) -> Result<Vec<Complex64>, String> {
     let n = circuit.num_qubits();
     let mut sv = vec![Complex64::new(0.0, 0.0); 1 << n];
@@ -127,13 +138,13 @@ fn run_trajectory(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cforge_core::{GateKind, Operation};
     use crate::noise::{NoiseChannel, NoisyConfig};
     use crate::{NativeStateVectorBackend, SimulationBackend};
+    use cforge_core::{GateKind, Operation};
 
     fn bell_circuit() -> Circuit {
         let mut c = Circuit::new(2);
-        c.push(Operation::new(GateKind::H,  vec![0], vec![]));
+        c.push(Operation::new(GateKind::H, vec![0], vec![]));
         c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
         c
     }
@@ -145,7 +156,9 @@ mod tests {
         let noiseless = NativeStateVectorBackend.run(&c, 0, 0).unwrap();
         let noisy = NoisyStatevectorBackend {
             config: NoisyConfig::depolarizing(0.0, 0.0),
-        }.run(&c, 0, 0).unwrap();
+        }
+        .run(&c, 0, 0)
+        .unwrap();
 
         for (a, b) in noiseless.statevector.iter().zip(&noisy.statevector) {
             assert!((a - b).norm() < 1e-12, "amplitude mismatch: {a} vs {b}");
@@ -159,10 +172,20 @@ mod tests {
         let ideal = NativeStateVectorBackend.run(&c, 0, 0).unwrap().statevector;
         let noisy = NoisyStatevectorBackend {
             config: NoisyConfig::depolarizing(0.5, 0.5),
-        }.run(&c, 0, 42).unwrap().statevector;
+        }
+        .run(&c, 0, 42)
+        .unwrap()
+        .statevector;
 
-        let fidelity: f64 = ideal.iter().zip(&noisy).map(|(a, b)| (a.conj() * b).norm()).sum();
-        assert!(fidelity < 0.9, "expected degraded fidelity, got {fidelity:.4}");
+        let fidelity: f64 = ideal
+            .iter()
+            .zip(&noisy)
+            .map(|(a, b)| (a.conj() * b).norm())
+            .sum();
+        assert!(
+            fidelity < 0.9,
+            "expected degraded fidelity, got {fidelity:.4}"
+        );
     }
 
     #[test]
@@ -170,7 +193,9 @@ mod tests {
         let c = bell_circuit();
         let r = NoisyStatevectorBackend {
             config: NoisyConfig::depolarizing(0.005, 0.01),
-        }.run(&c, 1024, 0).unwrap();
+        }
+        .run(&c, 1024, 0)
+        .unwrap();
         let total: usize = r.counts.values().sum();
         assert_eq!(total, 1024);
     }
@@ -179,8 +204,14 @@ mod tests {
     fn deterministic_with_same_seed() {
         let c = bell_circuit();
         let cfg = NoisyConfig::depolarizing_with_readout(0.01, 0.05, 0.02);
-        let r1 = NoisyStatevectorBackend { config: cfg.clone() }.run(&c, 512, 77).unwrap();
-        let r2 = NoisyStatevectorBackend { config: cfg }.run(&c, 512, 77).unwrap();
+        let r1 = NoisyStatevectorBackend {
+            config: cfg.clone(),
+        }
+        .run(&c, 512, 77)
+        .unwrap();
+        let r2 = NoisyStatevectorBackend { config: cfg }
+            .run(&c, 512, 77)
+            .unwrap();
         assert_eq!(r1.counts, r2.counts);
     }
 
@@ -192,14 +223,19 @@ mod tests {
         let r = NoisyStatevectorBackend {
             config: NoisyConfig {
                 single_qubit: Some(NoiseChannel::AmplitudeDamping { gamma: 0.8 }),
-                two_qubit:    None,
-                readout:      None,
+                two_qubit: None,
+                readout: None,
             },
-        }.run(&c, 2048, 0).unwrap();
+        }
+        .run(&c, 2048, 0)
+        .unwrap();
 
         let zeros = r.counts.get("0").copied().unwrap_or(0);
-        let ones  = r.counts.get("1").copied().unwrap_or(0);
-        assert!(zeros > ones, "expected more |0⟩ than |1⟩ due to T1 decay, got 0:{zeros} 1:{ones}");
+        let ones = r.counts.get("1").copied().unwrap_or(0);
+        assert!(
+            zeros > ones,
+            "expected more |0⟩ than |1⟩ due to T1 decay, got 0:{zeros} 1:{ones}"
+        );
     }
 
     #[test]
@@ -210,10 +246,12 @@ mod tests {
         let r = NoisyStatevectorBackend {
             config: NoisyConfig {
                 single_qubit: None,
-                two_qubit:    None,
-                readout:      Some(1.0),
+                two_qubit: None,
+                readout: Some(1.0),
             },
-        }.run(&c, 256, 0).unwrap();
+        }
+        .run(&c, 256, 0)
+        .unwrap();
         let zeros = r.counts.get("0").copied().unwrap_or(0);
         assert_eq!(zeros, 256, "with readout=1.0, all |1⟩ should flip to 0");
     }

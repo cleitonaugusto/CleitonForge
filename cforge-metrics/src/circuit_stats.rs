@@ -1,8 +1,8 @@
 //! Circuit depth and gate-count metrics, always computed on the
 //! canonical IR so results are comparable across backends.
 
-use std::collections::HashMap;
 use cforge_core::{Circuit, GateKind};
+use std::collections::HashMap;
 
 /// Per-gate-kind count and total, plus circuit depth.
 #[derive(Debug, Clone, Default)]
@@ -78,7 +78,13 @@ mod tests {
     #[test]
     fn gate_counts_by_kind_correct() {
         let stats = compute_stats(&bell());
-        assert_eq!(stats.gate_counts_by_kind.get(&GateKind::H).copied(), Some(1));
-        assert_eq!(stats.gate_counts_by_kind.get(&GateKind::Cx).copied(), Some(1));
+        assert_eq!(
+            stats.gate_counts_by_kind.get(&GateKind::H).copied(),
+            Some(1)
+        );
+        assert_eq!(
+            stats.gate_counts_by_kind.get(&GateKind::Cx).copied(),
+            Some(1)
+        );
     }
 }

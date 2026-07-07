@@ -36,8 +36,8 @@ fn apply1_sv(sv: &mut [Complex64], k: usize, u: &U2) {
         for j in i..(i + stride) {
             let a = sv[j];
             let b = sv[j + stride];
-            sv[j]         = u[0][0] * a + u[0][1] * b;
-            sv[j + stride]= u[1][0] * a + u[1][1] * b;
+            sv[j] = u[0][0] * a + u[0][1] * b;
+            sv[j + stride] = u[1][0] * a + u[1][1] * b;
         }
         i += 2 * stride;
     }
@@ -46,16 +46,24 @@ fn apply1_sv(sv: &mut [Complex64], k: usize, u: &U2) {
 fn renorm(sv: &mut [Complex64]) {
     let norm: f64 = sv.iter().map(|a| a.norm_sqr()).sum::<f64>().sqrt();
     if norm > 1e-14 {
-        for a in sv.iter_mut() { *a /= norm; }
+        for a in sv.iter_mut() {
+            *a /= norm;
+        }
     }
 }
 
-const X: U2 = [[Complex64::new(0.0,0.0), Complex64::new(1.0,0.0)],
-               [Complex64::new(1.0,0.0), Complex64::new(0.0,0.0)]];
-const Y: U2 = [[Complex64::new(0.0,0.0), Complex64::new(0.0,-1.0)],
-               [Complex64::new(0.0,1.0), Complex64::new(0.0, 0.0)]];
-const Z: U2 = [[Complex64::new(1.0,0.0), Complex64::new(0.0,0.0)],
-               [Complex64::new(0.0,0.0), Complex64::new(-1.0,0.0)]];
+const X: U2 = [
+    [Complex64::new(0.0, 0.0), Complex64::new(1.0, 0.0)],
+    [Complex64::new(1.0, 0.0), Complex64::new(0.0, 0.0)],
+];
+const Y: U2 = [
+    [Complex64::new(0.0, 0.0), Complex64::new(0.0, -1.0)],
+    [Complex64::new(0.0, 1.0), Complex64::new(0.0, 0.0)],
+];
+const Z: U2 = [
+    [Complex64::new(1.0, 0.0), Complex64::new(0.0, 0.0)],
+    [Complex64::new(0.0, 0.0), Complex64::new(-1.0, 0.0)],
+];
 
 // ── Public channel type ───────────────────────────────────────────────────────
 
@@ -83,11 +91,15 @@ impl NoiseChannel {
     pub fn apply(&self, sv: &mut [Complex64], qubit: usize, rng: &mut impl Rng) {
         match *self {
             NoiseChannel::Depolarizing { p } => apply_depolarizing(sv, qubit, p, rng),
-            NoiseChannel::BitFlip      { p } => {
-                if rng.random::<f64>() < p { apply1_sv(sv, qubit, &X); }
+            NoiseChannel::BitFlip { p } => {
+                if rng.random::<f64>() < p {
+                    apply1_sv(sv, qubit, &X);
+                }
             }
-            NoiseChannel::PhaseFlip    { p } => {
-                if rng.random::<f64>() < p { apply1_sv(sv, qubit, &Z); }
+            NoiseChannel::PhaseFlip { p } => {
+                if rng.random::<f64>() < p {
+                    apply1_sv(sv, qubit, &Z);
+                }
             }
             NoiseChannel::AmplitudeDamping { gamma } => {
                 apply_amplitude_damping(sv, qubit, gamma, rng);
@@ -119,7 +131,9 @@ fn apply_amplitude_damping(sv: &mut [Complex64], k: usize, gamma: f64, rng: &mut
     let bit = 1 << k;
 
     // P(|1⟩ for qubit k) — probability of jump
-    let p1: f64 = sv.iter().enumerate()
+    let p1: f64 = sv
+        .iter()
+        .enumerate()
         .filter(|(i, _)| i & bit != 0)
         .map(|(_, a)| a.norm_sqr())
         .sum();
@@ -138,7 +152,9 @@ fn apply_amplitude_damping(sv: &mut [Complex64], k: usize, gamma: f64, rng: &mut
         // Apply K0: damp |1⟩ amplitude
         let s = (1.0 - gamma).sqrt();
         for (i, amp) in sv.iter_mut().enumerate() {
-            if i & bit != 0 { *amp *= s; }
+            if i & bit != 0 {
+                *amp *= s;
+            }
         }
     }
     renorm(sv);
@@ -174,8 +190,8 @@ impl NoisyConfig {
     pub fn depolarizing(p1: f64, p2: f64) -> Self {
         Self {
             single_qubit: Some(NoiseChannel::Depolarizing { p: p1 }),
-            two_qubit:    Some(NoiseChannel::Depolarizing { p: p2 }),
-            readout:      None,
+            two_qubit: Some(NoiseChannel::Depolarizing { p: p2 }),
+            readout: None,
         }
     }
 
@@ -183,8 +199,8 @@ impl NoisyConfig {
     pub fn depolarizing_with_readout(p1: f64, p2: f64, readout: f64) -> Self {
         Self {
             single_qubit: Some(NoiseChannel::Depolarizing { p: p1 }),
-            two_qubit:    Some(NoiseChannel::Depolarizing { p: p2 }),
-            readout:      Some(readout),
+            two_qubit: Some(NoiseChannel::Depolarizing { p: p2 }),
+            readout: Some(readout),
         }
     }
 
@@ -192,8 +208,8 @@ impl NoisyConfig {
     pub fn amplitude_damping(gamma: f64) -> Self {
         Self {
             single_qubit: Some(NoiseChannel::AmplitudeDamping { gamma }),
-            two_qubit:    Some(NoiseChannel::AmplitudeDamping { gamma }),
-            readout:      None,
+            two_qubit: Some(NoiseChannel::AmplitudeDamping { gamma }),
+            readout: None,
         }
     }
 }
@@ -214,8 +230,8 @@ pub(crate) fn apply_readout_error(bits: &mut [u8], p: f64, rng: &mut impl Rng) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::SeedableRng;
     use rand::rngs::SmallRng;
+    use rand::SeedableRng;
 
     fn bell_sv() -> Vec<Complex64> {
         let s = 1.0 / std::f64::consts::SQRT_2;
@@ -249,10 +265,15 @@ mod tests {
             let mut s = orig.clone();
             NoiseChannel::Depolarizing { p: 1.0 }.apply(&mut s, 0, &mut rng);
             // Check if qubit flipped (|1⟩ amplitude increased)
-            if s[1].norm() > 0.5 { changed += 1; }
+            if s[1].norm() > 0.5 {
+                changed += 1;
+            }
         }
         // ~2/3 of shots should flip (X or Y applied); allow ±10%
-        assert!(changed > 650 && changed < 950, "expected ~800 flips/1200 shots, got {changed}");
+        assert!(
+            changed > 650 && changed < 950,
+            "expected ~800 flips/1200 shots, got {changed}"
+        );
     }
 
     #[test]
@@ -283,6 +304,9 @@ mod tests {
         let mut bits = vec![0u8, 0, 0, 0];
         let mut rng = SmallRng::seed_from_u64(99);
         apply_readout_error(&mut bits, 1.0, &mut rng);
-        assert!(bits.iter().all(|&b| b == 1), "all bits should flip with p=1");
+        assert!(
+            bits.iter().all(|&b| b == 1),
+            "all bits should flip with p=1"
+        );
     }
 }

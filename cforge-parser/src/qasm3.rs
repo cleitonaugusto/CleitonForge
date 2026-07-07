@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 
 use cforge_core::{Circuit, Operation, Qubit};
-use oq3_semantics::asg::{self, Expr, Literal, BinaryOp, ArithOp, UnaryOp};
+use oq3_semantics::asg::{self, ArithOp, BinaryOp, Expr, Literal, UnaryOp};
 use oq3_semantics::symbols::{SymbolId, SymbolTable, SymbolType};
 use oq3_semantics::syntax_to_semantics::parse_source_string;
 use oq3_semantics::types::Type;
@@ -61,7 +61,9 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
     let mut named_qubits: Vec<Qubit> = Vec::new();
 
     for stmt in program.stmts() {
-        let asg::Stmt::DeclareQuantum(dq) = stmt else { continue };
+        let asg::Stmt::DeclareQuantum(dq) = stmt else {
+            continue;
+        };
         let sym_id = match dq.name() {
             Ok(id) => id.clone(),
             Err(_) => continue,
@@ -92,7 +94,9 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
 
     // Third pass: translate top-level gate applications.
     for stmt in program.stmts() {
-        let asg::Stmt::GateCall(gc) = stmt else { continue };
+        let asg::Stmt::GateCall(gc) = stmt else {
+            continue;
+        };
         let sym_id = match gc.name() {
             Ok(id) => id.clone(),
             Err(_) => continue,
@@ -124,7 +128,9 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
         )?;
     }
 
-    circuit.validate().map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
+    circuit
+        .validate()
+        .map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
     Ok(circuit)
 }
 
@@ -133,21 +139,33 @@ pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
 fn collect_user_gates3(stmts: &[asg::Stmt], symbol_table: &SymbolTable) -> UserGateMap3 {
     let mut map = UserGateMap3::new();
     for stmt in stmts {
-        let asg::Stmt::GateDefinition(gd) = stmt else { continue };
+        let asg::Stmt::GateDefinition(gd) = stmt else {
+            continue;
+        };
         let Ok(name_sym) = gd.name() else { continue };
         let gate_name = symbol_table[name_sym].name().to_string();
 
-        let qubit_sym_ids: Vec<SymbolId> = gd.qubits().iter()
+        let qubit_sym_ids: Vec<SymbolId> = gd
+            .qubits()
+            .iter()
             .filter_map(|r| r.as_ref().ok().cloned())
             .collect();
 
-        let angle_sym_ids: Vec<SymbolId> = gd.params()
+        let angle_sym_ids: Vec<SymbolId> = gd
+            .params()
             .map(|ps| ps.iter().filter_map(|r| r.as_ref().ok().cloned()).collect())
             .unwrap_or_default();
 
         let body: Vec<asg::Stmt> = gd.block().statements().to_vec();
 
-        map.insert(gate_name, UserGateDef3 { qubit_sym_ids, angle_sym_ids, body });
+        map.insert(
+            gate_name,
+            UserGateDef3 {
+                qubit_sym_ids,
+                angle_sym_ids,
+                body,
+            },
+        );
     }
     map
 }
@@ -155,13 +173,13 @@ fn collect_user_gates3(stmts: &[asg::Stmt], symbol_table: &SymbolTable) -> UserG
 // ── Gate application (built-in + user-defined) ────────────────────────────────
 
 fn apply_gate_call3(
-    gate_name:    &str,
-    qubits:       &[usize],
-    params:       &[f64],
-    user_gates:   &UserGateMap3,
+    gate_name: &str,
+    qubits: &[usize],
+    params: &[f64],
+    user_gates: &UserGateMap3,
     symbol_table: &SymbolTable,
-    circuit:      &mut Circuit,
-    depth:        usize,
+    circuit: &mut Circuit,
+    depth: usize,
 ) -> Result<(), ParseError> {
     if depth > MAX_INLINE_DEPTH {
         return Err(ParseError::SyntaxError(format!(
@@ -181,10 +199,19 @@ fn apply_gate_call3(
         if qubits.len() != def.qubit_sym_ids.len() {
             return Err(ParseError::SyntaxError(format!(
                 "gate '{gate_name}' expects {} qubits, got {}",
-                def.qubit_sym_ids.len(), qubits.len()
+                def.qubit_sym_ids.len(),
+                qubits.len()
             )));
         }
-        return inline_user_gate3(def, qubits, params, user_gates, symbol_table, circuit, depth + 1);
+        return inline_user_gate3(
+            def,
+            qubits,
+            params,
+            user_gates,
+            symbol_table,
+            circuit,
+            depth + 1,
+        );
     }
 
     Err(ParseError::UnknownGate(gate_name.to_string()))
@@ -193,38 +220,47 @@ fn apply_gate_call3(
 /// Recursively inlines a user-defined gate body by substituting formal
 /// qubit/param SymbolIds with actual flat indices / f64 values.
 fn inline_user_gate3(
-    def:          &UserGateDef3,
-    act_qubits:   &[usize],
-    act_params:   &[f64],
-    user_gates:   &UserGateMap3,
+    def: &UserGateDef3,
+    act_qubits: &[usize],
+    act_params: &[f64],
+    user_gates: &UserGateMap3,
     symbol_table: &SymbolTable,
-    circuit:      &mut Circuit,
-    depth:        usize,
+    circuit: &mut Circuit,
+    depth: usize,
 ) -> Result<(), ParseError> {
     // Build SymbolId → flat_index map for formal qubit params.
-    let qubit_sym_map: HashMap<SymbolId, usize> = def.qubit_sym_ids.iter()
+    let qubit_sym_map: HashMap<SymbolId, usize> = def
+        .qubit_sym_ids
+        .iter()
         .zip(act_qubits.iter().copied())
         .map(|(id, q)| (id.clone(), q))
         .collect();
 
     // Build SymbolId → f64 map for formal angle params.
-    let param_sym_map: HashMap<SymbolId, f64> = def.angle_sym_ids.iter()
+    let param_sym_map: HashMap<SymbolId, f64> = def
+        .angle_sym_ids
+        .iter()
         .zip(act_params.iter().copied())
         .map(|(id, v)| (id.clone(), v))
         .collect();
 
     for stmt in &def.body {
-        let asg::Stmt::GateCall(gc) = stmt else { continue };
+        let asg::Stmt::GateCall(gc) = stmt else {
+            continue;
+        };
         let Ok(name_sym) = gc.name() else { continue };
         let inner_name = symbol_table[name_sym].name().to_string();
 
-        let resolved_qubits: Vec<usize> = gc.qubits().iter()
+        let resolved_qubits: Vec<usize> = gc
+            .qubits()
+            .iter()
             .map(|texpr| extract_qubit_from_sym_map(texpr, &qubit_sym_map))
             .collect::<Result<Vec<_>, _>>()?;
 
         let evaluated_params: Vec<f64> = match gc.params() {
             None => vec![],
-            Some(plist) => plist.iter()
+            Some(plist) => plist
+                .iter()
                 .map(|texpr| eval_texpr(texpr, symbol_table, &param_sym_map))
                 .collect::<Result<Vec<_>, _>>()?,
         };
@@ -253,21 +289,30 @@ fn extract_qubit_index(
 ) -> Result<usize, ParseError> {
     let go = match texpr.expression() {
         Expr::GateOperand(go) => go,
-        other => return Err(ParseError::SyntaxError(format!(
-            "expected gate operand, got {other:?}"
-        ))),
+        other => {
+            return Err(ParseError::SyntaxError(format!(
+                "expected gate operand, got {other:?}"
+            )))
+        }
     };
     match go {
         asg::GateOperand::Identifier(sym_id_result) => {
-            let sym_id = sym_id_result.as_ref()
+            let sym_id = sym_id_result
+                .as_ref()
                 .map_err(|_| ParseError::UndeclaredQubit("<error>".to_string()))?;
-            qubit_base.get(sym_id).copied()
+            qubit_base
+                .get(sym_id)
+                .copied()
                 .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))
         }
         asg::GateOperand::IndexedIdentifier(ii) => {
-            let sym_id = ii.identifier().as_ref()
+            let sym_id = ii
+                .identifier()
+                .as_ref()
                 .map_err(|_| ParseError::UndeclaredQubit("<error>".to_string()))?;
-            let base = qubit_base.get(sym_id).copied()
+            let base = qubit_base
+                .get(sym_id)
+                .copied()
                 .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))?;
             let idx = extract_index_from_operator(ii.indexes())?;
             Ok(base + idx)
@@ -287,35 +332,43 @@ fn extract_qubit_from_sym_map(
 ) -> Result<usize, ParseError> {
     let go = match texpr.expression() {
         Expr::GateOperand(go) => go,
-        other => return Err(ParseError::SyntaxError(format!(
-            "expected gate operand in body, got {other:?}"
-        ))),
+        other => {
+            return Err(ParseError::SyntaxError(format!(
+                "expected gate operand in body, got {other:?}"
+            )))
+        }
     };
     let sym_id = match go {
-        asg::GateOperand::Identifier(r) => {
-            r.as_ref().map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?
-        }
-        asg::GateOperand::IndexedIdentifier(ii) => {
-            ii.identifier().as_ref()
-                .map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?
-        }
+        asg::GateOperand::Identifier(r) => r
+            .as_ref()
+            .map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?,
+        asg::GateOperand::IndexedIdentifier(ii) => ii
+            .identifier()
+            .as_ref()
+            .map_err(|_| ParseError::UndeclaredQubit("<err>".to_string()))?,
         asg::GateOperand::HardwareQubit(hq) => {
             return Err(ParseError::SyntaxError(format!(
-                "hardware qubit '{}' in gate body", hq.identifier()
+                "hardware qubit '{}' in gate body",
+                hq.identifier()
             )));
         }
     };
-    qubit_sym_map.get(sym_id).copied()
+    qubit_sym_map
+        .get(sym_id)
+        .copied()
         .ok_or_else(|| ParseError::UndeclaredQubit(format!("{sym_id:?}")))
 }
 
 /// Extracts an integer index from the first index operator of an `IndexedIdentifier`.
 fn extract_index_from_operator(indexes: &[asg::IndexOperator]) -> Result<usize, ParseError> {
-    let op = indexes.first()
+    let op = indexes
+        .first()
         .ok_or_else(|| ParseError::SyntaxError("missing qubit index".to_string()))?;
     match op {
         asg::IndexOperator::ExpressionList(el) => {
-            let texpr = el.expressions.first()
+            let texpr = el
+                .expressions
+                .first()
                 .ok_or_else(|| ParseError::SyntaxError("empty index list".to_string()))?;
             match texpr.expression() {
                 Expr::Literal(Literal::Int(il)) => Ok(*il.value() as usize),
@@ -342,12 +395,14 @@ fn eval_texpr(
     param_sym_map: &HashMap<SymbolId, f64>,
 ) -> Result<f64, ParseError> {
     match texpr.expression() {
-        Expr::Literal(Literal::Float(fl)) => fl.value()
+        Expr::Literal(Literal::Float(fl)) => fl
+            .value()
             .parse::<f64>()
             .map_err(|_| ParseError::InvalidParam(fl.value().to_string())),
         Expr::Literal(Literal::Int(il)) => Ok(*il.value() as f64),
         Expr::Identifier(sym_id_result) => {
-            let sym_id = sym_id_result.as_ref()
+            let sym_id = sym_id_result
+                .as_ref()
                 .map_err(|_| ParseError::InvalidParam("<error sym>".to_string()))?;
             // Check formal param map first (gate body context).
             if let Some(&v) = param_sym_map.get(sym_id) {
@@ -368,7 +423,7 @@ fn eval_texpr(
         // Just evaluate the inner operand — the numeric value is unchanged.
         Expr::Cast(cast) => eval_texpr(cast.operand(), symbol_table, param_sym_map),
         Expr::BinaryExpr(be) => {
-            let left  = eval_texpr(be.left(),  symbol_table, param_sym_map)?;
+            let left = eval_texpr(be.left(), symbol_table, param_sym_map)?;
             let right = eval_texpr(be.right(), symbol_table, param_sym_map)?;
             match be.op() {
                 BinaryOp::ArithOp(ArithOp::Add) => Ok(left + right),
@@ -389,10 +444,10 @@ fn eval_texpr(
 /// Maps built-in OpenQASM 3 constant names to their `f64` values.
 fn builtin_const(name: &str) -> Option<f64> {
     match name {
-        "pi"            => Some(std::f64::consts::PI),
-        "euler" | "e"   => Some(std::f64::consts::E),
-        "tau"           => Some(std::f64::consts::TAU),
-        _               => None,
+        "pi" => Some(std::f64::consts::PI),
+        "euler" | "e" => Some(std::f64::consts::E),
+        "tau" => Some(std::f64::consts::TAU),
+        _ => None,
     }
 }
 

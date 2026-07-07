@@ -30,7 +30,10 @@ pub enum ExtrapolationMethod {
 
 impl ZneEstimator {
     pub fn new(scale_factors: Vec<f64>) -> Self {
-        Self { scale_factors, method: ExtrapolationMethod::Richardson }
+        Self {
+            scale_factors,
+            method: ExtrapolationMethod::Richardson,
+        }
     }
 
     /// Fold a circuit to scale noise by factor λ (integer scale only in v1).

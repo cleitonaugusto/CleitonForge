@@ -21,7 +21,11 @@ fn bell_state_backends_agree() {
     c.push(Operation::new(GateKind::H, vec![0], vec![]));
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
     let (sv1, sv2) = run_both(&c);
-    assert!(fidelity(&sv1, &sv2) > 0.9999, "fidelity = {}", fidelity(&sv1, &sv2));
+    assert!(
+        fidelity(&sv1, &sv2) > 0.9999,
+        "fidelity = {}",
+        fidelity(&sv1, &sv2)
+    );
 }
 
 #[test]
@@ -90,33 +94,50 @@ fn rz_on_superposition_exposes_convention_divergence() {
     // differs between backends — this is the documented quantrs2 Rz divergence.
     let angle = std::f64::consts::FRAC_PI_4;
     let mut c = Circuit::new(1);
-    c.push(Operation::new(GateKind::H,  vec![0], vec![]));
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
     c.push(Operation::new(GateKind::Rz, vec![0], vec![angle]));
     let (sv1, sv2) = run_both(&c);
     let f = fidelity(&sv1, &sv2);
     // Fidelity should be < 1 — backends diverge on superposition inputs.
-    assert!(f < 0.9999, "expected fidelity < 1 for Rz on superposition, got {f}");
+    assert!(
+        f < 0.9999,
+        "expected fidelity < 1 for Rz on superposition, got {f}"
+    );
 }
 
 #[test]
 fn grover_3q_backends_agree() {
     // 3-qubit Grover, target |101⟩, 2 iterations. Uses only H/X/CCX — no Rz.
     let mut c = Circuit::new(3);
-    for q in 0..3 { c.push(Operation::new(GateKind::H, vec![q], vec![])); }
+    for q in 0..3 {
+        c.push(Operation::new(GateKind::H, vec![q], vec![]));
+    }
     for _ in 0..2 {
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
-        c.push(Operation::new(GateKind::X,   vec![1],       vec![]));
-        for q in 0..3 { c.push(Operation::new(GateKind::H, vec![q], vec![])); }
-        for q in 0..3 { c.push(Operation::new(GateKind::X, vec![q], vec![])); }
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
+        c.push(Operation::new(GateKind::X, vec![1], vec![]));
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::H, vec![q], vec![]));
+        }
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::X, vec![q], vec![]));
+        }
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
         c.push(Operation::new(GateKind::Ccx, vec![0, 1, 2], vec![]));
-        c.push(Operation::new(GateKind::H,   vec![2],       vec![]));
-        for q in 0..3 { c.push(Operation::new(GateKind::X, vec![q], vec![])); }
-        for q in 0..3 { c.push(Operation::new(GateKind::H, vec![q], vec![])); }
+        c.push(Operation::new(GateKind::H, vec![2], vec![]));
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::X, vec![q], vec![]));
+        }
+        for q in 0..3 {
+            c.push(Operation::new(GateKind::H, vec![q], vec![]));
+        }
     }
     let (sv1, sv2) = run_both(&c);
-    assert!(fidelity(&sv1, &sv2) > 0.9999, "fidelity = {}", fidelity(&sv1, &sv2));
+    assert!(
+        fidelity(&sv1, &sv2) > 0.9999,
+        "fidelity = {}",
+        fidelity(&sv1, &sv2)
+    );
 }

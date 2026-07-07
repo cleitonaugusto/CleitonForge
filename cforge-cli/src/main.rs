@@ -3,9 +3,9 @@ pub mod ibm_profile;
 use std::path::{Path, PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum};
-use comfy_table::{Table, presets::UTF8_FULL};
+use comfy_table::{presets::UTF8_FULL, Table};
 
-use cforge_backends::{DEFAULT_SEED, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
+use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend, DEFAULT_SEED};
 use cforge_core::MetricsResult;
 use cforge_metrics::{compute_stats, measure};
 use cforge_parser::{parse_qasm2, parse_qasm3};
@@ -66,7 +66,13 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Run { circuit, backends, shots, format, seed } => {
+        Commands::Run {
+            circuit,
+            backends,
+            shots,
+            format,
+            seed,
+        } => {
             cmd_run(&circuit, &backends, shots, format, seed);
         }
         Commands::Validate { circuit } => cmd_validate(&circuit),
@@ -126,21 +132,41 @@ fn print_table(
         circuit.num_qubits(),
         stats.gate_count,
         stats.depth,
-        if shots > 0 { format!("  |  seed 0x{seed:x}") } else { String::new() },
+        if shots > 0 {
+            format!("  |  seed 0x{seed:x}")
+        } else {
+            String::new()
+        },
     );
 
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
-    table.set_header(["Backend", "Time (ms)", "Memory", "Depth", "Gates", "Fidelity", "Shots"]);
+    table.set_header([
+        "Backend",
+        "Time (ms)",
+        "Memory",
+        "Depth",
+        "Gates",
+        "Fidelity",
+        "Shots",
+    ]);
 
     for (backend, result) in backends.iter().zip(results) {
         match result {
             Ok(m) => {
-                let fidelity_str = m.fidelity
+                let fidelity_str = m
+                    .fidelity
                     .map(|f| format!("{:.6}", f))
                     .unwrap_or_else(|| "—".to_string());
-                let shots_str = if shots > 0 { shots.to_string() } else { "—".to_string() };
-                let mem_str = m.memory_bytes.map(format_bytes).unwrap_or_else(|| "—".to_string());
+                let shots_str = if shots > 0 {
+                    shots.to_string()
+                } else {
+                    "—".to_string()
+                };
+                let mem_str = m
+                    .memory_bytes
+                    .map(format_bytes)
+                    .unwrap_or_else(|| "—".to_string());
                 table.add_row([
                     m.backend_name.as_str(),
                     &format!("{:.3}", m.execution_time_ms),

@@ -23,7 +23,7 @@ use crate::translate::translate_gate;
 struct UserGateDef {
     qubit_names: Vec<String>,
     angle_names: Vec<String>,
-    body:        Vec<qasm::AstNode>,
+    body: Vec<qasm::AstNode>,
 }
 
 type UserGateMap = HashMap<String, UserGateDef>;
@@ -38,7 +38,7 @@ fn collect_user_gates(ast: &[qasm::AstNode]) -> UserGateMap {
                 UserGateDef {
                     qubit_names: qubit_names.clone(),
                     angle_names: angle_names.clone(),
-                    body:        body.clone(),
+                    body: body.clone(),
                 },
             );
         }
@@ -55,8 +55,7 @@ fn collect_user_gates(ast: &[qasm::AstNode]) -> UserGateMap {
 pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseError> {
     let processed = qasm::process(source, search_dir);
     let mut tokens = qasm::lex(&processed);
-    let ast = qasm::parse(&mut tokens)
-        .map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
+    let ast = qasm::parse(&mut tokens).map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
 
     // First pass: collect qubit register declarations and user-defined gates.
     let mut reg_map: HashMap<String, (usize, usize)> = HashMap::new();
@@ -116,7 +115,9 @@ pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseErro
         }
     }
 
-    circuit.validate().map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
+    circuit
+        .validate()
+        .map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
     Ok(circuit)
 }
 
@@ -128,11 +129,11 @@ const MAX_INLINE_DEPTH: usize = 32;
 /// recursively inlining a user-defined gate definition.
 fn apply_gate_call(
     gate_name: &str,
-    qubits:    &[usize],
-    params:    &[f64],
+    qubits: &[usize],
+    params: &[f64],
     user_gates: &UserGateMap,
-    circuit:   &mut Circuit,
-    depth:     usize,
+    circuit: &mut Circuit,
+    depth: usize,
 ) -> Result<(), ParseError> {
     if depth > MAX_INLINE_DEPTH {
         return Err(ParseError::SyntaxError(format!(
@@ -152,13 +153,15 @@ fn apply_gate_call(
         if qubits.len() != def.qubit_names.len() {
             return Err(ParseError::SyntaxError(format!(
                 "gate '{gate_name}' expects {} qubits, got {}",
-                def.qubit_names.len(), qubits.len()
+                def.qubit_names.len(),
+                qubits.len()
             )));
         }
         if params.len() != def.angle_names.len() {
             return Err(ParseError::SyntaxError(format!(
                 "gate '{gate_name}' expects {} params, got {}",
-                def.angle_names.len(), params.len()
+                def.angle_names.len(),
+                params.len()
             )));
         }
         return inline_user_gate(def, qubits, params, user_gates, circuit, depth + 1);
@@ -170,19 +173,23 @@ fn apply_gate_call(
 /// Recursively inlines a user-defined gate by substituting formal qubit/param
 /// names with the actual values from the call site.
 fn inline_user_gate(
-    def:        &UserGateDef,
+    def: &UserGateDef,
     act_qubits: &[usize],
     act_params: &[f64],
     user_gates: &UserGateMap,
-    circuit:    &mut Circuit,
-    depth:      usize,
+    circuit: &mut Circuit,
+    depth: usize,
 ) -> Result<(), ParseError> {
-    let qubit_map: HashMap<&str, usize> = def.qubit_names.iter()
+    let qubit_map: HashMap<&str, usize> = def
+        .qubit_names
+        .iter()
         .zip(act_qubits.iter().copied())
         .map(|(n, q)| (n.as_str(), q))
         .collect();
 
-    let param_map: HashMap<&str, f64> = def.angle_names.iter()
+    let param_map: HashMap<&str, f64> = def
+        .angle_names
+        .iter()
         .zip(act_params.iter().copied())
         .map(|(n, v)| (n.as_str(), v))
         .collect();
@@ -192,15 +199,24 @@ fn inline_user_gate(
             continue;
         };
 
-        let resolved_qubits: Vec<usize> = args.iter()
+        let resolved_qubits: Vec<usize> = args
+            .iter()
             .map(|arg| resolve_arg_from_qubit_map(arg, &qubit_map))
             .collect::<Result<_, _>>()?;
 
-        let evaluated_params: Vec<f64> = raw_params.iter()
+        let evaluated_params: Vec<f64> = raw_params
+            .iter()
             .map(|expr| eval_param_with_subst(expr, &param_map))
             .collect::<Result<_, _>>()?;
 
-        apply_gate_call(name, &resolved_qubits, &evaluated_params, user_gates, circuit, depth)?;
+        apply_gate_call(
+            name,
+            &resolved_qubits,
+            &evaluated_params,
+            user_gates,
+            circuit,
+            depth,
+        )?;
     }
 
     Ok(())
@@ -243,7 +259,10 @@ fn resolve_arg_from_qubit_map(
     let name = match arg {
         qasm::Argument::Qubit(n, _) | qasm::Argument::Register(n) => n.as_str(),
     };
-    qubit_map.get(name).copied().ok_or_else(|| ParseError::UndeclaredQubit(name.to_string()))
+    qubit_map
+        .get(name)
+        .copied()
+        .ok_or_else(|| ParseError::UndeclaredQubit(name.to_string()))
 }
 
 // ── Parameter evaluation ──────────────────────────────────────────────────────
@@ -252,10 +271,7 @@ fn resolve_arg_from_qubit_map(
 ///
 /// `param_map` substitutes formal parameter names with their concrete values
 /// (used when evaluating expressions inside user-defined gate bodies).
-fn eval_param_with_subst(
-    expr:      &str,
-    param_map: &HashMap<&str, f64>,
-) -> Result<f64, ParseError> {
+fn eval_param_with_subst(expr: &str, param_map: &HashMap<&str, f64>) -> Result<f64, ParseError> {
     let s = expr.trim();
     if let Ok(v) = s.parse::<f64>() {
         return Ok(v);

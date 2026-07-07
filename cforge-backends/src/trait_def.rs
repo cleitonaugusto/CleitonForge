@@ -1,8 +1,8 @@
 //! The `SimulationBackend` trait and associated result/error types.
 
-use std::collections::HashMap;
-use num_complex::Complex64;
 use cforge_core::Circuit;
+use num_complex::Complex64;
+use std::collections::HashMap;
 
 /// Measurement outcome and statevector for one circuit run.
 #[derive(Debug, Clone)]

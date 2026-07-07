@@ -27,12 +27,14 @@ use std::f64::consts::PI;
 use rand::rngs::SmallRng;
 use rand::{Rng, RngExt, SeedableRng};
 
-use cforge_backends::{NativeStateVectorBackend, Q1tSimBackend, QuantRS2Backend, RoqoqoBackend, SimulationBackend};
+use cforge_backends::{
+    NativeStateVectorBackend, Q1tSimBackend, QuantRS2Backend, RoqoqoBackend, SimulationBackend,
+};
 use cforge_core::{Circuit, GateKind, Operation};
 
-const TRIALS:    usize = 100;
+const TRIALS: usize = 100;
 const MAX_WIDTH: usize = 5;
-const SEED:      u64   = 2024_07_04;
+const SEED: u64 = 2024_07_04;
 
 fn main() {
     println!("╔══════════════════════════════════════════════════════════════╗");
@@ -44,16 +46,22 @@ fn main() {
     println!();
 
     let backends: &[(&str, &dyn SimulationBackend)] = &[
-        ("native",   &NativeStateVectorBackend),
+        ("native", &NativeStateVectorBackend),
         ("quantrs2", &QuantRS2Backend),
-        ("roqoqo",   &RoqoqoBackend),
-        ("q1tsim",   &Q1tSimBackend),
+        ("roqoqo", &RoqoqoBackend),
+        ("q1tsim", &Q1tSimBackend),
     ];
 
     // Header
     println!(
         "{:<8}  {:<10}  {}",
-        "Width n", "QV = 2^n", backends.iter().map(|(n, _)| format!("{:<10}", n)).collect::<Vec<_>>().join("  ")
+        "Width n",
+        "QV = 2^n",
+        backends
+            .iter()
+            .map(|(n, _)| format!("{:<10}", n))
+            .collect::<Vec<_>>()
+            .join("  ")
     );
     println!("{}", "─".repeat(60));
 
@@ -65,12 +73,21 @@ fn main() {
             hog_fracs.push(hog);
         }
 
-        let qv = if hog_fracs.iter().all(|&h| h > 2.0/3.0) { 1 << n } else { 0 };
-        let qv_str = if qv > 0 { format!("2^{n}={qv}") } else { "—".to_string() };
+        let qv = if hog_fracs.iter().all(|&h| h > 2.0 / 3.0) {
+            1 << n
+        } else {
+            0
+        };
+        let qv_str = if qv > 0 {
+            format!("2^{n}={qv}")
+        } else {
+            "—".to_string()
+        };
 
-        let cols: String = hog_fracs.iter()
+        let cols: String = hog_fracs
+            .iter()
             .map(|h| {
-                let pass = if *h > 2.0/3.0 { "✅" } else { "❌" };
+                let pass = if *h > 2.0 / 3.0 { "✅" } else { "❌" };
                 format!("{:.4}  {pass}  ", h)
             })
             .collect::<Vec<_>>()
@@ -108,13 +125,23 @@ fn compute_hog(backend: &dyn SimulationBackend, n: usize, trials: usize, seed: u
         let median = sorted[sorted.len() / 2];
 
         let heavy_set: Vec<bool> = probs.iter().map(|&p| p > median).collect();
-        let heavy_ideal_prob: f64 = probs.iter().zip(&heavy_set).filter(|(_, &h)| h).map(|(p, _)| p).sum();
+        let heavy_ideal_prob: f64 = probs
+            .iter()
+            .zip(&heavy_set)
+            .filter(|(_, &h)| h)
+            .map(|(p, _)| p)
+            .sum();
 
         // Backend simulation — compare HOG using the backend's statevector
         let result = backend.run(&circuit, 0, 0);
         if let Ok(r) = result {
             let backend_probs: Vec<f64> = r.statevector.iter().map(|a| a.norm_sqr()).collect();
-            let backend_hog: f64 = backend_probs.iter().zip(&heavy_set).filter(|(_, &h)| h).map(|(p, _)| p).sum();
+            let backend_hog: f64 = backend_probs
+                .iter()
+                .zip(&heavy_set)
+                .filter(|(_, &h)| h)
+                .map(|(p, _)| p)
+                .sum();
             total_hog_prob += backend_hog;
         } else {
             total_hog_prob += 0.0;
@@ -189,7 +216,7 @@ fn apply_random_su4(circuit: &mut Circuit, q0: usize, q1: usize, rng: &mut impl 
 /// Random SU(2) via Euler angles: Rz(α) Ry(β) Rz(γ).
 fn apply_random_su2(circuit: &mut Circuit, q: usize, rng: &mut impl Rng) {
     let alpha: f64 = rng.random::<f64>() * 2.0 * PI;
-    let beta:  f64 = (1.0_f64 - 2.0 * rng.random::<f64>()).acos();
+    let beta: f64 = (1.0_f64 - 2.0 * rng.random::<f64>()).acos();
     let gamma: f64 = rng.random::<f64>() * 2.0 * PI;
     circuit.push(Operation::new(GateKind::Rz, vec![q], vec![alpha]));
     circuit.push(Operation::new(GateKind::Ry, vec![q], vec![beta]));
