@@ -309,6 +309,13 @@ cargo test --workspace
 cargo clippy --workspace
 ```
 
+## Patrocínio
+
+CleitonForge é desenvolvido e mantido por um pesquisador independente.
+Se esta ferramenta economizou seu tempo ou ajudou a encontrar um bug, considere apoiar:
+
+**➜ [github.com/sponsors/cleitonaugusto](https://github.com/sponsors/cleitonaugusto)**
+
 ---
 
 ## Licença
