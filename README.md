@@ -2,6 +2,10 @@
 
 **[English]** | [Português](README.pt-BR.md)
 
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/cleitonaugusto?label=Sponsor&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/cleitonaugusto)
+[![Crates.io](https://img.shields.io/crates/v/cleitonforge)](https://crates.io/crates/cleitonforge)
+[![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
+
 **CleitonForge** is an open-source, neutral benchmarking and interoperability
 layer for quantum computing simulators, written in Rust. The CLI binary is
 `cforge`.
