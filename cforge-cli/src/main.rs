@@ -5,7 +5,10 @@ use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand, ValueEnum};
 use comfy_table::{presets::UTF8_FULL, Table};
 
-use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend, DEFAULT_SEED};
+use cforge_backends::{
+    certify, CheckStatus, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend,
+    DEFAULT_SEED,
+};
 use cforge_core::MetricsResult;
 use cforge_metrics::{compute_stats, measure};
 use cforge_parser::{parse_qasm2, parse_qasm3};
@@ -60,6 +63,17 @@ enum Commands {
         #[arg(long)]
         circuit: PathBuf,
     },
+
+    /// Run the QGCS conformance suite against one backend.
+    ///
+    /// Reports which OpenQASM 3 gate conventions the backend satisfies,
+    /// covering: Rz sign, T/Tdg phase, T²=S, T⁴=Z, Sdg phase,
+    /// P vs Rz (global vs controlled), and qubit endianness.
+    Certify {
+        /// Backend to certify: statevector, quantrs2
+        #[arg(long, default_value = "quantrs2")]
+        backend: String,
+    },
 }
 
 fn main() {
@@ -76,6 +90,7 @@ fn main() {
             cmd_run(&circuit, &backends, shots, format, seed);
         }
         Commands::Validate { circuit } => cmd_validate(&circuit),
+        Commands::Certify { backend } => cmd_certify(&backend),
     }
 }
 
@@ -261,6 +276,60 @@ fn cmd_validate(path: &PathBuf) {
     } else {
         println!("Status : INVALID");
         std::process::exit(1);
+    }
+}
+
+// ── cforge certify ───────────────────────────────────────────────────────────
+
+fn cmd_certify(backend_name: &str) {
+    let backend: Box<dyn SimulationBackend> = match backend_name.trim() {
+        "statevector" | "native" => Box::new(NativeStateVectorBackend),
+        "quantrs2" => Box::new(QuantRS2Backend),
+        other => {
+            eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
+            std::process::exit(1);
+        }
+    };
+
+    println!("╔══════════════════════════════════════════════════════════════╗");
+    println!("║        CleitonForge — QGCS Conformance Report               ║");
+    println!("╠══════════════════════════════════════════════════════════════╣");
+    println!("║  Backend : {:<50}║", backend_name);
+    println!("║  Standard: OpenQASM 3 / IBM gate convention                 ║");
+    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!();
+
+    let results = certify(backend.as_ref());
+
+    let mut table = Table::new();
+    table.load_preset(UTF8_FULL);
+    table.set_header(["Dimension", "Check", "Status", "Detail"]);
+
+    let mut passed = 0usize;
+    for r in &results {
+        let (status_str, detail) = match &r.status {
+            CheckStatus::Pass => {
+                passed += 1;
+                ("✅ PASS".to_string(), String::new())
+            }
+            CheckStatus::Fail { expected, got } => (
+                "❌ FAIL".to_string(),
+                format!("expected {expected}, got {got}"),
+            ),
+            CheckStatus::Skip { reason } => ("⚠  SKIP".to_string(), reason.clone()),
+        };
+        table.add_row([r.dimension, r.name, &status_str, &detail]);
+    }
+
+    println!("{table}");
+    println!();
+
+    let total = results.len();
+    let compliant = passed == total;
+    if compliant {
+        println!("Result: {passed}/{total} passed — ✅ OpenQASM 3 compliant");
+    } else {
+        println!("Result: {passed}/{total} passed — ❌ NOT OpenQASM 3 compliant");
     }
 }
 
