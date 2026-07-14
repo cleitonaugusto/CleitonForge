@@ -7,6 +7,7 @@ use std::path::Path;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use cforge_backends::certify::{certify as run_certify, CheckStatus};
 use cforge_backends::noise::NoiseChannel;
 use cforge_backends::{
     BackendError, DensityMatrixBackend, NativeStateVectorBackend, NoisyConfig,
@@ -600,6 +601,92 @@ fn normalize_qasm(source: &str, from_convention: &str, to_convention: &str) -> P
     })
 }
 
+// ── QGCS certify ─────────────────────────────────────────────────────────────
+
+/// One QGCS conformance check result.
+///
+/// Attributes:
+///     dimension (str): Convention category (e.g. ``"Rz sign"``, ``"T gate"``).
+///     name (str): Short description of the specific check.
+///     passed (bool): ``True`` if the check passed.
+///     status (str): ``"pass"``, ``"fail"``, or ``"skip"``.
+///     detail (str): Expected vs. actual values on failure; skip reason on skip.
+#[pyclass(name = "CheckResult")]
+pub struct PyCheckResult {
+    #[pyo3(get)]
+    dimension: String,
+    #[pyo3(get)]
+    name: String,
+    #[pyo3(get)]
+    passed: bool,
+    #[pyo3(get)]
+    status: String,
+    #[pyo3(get)]
+    detail: String,
+}
+
+#[pymethods]
+impl PyCheckResult {
+    fn __repr__(&self) -> String {
+        format!(
+            "CheckResult(dimension={:?}, name={:?}, status={:?})",
+            self.dimension, self.name, self.status
+        )
+    }
+}
+
+/// Run the QGCS conformance suite against a backend.
+///
+/// Returns a list of :class:`CheckResult` covering 12 phase-sensitive checks:
+/// Rz sign, T/Tdg phase, T²=S, T⁴=Z, Sdg phase, S·Sdg=I,
+/// P~Rz global phase, CP≠CRz superposition, and qubit endianness (3 checks).
+///
+/// Args:
+///     backend (str): ``"statevector"`` (always 12/12) or ``"quantrs2"`` (10/12).
+///
+/// Returns:
+///     list[CheckResult]
+///
+/// Example::
+///
+///     import cleitonforge as cf
+///
+///     results = cf.certify("quantrs2")
+///     for r in results:
+///         icon = "✅" if r.passed else "❌"
+///         print(f"{icon} [{r.dimension}] {r.name}")
+///         if not r.passed:
+///             print(f"   → {r.detail}")
+///
+///     passed = sum(1 for r in results if r.passed)
+///     print(f"\n{passed}/{len(results)} checks passed")
+#[pyfunction]
+#[pyo3(signature = (backend = "statevector"))]
+fn certify(backend: &str) -> PyResult<Vec<PyCheckResult>> {
+    let b = backend_for(backend)?;
+    let results = run_certify(b.as_ref());
+    Ok(results
+        .into_iter()
+        .map(|r| {
+            let (status, detail) = match &r.status {
+                CheckStatus::Pass => ("pass".to_string(), String::new()),
+                CheckStatus::Fail { expected, got } => (
+                    "fail".to_string(),
+                    format!("expected {expected}, got {got}"),
+                ),
+                CheckStatus::Skip { reason } => ("skip".to_string(), reason.clone()),
+            };
+            PyCheckResult {
+                dimension: r.dimension.to_string(),
+                name: r.name.to_string(),
+                passed: r.passed(),
+                status,
+                detail,
+            }
+        })
+        .collect())
+}
+
 // ── Module ────────────────────────────────────────────────────────────────────
 
 #[pymodule]
@@ -611,6 +698,8 @@ fn cleitonforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(validate_qasm, m)?)?;
     m.add_function(wrap_pyfunction!(normalize, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_qasm, m)?)?;
+    m.add_function(wrap_pyfunction!(certify, m)?)?;
+    m.add_class::<PyCheckResult>()?;
     m.add("DEFAULT_SEED", DEFAULT_SEED)?;
     m.add("CONVENTION_STANDARD", "standard")?;
     m.add("CONVENTION_REVERSED", "reversed")?;
