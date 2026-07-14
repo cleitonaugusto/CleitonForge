@@ -333,7 +333,9 @@ fn cmd_certify(backend_name: &str) {
     if failed == 0 && skipped == 0 {
         println!("Result: {passed}/{total} passed — ✅ OpenQASM 3 compliant");
     } else if failed == 0 && skipped > 0 {
-        println!("Result: {passed}/{total} passed, {skipped} skipped — ⚠  PARTIAL (unsupported gates)");
+        println!(
+            "Result: {passed}/{total} passed, {skipped} skipped — ⚠  PARTIAL (unsupported gates)"
+        );
     } else {
         println!("Result: {passed}/{total} passed — ❌ NOT OpenQASM 3 compliant");
     }

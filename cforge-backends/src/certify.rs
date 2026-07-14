@@ -38,7 +38,11 @@ impl CheckResult {
 }
 
 fn skip(name: &'static str, dimension: &'static str, reason: String) -> CheckResult {
-    CheckResult { name, dimension, status: CheckStatus::Skip { reason } }
+    CheckResult {
+        name,
+        dimension,
+        status: CheckStatus::Skip { reason },
+    }
 }
 
 fn run(backend: &dyn SimulationBackend, c: &Circuit) -> Result<Vec<Complex64>, String> {
@@ -76,16 +80,25 @@ fn ratio_check(
         Err(e) => skip(name, dimension, e),
         Ok(sv) => {
             let Some(&n) = sv.get(num) else {
-                return skip(name, dimension,
-                    format!("statevector too short (len={}, need index {num})", sv.len()));
+                return skip(
+                    name,
+                    dimension,
+                    format!("statevector too short (len={}, need index {num})", sv.len()),
+                );
             };
             let Some(&d) = sv.get(den) else {
-                return skip(name, dimension,
-                    format!("statevector too short (len={}, need index {den})", sv.len()));
+                return skip(
+                    name,
+                    dimension,
+                    format!("statevector too short (len={}, need index {den})", sv.len()),
+                );
             };
             if d.norm() < 1e-15 {
-                return skip(name, dimension,
-                    format!("sv[{den}] ≈ 0 — degenerate state (broken H?)"));
+                return skip(
+                    name,
+                    dimension,
+                    format!("sv[{den}] ≈ 0 — degenerate state (broken H?)"),
+                );
             }
             let ratio = n / d;
             CheckResult {
@@ -117,9 +130,15 @@ fn fidelity_check(
         (Err(e), _) | (_, Err(e)) => return skip(name, dimension, e),
     };
     match fidelity(&sa, &sb) {
-        None => skip(name, dimension,
-            format!("statevector dimension mismatch or degenerate state (|a|={}, |b|={})",
-                sa.len(), sb.len())),
+        None => skip(
+            name,
+            dimension,
+            format!(
+                "statevector dimension mismatch or degenerate state (|a|={}, |b|={})",
+                sa.len(),
+                sb.len()
+            ),
+        ),
         Some(f) => CheckResult {
             name,
             dimension,
@@ -147,8 +166,14 @@ fn amp_check(
         Err(e) => skip(name, dimension, e),
         Ok(sv) => {
             let Some(&amp) = sv.get(index) else {
-                return skip(name, dimension,
-                    format!("statevector too short (len={}, need index {index})", sv.len()));
+                return skip(
+                    name,
+                    dimension,
+                    format!(
+                        "statevector too short (len={}, need index {index})",
+                        sv.len()
+                    ),
+                );
             };
             CheckResult {
                 name,
@@ -339,7 +364,11 @@ fn check_cx_ordering(b: &dyn SimulationBackend) -> CheckResult {
             let sv3 = sv.get(3).copied().unwrap_or(Complex64::new(0.0, 0.0));
             let sv1 = sv.get(1).copied().unwrap_or(Complex64::new(0.0, 0.0));
             if (sv3 - Complex64::new(1.0, 0.0)).norm() < PHASE_TOL && sv1.norm() < PHASE_TOL {
-                CheckResult { name, dimension, status: CheckStatus::Pass }
+                CheckResult {
+                    name,
+                    dimension,
+                    status: CheckStatus::Pass,
+                }
             } else {
                 CheckResult {
                     name,
