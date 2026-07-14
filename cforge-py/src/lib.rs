@@ -663,6 +663,16 @@ impl PyCheckResult {
 #[pyfunction]
 #[pyo3(signature = (backend = "statevector"))]
 fn certify(backend: &str) -> PyResult<Vec<PyCheckResult>> {
+    match backend {
+        "statevector" | "native" | "quantrs2" | "roqoqo" => {}
+        other => {
+            return Err(PyValueError::new_err(format!(
+                "certify() requires a pure statevector backend. \
+                 Got '{other}'; valid: statevector, quantrs2, roqoqo. \
+                 Noisy/density-matrix backends produce spurious phase failures."
+            )))
+        }
+    }
     let b = backend_for(backend)?;
     let results = run_certify(b.as_ref());
     Ok(results

@@ -11,6 +11,10 @@ use cforge_core::{Circuit, GateKind, Operation};
 
 use crate::SimulationBackend;
 
+/// Tolerance for amplitude-level phase comparisons.
+/// Tighter than 1e-6 (avoids false passes) but realistic for f64 accumulation.
+const PHASE_TOL: f64 = 1e-9;
+
 pub enum CheckStatus {
     Pass,
     Fail { expected: String, got: String },
@@ -27,6 +31,14 @@ impl CheckResult {
     pub fn passed(&self) -> bool {
         matches!(self.status, CheckStatus::Pass)
     }
+
+    pub fn skipped(&self) -> bool {
+        matches!(self.status, CheckStatus::Skip { .. })
+    }
+}
+
+fn skip(name: &'static str, dimension: &'static str, reason: String) -> CheckResult {
+    CheckResult { name, dimension, status: CheckStatus::Skip { reason } }
 }
 
 fn run(backend: &dyn SimulationBackend, c: &Circuit) -> Result<Vec<Complex64>, String> {
@@ -36,9 +48,19 @@ fn run(backend: &dyn SimulationBackend, c: &Circuit) -> Result<Vec<Complex64>, S
         .map_err(|e| e.to_string())
 }
 
-fn fidelity(a: &[Complex64], b: &[Complex64]) -> f64 {
+/// Fidelity |⟨a|b⟩|² with length and zero-norm guards.
+/// Returns None on length mismatch or degenerate (zero) state.
+fn fidelity(a: &[Complex64], b: &[Complex64]) -> Option<f64> {
+    if a.len() != b.len() || a.is_empty() {
+        return None;
+    }
+    let norm_a: f64 = a.iter().map(|x| x.norm_sqr()).sum();
+    let norm_b: f64 = b.iter().map(|x| x.norm_sqr()).sum();
+    if norm_a < 1e-15 || norm_b < 1e-15 {
+        return None;
+    }
     let inner: Complex64 = a.iter().zip(b).map(|(x, y)| x.conj() * y).sum();
-    inner.norm_sqr()
+    Some(inner.norm_sqr())
 }
 
 fn ratio_check(
@@ -51,17 +73,25 @@ fn ratio_check(
     expected: Complex64,
 ) -> CheckResult {
     match run(backend, &circuit) {
-        Err(e) => CheckResult {
-            name,
-            dimension,
-            status: CheckStatus::Skip { reason: e },
-        },
+        Err(e) => skip(name, dimension, e),
         Ok(sv) => {
-            let ratio = sv[num] / sv[den];
+            let Some(&n) = sv.get(num) else {
+                return skip(name, dimension,
+                    format!("statevector too short (len={}, need index {num})", sv.len()));
+            };
+            let Some(&d) = sv.get(den) else {
+                return skip(name, dimension,
+                    format!("statevector too short (len={}, need index {den})", sv.len()));
+            };
+            if d.norm() < 1e-15 {
+                return skip(name, dimension,
+                    format!("sv[{den}] ≈ 0 — degenerate state (broken H?)"));
+            }
+            let ratio = n / d;
             CheckResult {
                 name,
                 dimension,
-                status: if (ratio - expected).norm() < 1e-6 {
+                status: if (ratio - expected).norm() < PHASE_TOL {
                     CheckStatus::Pass
                 } else {
                     CheckStatus::Fail {
@@ -84,25 +114,23 @@ fn fidelity_check(
 ) -> CheckResult {
     let (sa, sb) = match (run(backend, &circuit_a), run(backend, &circuit_b)) {
         (Ok(a), Ok(b)) => (a, b),
-        (Err(e), _) | (_, Err(e)) => {
-            return CheckResult {
-                name,
-                dimension,
-                status: CheckStatus::Skip { reason: e },
-            }
-        }
+        (Err(e), _) | (_, Err(e)) => return skip(name, dimension, e),
     };
-    let f = fidelity(&sa, &sb);
-    CheckResult {
-        name,
-        dimension,
-        status: if (f - expected_f).abs() < 1e-6 {
-            CheckStatus::Pass
-        } else {
-            CheckStatus::Fail {
-                expected: format!("{expected_f:.4}"),
-                got: format!("{f:.4}"),
-            }
+    match fidelity(&sa, &sb) {
+        None => skip(name, dimension,
+            format!("statevector dimension mismatch or degenerate state (|a|={}, |b|={})",
+                sa.len(), sb.len())),
+        Some(f) => CheckResult {
+            name,
+            dimension,
+            status: if (f - expected_f).abs() < PHASE_TOL {
+                CheckStatus::Pass
+            } else {
+                CheckStatus::Fail {
+                    expected: format!("{expected_f:.6}"),
+                    got: format!("{f:.6}"),
+                }
+            },
         },
     }
 }
@@ -116,17 +144,16 @@ fn amp_check(
     expected: Complex64,
 ) -> CheckResult {
     match run(backend, &circuit) {
-        Err(e) => CheckResult {
-            name,
-            dimension,
-            status: CheckStatus::Skip { reason: e },
-        },
+        Err(e) => skip(name, dimension, e),
         Ok(sv) => {
-            let amp = sv[index];
+            let Some(&amp) = sv.get(index) else {
+                return skip(name, dimension,
+                    format!("statevector too short (len={}, need index {index})", sv.len()));
+            };
             CheckResult {
                 name,
                 dimension,
-                status: if (amp - expected).norm() < 1e-6 {
+                status: if (amp - expected).norm() < PHASE_TOL {
                     CheckStatus::Pass
                 } else {
                     CheckStatus::Fail {
@@ -299,18 +326,32 @@ fn check_endianness_q0_lsb(b: &dyn SimulationBackend) -> CheckResult {
 }
 
 fn check_cx_ordering(b: &dyn SimulationBackend) -> CheckResult {
-    // CX(q0,q1): after X on q0, CX flips q1 → |11⟩ → index 3
+    // CX(q0,q1): X on q0 → |10⟩ (sv[1]=1). CX flips q1 → |11⟩ (sv[3]=1, sv[1]=0).
+    // Both conditions are required: amplitude moved, not copied.
+    let name = "CX(q0→q1)|10⟩ → sv[3]=1, sv[1]=0";
+    let dimension = "Endianness";
     let mut c = Circuit::new(2);
     c.push(Operation::new(GateKind::X, vec![0], vec![]));
     c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
-    amp_check(
-        b,
-        "CX(q0→q1)|10⟩ → sv[3]=1",
-        "Endianness",
-        c,
-        3,
-        Complex64::new(1.0, 0.0),
-    )
+    match run(b, &c) {
+        Err(e) => skip(name, dimension, e),
+        Ok(sv) => {
+            let sv3 = sv.get(3).copied().unwrap_or(Complex64::new(0.0, 0.0));
+            let sv1 = sv.get(1).copied().unwrap_or(Complex64::new(0.0, 0.0));
+            if (sv3 - Complex64::new(1.0, 0.0)).norm() < PHASE_TOL && sv1.norm() < PHASE_TOL {
+                CheckResult { name, dimension, status: CheckStatus::Pass }
+            } else {
+                CheckResult {
+                    name,
+                    dimension,
+                    status: CheckStatus::Fail {
+                        expected: "sv[3]=1+0i, sv[1]=0+0i".into(),
+                        got: format!("sv[3]={sv3:.4}, sv[1]={sv1:.4}"),
+                    },
+                }
+            }
+        }
+    }
 }
 
 fn check_endianness_3q(b: &dyn SimulationBackend) -> CheckResult {

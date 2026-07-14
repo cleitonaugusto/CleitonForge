@@ -31,8 +31,33 @@ fn sv(c: &Circuit) -> Vec<Complex64> {
 }
 
 fn fidelity(a: &[Complex64], b: &[Complex64]) -> f64 {
+    assert_eq!(a.len(), b.len(), "statevector length mismatch in fidelity");
     let inner: Complex64 = a.iter().zip(b).map(|(x, y)| x.conj() * y).sum();
     inner.norm_sqr()
+}
+
+// ── Rz sign (most critical QGCS check) ───────────────────────────────────────
+
+/// OpenQASM 3: Rz(λ) = diag(e^{-iλ/2}, e^{+iλ/2}).
+///
+/// Derivation: Rz(π/2)|+⟩ = (e^{-iπ/4}|0⟩ + e^{+iπ/4}|1⟩)/√2
+/// → sv[1]/sv[0] = e^{+iπ/4}/e^{-iπ/4} = e^{+iπ/2} = i.
+/// Inverted convention gives ratio −i.
+#[test]
+fn rz_sign_openqasm3() {
+    let expected = Complex64::new(0.0, 1.0); // +i
+
+    let mut c = Circuit::new(1);
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::Rz, vec![0], vec![FRAC_PI_2]));
+
+    let result = sv(&c);
+    let ratio = result[1] / result[0];
+    assert!(
+        (ratio - expected).norm() < 1e-10,
+        "Rz(π/2)|+⟩: sv[1]/sv[0] = {ratio:.6}, expected +i\n\
+         OpenQASM 3: Rz(λ) = diag(e^{{-iλ/2}}, e^{{+iλ/2}}). Inverted gives −i."
+    );
 }
 
 // ── T gate ────────────────────────────────────────────────────────────────────

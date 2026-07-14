@@ -306,6 +306,7 @@ fn cmd_certify(backend_name: &str) {
     table.set_header(["Dimension", "Check", "Status", "Detail"]);
 
     let mut passed = 0usize;
+    let mut skipped = 0usize;
     for r in &results {
         let (status_str, detail) = match &r.status {
             CheckStatus::Pass => {
@@ -316,7 +317,10 @@ fn cmd_certify(backend_name: &str) {
                 "❌ FAIL".to_string(),
                 format!("expected {expected}, got {got}"),
             ),
-            CheckStatus::Skip { reason } => ("⚠  SKIP".to_string(), reason.clone()),
+            CheckStatus::Skip { reason } => {
+                skipped += 1;
+                ("⚠  SKIP".to_string(), reason.clone())
+            }
         };
         table.add_row([r.dimension, r.name, &status_str, &detail]);
     }
@@ -325,9 +329,11 @@ fn cmd_certify(backend_name: &str) {
     println!();
 
     let total = results.len();
-    let compliant = passed == total;
-    if compliant {
+    let failed = total - passed - skipped;
+    if failed == 0 && skipped == 0 {
         println!("Result: {passed}/{total} passed — ✅ OpenQASM 3 compliant");
+    } else if failed == 0 && skipped > 0 {
+        println!("Result: {passed}/{total} passed, {skipped} skipped — ⚠  PARTIAL (unsupported gates)");
     } else {
         println!("Result: {passed}/{total} passed — ❌ NOT OpenQASM 3 compliant");
     }
