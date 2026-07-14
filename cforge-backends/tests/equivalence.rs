@@ -177,12 +177,18 @@ fn rz_pi2_equivalent_to_s_gate() {
     let mut c_rz = Circuit::new(1);
     c_rz.push(Operation::new(GateKind::H, vec![0], vec![]));
     c_rz.push(Operation::new(GateKind::Rz, vec![0], vec![FRAC_PI_2]));
-    let sv_rz = NativeStateVectorBackend.run(&c_rz, 0, 0).unwrap().statevector;
+    let sv_rz = NativeStateVectorBackend
+        .run(&c_rz, 0, 0)
+        .unwrap()
+        .statevector;
 
     let mut c_s = Circuit::new(1);
     c_s.push(Operation::new(GateKind::H, vec![0], vec![]));
     c_s.push(Operation::new(GateKind::S, vec![0], vec![]));
-    let sv_s = NativeStateVectorBackend.run(&c_s, 0, 0).unwrap().statevector;
+    let sv_s = NativeStateVectorBackend
+        .run(&c_s, 0, 0)
+        .unwrap()
+        .statevector;
 
     let f = fidelity(&sv_rz, &sv_s);
     assert!(
