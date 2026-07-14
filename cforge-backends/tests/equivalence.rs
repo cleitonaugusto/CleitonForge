@@ -141,3 +141,75 @@ fn grover_3q_backends_agree() {
         fidelity(&sv1, &sv2)
     );
 }
+
+/// Rz(π/2)|+⟩ = (|0⟩ + i|1⟩)/√2 — OpenQASM 3 phase conformance test.
+///
+/// OpenQASM 3: Rz(λ) = diag(e^{-iλ/2}, e^{+iλ/2}) → Rz(π/2) ~ S = diag(1, i).
+/// A sign-inverted Rz gives ratio -i instead of +i — undetectable by
+/// probability-only benchmarks (both yield 50/50 outcomes; QV is exactly blind).
+#[test]
+fn rz_phase_conformance_native_openqasm3() {
+    use num_complex::Complex64;
+    use std::f64::consts::FRAC_PI_2;
+
+    let mut c = Circuit::new(1);
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::Rz, vec![0], vec![FRAC_PI_2]));
+
+    let sv = NativeStateVectorBackend.run(&c, 0, 0).unwrap().statevector;
+
+    // sv[1]/sv[0] = e^{+iπ/4} / e^{-iπ/4} = e^{iπ/2} = i
+    let ratio = sv[1] / sv[0];
+    let diff = (ratio - Complex64::new(0.0, 1.0)).norm();
+    assert!(
+        diff < 1e-10,
+        "Rz(π/2)|+⟩ phase wrong: sv[1]/sv[0] = {ratio:.6}, expected i\n\
+         OpenQASM 3 requires Rz(π/2) = diag(e^{{-iπ/4}}, e^{{+iπ/4}})"
+    );
+}
+
+/// Rz(π/2) must produce the same state as S = diag(1, i) up to global phase.
+/// Fidelity |⟨ψ_rz|ψ_s⟩|² = 1 encodes the S-equivalence without phase sensitivity.
+#[test]
+fn rz_pi2_equivalent_to_s_gate() {
+    use std::f64::consts::FRAC_PI_2;
+
+    let mut c_rz = Circuit::new(1);
+    c_rz.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c_rz.push(Operation::new(GateKind::Rz, vec![0], vec![FRAC_PI_2]));
+    let sv_rz = NativeStateVectorBackend.run(&c_rz, 0, 0).unwrap().statevector;
+
+    let mut c_s = Circuit::new(1);
+    c_s.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c_s.push(Operation::new(GateKind::S, vec![0], vec![]));
+    let sv_s = NativeStateVectorBackend.run(&c_s, 0, 0).unwrap().statevector;
+
+    let f = fidelity(&sv_rz, &sv_s);
+    assert!(
+        (f - 1.0).abs() < 1e-10,
+        "Rz(π/2) and S must be equivalent up to global phase; fidelity = {f}"
+    );
+}
+
+/// quantrs2 Rz is inverted: diag(e^{+iθ/2}, e^{-iθ/2}) → ratio = -i for Rz(π/2)|+⟩.
+/// This documents the known upstream bug. If quantrs2 ever fixes their convention,
+/// this test will fail — update quantrs2_backend.rs compensator accordingly.
+#[test]
+fn quantrs2_rz_inverted_sign_documented() {
+    use num_complex::Complex64;
+    use std::f64::consts::FRAC_PI_2;
+
+    let mut c = Circuit::new(1);
+    c.push(Operation::new(GateKind::H, vec![0], vec![]));
+    c.push(Operation::new(GateKind::Rz, vec![0], vec![FRAC_PI_2]));
+
+    let sv = QuantRS2Backend.run(&c, 0, 0).unwrap().statevector;
+
+    // quantrs2: diag(e^{+iπ/4}, e^{-iπ/4}) → ratio = e^{-iπ/2} = -i
+    let ratio = sv[1] / sv[0];
+    let diff = (ratio - Complex64::new(0.0, -1.0)).norm();
+    assert!(
+        diff < 1e-10,
+        "quantrs2 Rz(π/2)|+⟩: expected ratio -i (known inverted convention), got {ratio:.6}"
+    );
+}
