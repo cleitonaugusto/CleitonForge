@@ -1,0 +1,21 @@
+[package]
+name = "cforge-fuzz"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Quantum differential fuzzer — finds gate convention bugs automatically"
+
+[[bin]]
+name = "cforge-fuzz"
+path = "src/main.rs"
+
+[dependencies]
+cforge-core     = { path = "../cforge-core" }
+cforge-backends = { path = "../cforge-backends" }
+cforge-metrics  = { path = "../cforge-metrics" }
+num-complex     = "0.4"
+rand            = "0.8"
+rayon           = "1"
+clap            = { version = "4", features = ["derive"] }

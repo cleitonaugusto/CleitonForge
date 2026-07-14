@@ -6,6 +6,7 @@ members = [
     "cforge-backends",
     "cforge-metrics",
     "cforge-cli",
+    "cforge-fuzz",
     "cforge-py",
     "cforge-enterprise",
 ]
@@ -17,6 +18,7 @@ default-members = [
     "cforge-backends",
     "cforge-metrics",
     "cforge-cli",
+    "cforge-fuzz",
 ]
 
 [workspace.package]
