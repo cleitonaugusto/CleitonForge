@@ -66,44 +66,61 @@ pub(crate) fn apply_gate(
     kind: GateKind,
     qubits: &[usize],
     params: &[f64],
-    _n: usize,
+    n: usize,
 ) -> Result<(), String> {
+    apply_gate_ext(sv, kind, qubits, params, n, false)
+}
+
+/// Applies `kind`, or its complex conjugate U* when `conjugate` is true.
+///
+/// The conjugated path models a simulator whose gate matrices carry a
+/// consistent i → −i convention error. Permutation gates (Swap, Ccx,
+/// Cswap) are real, so conjugation leaves them unchanged.
+pub(crate) fn apply_gate_ext(
+    sv: &mut [Complex64],
+    kind: GateKind,
+    qubits: &[usize],
+    params: &[f64],
+    _n: usize,
+    conjugate: bool,
+) -> Result<(), String> {
+    let m = |u: U2| if conjugate { conj2(&u) } else { u };
     match kind {
         // Single-qubit gates with no parameters
         GateKind::Id => {}
-        GateKind::X => apply1(sv, qubits[0], &gate_x()),
-        GateKind::Y => apply1(sv, qubits[0], &gate_y()),
-        GateKind::Z => apply1(sv, qubits[0], &gate_z()),
-        GateKind::H => apply1(sv, qubits[0], &gate_h()),
-        GateKind::S => apply1(sv, qubits[0], &gate_s()),
-        GateKind::Sdg => apply1(sv, qubits[0], &gate_sdg()),
-        GateKind::T => apply1(sv, qubits[0], &gate_t()),
-        GateKind::Tdg => apply1(sv, qubits[0], &gate_tdg()),
-        GateKind::Sx => apply1(sv, qubits[0], &gate_sx()),
-        GateKind::Sxdg => apply1(sv, qubits[0], &gate_sxdg()),
+        GateKind::X => apply1(sv, qubits[0], &m(gate_x())),
+        GateKind::Y => apply1(sv, qubits[0], &m(gate_y())),
+        GateKind::Z => apply1(sv, qubits[0], &m(gate_z())),
+        GateKind::H => apply1(sv, qubits[0], &m(gate_h())),
+        GateKind::S => apply1(sv, qubits[0], &m(gate_s())),
+        GateKind::Sdg => apply1(sv, qubits[0], &m(gate_sdg())),
+        GateKind::T => apply1(sv, qubits[0], &m(gate_t())),
+        GateKind::Tdg => apply1(sv, qubits[0], &m(gate_tdg())),
+        GateKind::Sx => apply1(sv, qubits[0], &m(gate_sx())),
+        GateKind::Sxdg => apply1(sv, qubits[0], &m(gate_sxdg())),
 
         // Parametric single-qubit gates
-        GateKind::Rx => apply1(sv, qubits[0], &gate_rx(params[0])),
-        GateKind::Ry => apply1(sv, qubits[0], &gate_ry(params[0])),
-        GateKind::Rz => apply1(sv, qubits[0], &gate_rz(params[0])),
-        GateKind::Phase => apply1(sv, qubits[0], &gate_phase(params[0])),
-        GateKind::U => apply1(sv, qubits[0], &gate_u(params[0], params[1], params[2])),
+        GateKind::Rx => apply1(sv, qubits[0], &m(gate_rx(params[0]))),
+        GateKind::Ry => apply1(sv, qubits[0], &m(gate_ry(params[0]))),
+        GateKind::Rz => apply1(sv, qubits[0], &m(gate_rz(params[0]))),
+        GateKind::Phase => apply1(sv, qubits[0], &m(gate_phase(params[0]))),
+        GateKind::U => apply1(sv, qubits[0], &m(gate_u(params[0], params[1], params[2]))),
 
         // Two-qubit gates
-        GateKind::Cx => apply_controlled1(sv, qubits[0], qubits[1], &gate_x()),
-        GateKind::Cy => apply_controlled1(sv, qubits[0], qubits[1], &gate_y()),
-        GateKind::Cz => apply_controlled1(sv, qubits[0], qubits[1], &gate_z()),
-        GateKind::Ch => apply_controlled1(sv, qubits[0], qubits[1], &gate_h()),
-        GateKind::Csx => apply_controlled1(sv, qubits[0], qubits[1], &gate_sx()),
-        GateKind::Crx => apply_controlled1(sv, qubits[0], qubits[1], &gate_rx(params[0])),
-        GateKind::Cry => apply_controlled1(sv, qubits[0], qubits[1], &gate_ry(params[0])),
-        GateKind::Crz => apply_controlled1(sv, qubits[0], qubits[1], &gate_rz(params[0])),
-        GateKind::Cp => apply_controlled1(sv, qubits[0], qubits[1], &gate_phase(params[0])),
+        GateKind::Cx => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_x())),
+        GateKind::Cy => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_y())),
+        GateKind::Cz => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_z())),
+        GateKind::Ch => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_h())),
+        GateKind::Csx => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_sx())),
+        GateKind::Crx => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_rx(params[0]))),
+        GateKind::Cry => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_ry(params[0]))),
+        GateKind::Crz => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_rz(params[0]))),
+        GateKind::Cp => apply_controlled1(sv, qubits[0], qubits[1], &m(gate_phase(params[0]))),
         GateKind::Cu => apply_controlled1(
             sv,
             qubits[0],
             qubits[1],
-            &gate_cu(params[0], params[1], params[2], params[3]),
+            &m(gate_cu(params[0], params[1], params[2], params[3])),
         ),
         GateKind::Swap => apply_swap(sv, qubits[0], qubits[1]),
 
@@ -112,6 +129,14 @@ pub(crate) fn apply_gate(
         GateKind::Cswap => apply_cswap(sv, qubits[0], qubits[1], qubits[2]),
     }
     Ok(())
+}
+
+/// Element-wise complex conjugate of a 2×2 matrix.
+fn conj2(u: &U2) -> U2 {
+    [
+        [u[0][0].conj(), u[0][1].conj()],
+        [u[1][0].conj(), u[1][1].conj()],
+    ]
 }
 
 // ── Single-qubit unitary application ────────────────────────────────────────

@@ -51,12 +51,12 @@ pub(crate) fn sample_once_rng(sv: &[Complex64], rng: &mut impl Rng) -> Vec<u8> {
 }
 
 /// Tiny deterministic LCG PRNG — no external randomness dependency.
-struct Lcg64 {
+pub(crate) struct Lcg64 {
     state: u64,
 }
 
 impl Lcg64 {
-    fn new(seed: u64) -> Self {
+    pub(crate) fn new(seed: u64) -> Self {
         Self { state: seed }
     }
 
@@ -68,7 +68,7 @@ impl Lcg64 {
         self.state
     }
 
-    fn next_f64(&mut self) -> f64 {
+    pub(crate) fn next_f64(&mut self) -> f64 {
         // Use top 53 bits for double precision.
         (self.next_u64() >> 11) as f64 / (1u64 << 53) as f64
     }

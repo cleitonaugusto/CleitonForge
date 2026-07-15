@@ -1,0 +1,342 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}
+
+\newcommand{\ket}[1]{\lvert #1 \rangle}
+\newcommand{\bra}[1]{\langle #1 \rvert}
+\newcommand{\braket}[2]{\langle #1 \vert #2 \rangle}
+
+\title{A Blindness Hierarchy for Quantum Benchmarks:\\
+Conjugation Invariance and What Standard Metrics Cannot See}
+\author{Cleiton Augusto Correa Bezerra\\
+\small \texttt{augusto.cleiton@gmail.com}}
+\date{July 2026 --- working notes, v1}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove that every quantum benchmark whose score is a function of
+computational-basis measurement statistics of circuits prepared from real
+initial states --- a class that includes Quantum Volume, linear
+cross-entropy benchmarking (XEB), mirror circuit benchmarking, randomized
+benchmarking, and the QED-C application suite --- is exactly blind to
+\emph{consistent complex conjugation}: a simulator or device implementing
+every gate $U$ as its complex conjugate $U^{*}$ achieves identical scores
+to a correct one. The invariance extends to adaptive protocols with
+mid-circuit measurement, and, strikingly, to full Quantum Phase
+Estimation, which returns the \emph{correct} phase on a simulator in
+which every gate is wrong. We then prove a relative-detectability
+theorem for \emph{partial} conjugation bugs (the class found in
+production in quantrs2 v0.2.0): such bugs are invisible on any circuit
+family whose remaining gates are real --- which includes the standard
+Quantum Volume $R_z$/$R_y$/CX model circuits and textbook QPE --- yet
+are separated with probability gap $|\sin\theta|$ by a crafted four-gate
+witness. All results are verified to machine precision by an open-source
+Rust implementation. The practical conclusion: benchmark scores certify
+sampling behaviour, not gate-convention correctness; closing the gap
+requires amplitude-level, cross-implementation conformance testing.
+\end{abstract}
+
+\section{Setup and notation}
+
+Fix $n$ qubits with computational basis
+$\{\ket{x}\}_{x\in\{0,1\}^{n}}$. A \emph{circuit} is a finite word
+$C = U_{L}\cdots U_{2}U_{1}$ of unitary gates. For a matrix $A$ written
+in the computational basis, $A^{*}$ denotes entrywise complex
+conjugation. We call a vector or matrix \emph{real} if it equals its
+conjugate.
+
+\begin{definition}[Conjugated circuit]
+For a circuit $C = U_{L}\cdots U_{1}$, its conjugation is
+$C^{*} \coloneqq U_{L}^{*}\cdots U_{1}^{*}$.
+\end{definition}
+
+Note that $(AB)^{*}=A^{*}B^{*}$, so conjugating every gate of a circuit
+conjugates the composed unitary; the map $C \mapsto C^{*}$ is an
+automorphism of the circuit monoid. Each $U^{*}$ is again unitary, so a
+``conjugated simulator'' --- one whose gate library carries a consistent
+$i \mapsto -i$ convention error --- simulates a perfectly valid quantum
+evolution, namely the image of the intended one under the antiunitary
+symmetry $K$ (complex conjugation in the computational basis):
+$U^{*} = K U K^{-1}$.
+
+\begin{definition}[Sampling benchmark]
+A \emph{sampling benchmark} is any protocol whose score is a
+(possibly randomized) function of the joint outcome statistics of
+computational-basis measurements performed on circuits applied to the
+initial state $\ket{0\cdots 0}$ (or any real initial state), possibly
+adaptively and with mid-circuit measurements.
+\end{definition}
+
+This definition covers Quantum Volume heavy-output generation
+\cite{cross2019}, linear XEB \cite{arute2019}, mirror circuit
+benchmarking \cite{proctor2022}, randomized benchmarking in all its
+standard variants, the QED-C application-oriented suite, and direct
+algorithm tests (Grover, Bernstein--Vazirani, QPE) scored on output
+histograms.
+
+\section{The invariance theorem}
+
+\begin{theorem}[Conjugation invariance]\label{thm:main}
+Let $C$ be any circuit and $\ket{\psi_{0}}$ a real state. Then for every
+basis outcome $x$,
+\[
+\bigl|\braket{x}{C^{*}\,\psi_{0}}\bigr|^{2}
+= \bigl|\braket{x}{C\,\psi_{0}}\bigr|^{2}.
+\]
+\end{theorem}
+
+\begin{proof}
+Since $\ket{x}$ and $\ket{\psi_{0}}$ are real,
+$\braket{x}{C^{*}\psi_{0}}
+= \bra{x}^{*} C^{*} \ket{\psi_{0}}^{*}
+= \bigl(\braket{x}{C\,\psi_{0}}\bigr)^{*}$,
+and $|z^{*}|^{2}=|z|^{2}$.
+\end{proof}
+
+\begin{theorem}[Invariance for adaptive protocols]\label{thm:adaptive}
+Any sampling benchmark (Definition~2), including protocols with
+mid-circuit computational-basis measurements and classical feed-forward,
+assigns identical outcome distributions --- and therefore identical
+scores --- to the gate set $\{U_{g}\}$ and to $\{U_{g}^{*}\}$.
+\end{theorem}
+
+\begin{proof}
+By induction over the protocol tree. Invariant: before each step, the
+states reached under the two gate sets on any fixed transcript of past
+outcomes are conjugates of one another, $\ket{\phi'} = \ket{\phi}^{*}$;
+initially both equal the real $\ket{\psi_{0}}$. Unitary steps preserve
+the invariant since $U^{*}\ket{\phi}^{*} = (U\ket{\phi})^{*}$.
+A computational-basis measurement has real projectors
+$P_{x} = \ket{x}\bra{x}$, so outcome probabilities agree,
+$\bra{\phi^{*}}P_{x}\ket{\phi^{*}} = \bra{\phi}P_{x}\ket{\phi}$,
+and post-measurement states remain conjugate:
+$P_{x}\ket{\phi}^{*}/\|\cdot\| = \bigl(P_{x}\ket{\phi}/\|\cdot\|\bigr)^{*}$.
+Classical feed-forward depends only on outcomes, which agree in
+distribution. Hence the full joint outcome distribution is identical,
+and so is any score computed from it.
+\end{proof}
+
+\begin{remark}[Physical interpretation]
+Complex conjugation in a fixed basis is the canonical antiunitary
+symmetry of quantum theory. Theorem~\ref{thm:adaptive} says that from
+\emph{within} a single laboratory that prepares real states and measures
+in the computational basis, the choice of $i$ versus $-i$ is a gauge:
+no experiment of this form can resolve it. (Distinguishing quantum
+theory from its real/conjugate images is known to require network
+scenarios with independent sources \cite{renou2021}; our observation is
+the operational, single-device special case --- and its consequence for
+software testing, which appears to be unexamined.)
+\end{remark}
+
+\section{Corollaries: the standard benchmark suite is blind}
+
+\begin{corollary}[Quantum Volume / HOG]\label{cor:qv}
+The heavy-output-generation probability of a device is invariant under
+consistent conjugation of its gate set. In particular a simulator
+implementing $R_z(\theta)$ as $R_z(-\theta)$ passes Quantum Volume model
+circuits (basis $R_z, R_y,$ CX) indistinguishably from a correct one,
+since $R_y$ and CX are real and $R_z(-\theta) = R_z(\theta)^{*}$.
+\end{corollary}
+
+\begin{corollary}[Linear XEB]\label{cor:xeb}
+The linear cross-entropy fidelity
+$F_{\mathrm{XEB}} = 2^{n}\,\mathbb{E}_{x \sim p_{\mathrm{dev}}}
+[\,p_{\mathrm{ideal}}(x)\,] - 1$
+is invariant under conjugation of the device, of the ideal reference, or
+both. \emph{The metric used to certify quantum computational advantage
+does not distinguish $U$ from $U^{*}$.}
+\end{corollary}
+
+\begin{proof}
+$p_{\mathrm{dev}}$ is invariant by Theorem~\ref{thm:main} applied to the
+device; $p_{\mathrm{ideal}}$ is a probability of the ideal circuit from
+$\ket{0}$, invariant for the same reason.
+\end{proof}
+
+\begin{corollary}[Mirror circuits]\label{cor:mirror}
+Mirror benchmarking scores, being functions of the outcome statistics of
+circuits $C^{\dagger} C$ (and Pauli-dressed variants) from
+$\ket{0\cdots0}$, are conjugation-invariant. Directly:
+$(C^{*})^{\dagger} C^{*} = (C^{\dagger} C)^{*}$ and
+Theorem~\ref{thm:main} applies.
+\end{corollary}
+
+\begin{corollary}[Randomized benchmarking]\label{cor:rb}
+Every RB variant whose data are survival frequencies of random gate
+sequences measured in the computational basis is conjugation-invariant.
+(No representation-theoretic argument is needed: RB is a sampling
+benchmark in the sense of Definition~2, and Theorem~\ref{thm:adaptive}
+applies verbatim. It is convenient that the Clifford group is closed
+under conjugation, but the invariance does not depend on it.)
+\end{corollary}
+
+\begin{corollary}[Algorithm-level tests, including QPE]\label{cor:qpe}
+Output histograms of Grover search, Bernstein--Vazirani, QFT-based
+arithmetic, and full Quantum Phase Estimation are identical under
+consistent conjugation. In particular QPE run entirely on a conjugated
+simulator reports the \emph{correct} eigenphase: the conjugated
+controlled-phase kickback ($\varphi \to -\varphi$) is exactly undone by
+the conjugated inverse QFT, which rotates the other way.
+\end{corollary}
+
+\begin{remark}
+Corollary~\ref{cor:qpe} refutes the natural conjecture that
+phase-estimation algorithms act as conjugation detectors. They would
+only if the QPE machinery (QFT, state preparation) ran on a
+\emph{trusted correct} device while the gate under test carried the bug
+--- a cross-implementation scenario, which is precisely the resolution
+proposed in Section~\ref{sec:resolution}.
+\end{remark}
+
+\section{The hierarchy: partial bugs and relative detectability}
+
+Real bugs are rarely library-wide. The quantrs2 v0.2.0 bug inverted the
+rotation sign of $R_z$ alone. Call a bug \emph{$G$-partial} if exactly
+the gates in a subset $G$ of the library are conjugated.
+
+\begin{theorem}[Relative blindness of partial bugs]\label{thm:partial}
+Let a device carry a $G$-partial conjugation bug, and let $\mathcal{F}$
+be a circuit family in which every gate \emph{not} in $G$ is real. Then
+on $\mathcal{F}$ the partial bug acts as a consistent global
+conjugation, and every sampling benchmark built on $\mathcal{F}$ is
+blind to it (Theorem~\ref{thm:adaptive}).
+\end{theorem}
+
+\begin{proof}
+On circuits from $\mathcal{F}$, gates outside $G$ satisfy
+$U = U^{*}$, so the buggy execution
+$\cdots U^{*}_{g\in G} \cdots U_{h\notin G}\cdots$
+coincides with $\cdots U^{*}_{g} \cdots U^{*}_{h}\cdots = C^{*}$.
+\end{proof}
+
+Theorem~\ref{thm:partial} explains why the quantrs2 bug survived every
+standard benchmark: Quantum Volume model circuits use the basis
+$\{R_z, R_y, \mathrm{CX}\}$ and textbook QPE uses
+$\{H, X, \mathrm{SWAP}, \mathrm{controlled\text{-}phase}\}$; in both,
+all non-phase-family gates are real, so the $R_z$-sign bug is
+gauge-equivalent to a global conjugation on exactly the circuits these
+benchmarks run.
+
+Partial bugs, unlike global ones, \emph{are} detectable in principle ---
+by breaking the realness condition deliberately:
+
+\begin{proposition}[Four-gate witness]\label{prop:witness}
+Consider a device with an $R_z$-sign bug but a correct $S$ gate. The
+single-qubit circuit $H \cdot R_z(\theta)\cdot S \cdot H$ (gates listed
+in application order) yields
+\[
+P(\,0\,) = \tfrac{1}{2}\bigl(1 - \sin\theta\bigr)
+\quad\text{correct},
+\qquad
+P(\,0\,) = \tfrac{1}{2}\bigl(1 + \sin\theta\bigr)
+\quad\text{buggy},
+\]
+a probability gap of $|\sin\theta|$ --- maximal ($\Delta p = 1$) at
+$\theta = \pi/2$, and plainly visible in measurement counts.
+\end{proposition}
+
+\begin{proof}
+$\ket{0} \xrightarrow{H} \tfrac{1}{\sqrt2}(\ket{0}+\ket{1})
+\xrightarrow{R_z(\pm\theta)} \tfrac{1}{\sqrt2}
+ (e^{\mp i\theta/2}\ket{0}+e^{\pm i\theta/2}\ket{1})
+\xrightarrow{S} \tfrac{1}{\sqrt2}
+ (e^{\mp i\theta/2}\ket{0}+e^{i(\pm\theta/2+\pi/2)}\ket{1})$,
+so after the final $H$ the amplitude of $\ket{0}$ has squared modulus
+$\tfrac14\,\lvert 1+e^{i(\pi/2\pm\theta)}\rvert^{2}
+=\tfrac12\bigl(1+\cos(\pi/2\pm\theta)\bigr)
+=\tfrac12\bigl(1\mp\sin\theta\bigr)$.
+\end{proof}
+
+The correct complex gate ($S$) plays the role of a fixed phase
+reference; the theorem-level point is that \emph{some} correctly
+implemented non-real operation must appear in the test circuit, or no
+measurement statistics can see the bug. This is the design principle
+behind phase-sensitive fuzzing: search the gate-mixing space that
+benchmarks never enter.
+
+The resulting hierarchy:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Bug class & Detectable by sampling? & Detected by \\
+\midrule
+Global conjugation & Never (gauge symmetry) & amplitude-level cross-check \\
+Partial conjugation & Only off the real-basis family & crafted witness / fuzzing \\
+Non-conjugation errors & Generically yes & standard benchmarks \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Empirical verification}
+
+All claims were verified with the open-source CleitonForge toolkit
+(Rust; \texttt{cforge-backends}), comparing a reference statevector
+simulator against (i) a fully conjugated simulator and (ii) an
+$R_z$/phase-family sign-bug simulator, on twenty $5$-qubit, depth-$5$
+random $R_z/R_y/\mathrm{CX}$ circuits, $10^{5}$ shots:
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Benchmark & correct & $U^{*}$ (all gates) & $R_z$-sign bug \\
+\midrule
+QV heavy-output prob. (seed 0) & $0.862400$ & $0.862400$ & $0.862400$ \\
+Linear XEB, exact (seed 0) & $0.994064497$ & $0.994064497$ & $0.994064497$ \\
+Mirror survival $P(\ket{0\cdots0})$ & $1.000000$ & $1.000000$ & $1.000000$ \\
+QPE of $\varphi = 5/8$ (peak, prob.) & $5$ ($P{=}1$) & $5$ ($P{=}1$) & $5$ ($P{=}1$) \\
+\midrule
+Witness $H R_z(1) S H$: $P(0)$ & $0.079265$ & $0.079265$ & $0.920735$ \\
+QGCS amplitude checks failed & $0/12$ & $4/12$ & $1/12$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Maximum benchmark-score deviation across all circuits and all three
+devices: $0$ (bit-identical samples under a fixed seed, as the
+distributions are equal to machine precision). The witness gap matches
+Proposition~\ref{prop:witness} exactly:
+$P(0)_{\mathrm{buggy}} - P(0)_{\mathrm{correct}} = \sin(1) = 0.841471$.
+
+\section{Resolution: amplitude-level conformance}\label{sec:resolution}
+
+The gauge is fixed by any procedure with access to \emph{relative
+amplitudes} rather than probabilities alone --- operationally, by
+comparing two implementations against an analytically derived amplitude
+convention. The QGCS conformance suite does this with twelve
+$O(1)$-size witness circuits checking amplitude \emph{ratios} (e.g.\
+$R_z(\pi/2)\ket{+}$ must produce ratio $+i$ between its components
+under the OpenQASM~3 convention); it separates all three devices above
+instantly. The same principle generalizes to differential fuzzing with
+an amplitude-equality oracle, which searches automatically for the
+gate mixtures of Proposition~\ref{prop:witness}; this is developed in a
+companion software-engineering paper.
+
+\begin{thebibliography}{9}
+\bibitem{cross2019} A.~Cross, L.~Bishop, S.~Sheldon, P.~Nation,
+J.~Gambetta, \emph{Validating quantum computers using randomized model
+circuits}, Phys.\ Rev.\ A \textbf{100}, 032328 (2019).
+\bibitem{arute2019} F.~Arute \emph{et al.}, \emph{Quantum supremacy
+using a programmable superconducting processor}, Nature \textbf{574},
+505 (2019).
+\bibitem{proctor2022} T.~Proctor \emph{et al.}, \emph{Measuring the
+capabilities of quantum computers}, Nat.\ Phys.\ \textbf{18}, 75 (2022).
+\bibitem{renou2021} M.-O.~Renou \emph{et al.}, \emph{Quantum theory
+based on real numbers can be experimentally falsified}, Nature
+\textbf{600}, 625 (2021).
+\end{thebibliography}
+
+\end{document}

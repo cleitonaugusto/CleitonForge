@@ -15,6 +15,7 @@
 
 pub mod certify;
 pub mod density_matrix;
+pub mod mirror;
 pub mod noise;
 pub mod noisy_backend;
 #[cfg(feature = "q1tsim")]
@@ -24,8 +25,14 @@ pub mod roqoqo_backend;
 mod sample;
 pub mod statevector;
 pub mod trait_def;
+pub mod xeb;
 
 pub use certify::{certify, CheckResult, CheckStatus};
+pub use mirror::{inverse_circuit, mirror_survival};
+pub use xeb::{
+    heavy_output_probability, random_qv_circuit, xeb_score_exact, xeb_score_sampled,
+    ConjugatedStateVectorBackend, ConjugationScope,
+};
 pub use density_matrix::DensityMatrixBackend;
 pub use noise::NoisyConfig;
 pub use noisy_backend::NoisyStatevectorBackend;
