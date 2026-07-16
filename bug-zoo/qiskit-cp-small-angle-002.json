@@ -1,0 +1,23 @@
+{
+  "id": "qiskit-cp-small-angle-002",
+  "target": "Qiskit (qiskit-terra) transpiler",
+  "target_version": "2.5.0 (latest at discovery, 2026-07-16)",
+  "component": "optimization_level=3 two-qubit resynthesis (Consolidate Blocks / unitary synthesis)",
+  "severity": "minor — small numerical error, NOT a wrong-answer bug; contract question",
+  "status": "discovered, secondary finding, not yet reported",
+  "found_by": "cforge-fuzz Qiskit campaign, N1 amplitude oracle, seed 777",
+  "num_qubits": 2,
+  "gates": [
+    {"gate": "cp", "qubits": [0, 1], "params": [9.623000288527805e-05]}
+  ],
+  "qasm2": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\ncp(0.000096230003) q[0],q[1];\n",
+  "expected": "cp(theta) = diag(1,1,1,e^{i*theta}); exact decomposition uses 2 CX",
+  "observed": "at optimization_level=3 with approximation_degree=1.0 (documented 'no approximation'), cp(theta) for |theta| below ~1e-3 is synthesized as two single-qubit rz gates with ZERO CX, dropping the controlled interaction. N1 error ~ theta/4 (2.4e-5 here). optimization_level<=1 preserves both CX exactly.",
+  "reproducer_python": "import numpy as np\nfrom qiskit import QuantumCircuit, transpile\nfrom qiskit.quantum_info import Operator\nqc = QuantumCircuit(2); qc.cp(9.623e-05, 0, 1)\nt = transpile(qc, basis_gates=['rz','sx','x','cx'], optimization_level=3, approximation_degree=1.0)\nprint([i.operation.name for i in t.data])   # ['rz','rz'] — no cx\n",
+  "notes": [
+    "This is a WEAK finding versus qiskit-commutative-cancellation-001: the error is O(theta) and tiny, and one can argue a near-identity two-qubit unitary is legitimately synthesized as a product of 1-qubit gates.",
+    "The sharp part: it happens even at approximation_degree=1.0, which the docs call 'no approximation'. So it is a contract/documentation question, not a dramatic soundness bug.",
+    "Distinct root cause from entry 001 (that one is CommutativeCancellation on sxdg; this is 2q unitary resynthesis thresholding).",
+    "Report only if the Qiskit maintainers, on entry 001, express interest in edge cases — bundling a weak finding with the strong one risks diluting the strong one."
+  ]
+}

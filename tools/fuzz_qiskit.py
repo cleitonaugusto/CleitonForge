@@ -103,8 +103,13 @@ def transpiler_divergence(ops, num_qubits: int) -> float | None:
 
         qc = build(num_qubits, ops)
         op_orig = Operator(qc).data
+        # approximation_degree=1.0 is documented as "no approximation", so
+        # any surviving divergence is an exact-preservation violation, not
+        # intended lossy synthesis (which would otherwise flood N1 with
+        # sub-threshold gate drops).
         tqc = transpile(
-            qc, basis_gates=IBM_BASIS, optimization_level=3, seed_transpiler=7
+            qc, basis_gates=IBM_BASIS, optimization_level=3,
+            approximation_degree=1.0, seed_transpiler=7,
         )
         # from_circuit applies the transpiled layout/routing permutation.
         op_trans = Operator.from_circuit(tqc).data
