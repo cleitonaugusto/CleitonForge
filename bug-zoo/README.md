@@ -24,6 +24,20 @@ cargo run --release -p cforge-fuzz -- \
   --device quantrs2 --oracle amplitude --seed 42 --zoo-dir bug-zoo
 ```
 
+## Campaign scoreboard (seed 42, 3000 random circuits each)
+
+| Target | Test | Result |
+|---|---|---|
+| quantrs2 v0.2.0 | statevector vs native (N1) | **BUG** — Rz sign, 2-gate witness, invisible to all sampling benchmarks |
+| Qiskit 2.5.0 transpiler | O3 metamorphic (N1, layout-quotiented) | **BUG** — CommutativeCancellation drops sxdg·sxdg = X, 3-gate witness |
+| Qiskit 2.5.0 Aer | statevector vs exact (N1) | clean (worst 5.6e-16) |
+| tket 2.18.1 | FullPeepholeOptimise metamorphic (N1) | clean (worst 1.0e-13) |
+| PennyLane 0.42 lightning | lightning.qubit vs default.qubit (N1) | see campaign |
+
+The clean results matter as much as the bugs: they show the amplitude
+oracle distinguishes a sound optimizer from a broken one, rather than
+flagging numerical noise everywhere.
+
 ## Current entries
 
 - `statevector-quantrs2-N1-amplitude-001` — the quantrs2 v0.2.0 Rz sign
@@ -32,5 +46,8 @@ cargo run --release -p cforge-fuzz -- \
 - `statevector-quantrs2-N2-probability-001` — 4-gate witness making the
   same bug visible in measurement counts (bugged rotation mixed with
   correctly-implemented complex gates), rediscovered automatically.
-- `statevector-conjugated-*` — model-backend entries demonstrating the
-  strict oracle hierarchy (theorem validation).
+- `statevector-rz-sign-bug-N2-probability-001` — model-backend entry
+  demonstrating the strict oracle hierarchy (theorem validation).
+- `qiskit-commutative-cancellation-001` — Qiskit 2.5.0 transpiler soundness
+  bug: `sxdg·sxdg` (= X) silently cancelled at optimization_level ≥ 2.
+  Full standalone reproducer inside the entry.
