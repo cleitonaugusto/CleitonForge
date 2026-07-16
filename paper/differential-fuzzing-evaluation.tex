@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+}
+
+\newcommand{\ket}[1]{\lvert #1 \rangle}
+
+\title{Phase-Sensitive Differential Fuzzing for Quantum Simulators:\\
+Evaluation and a Soundness Bug in the Qiskit Transpiler}
+\author{Cleiton Augusto Correa Bezerra\\
+\small \texttt{augusto.cleiton@gmail.com}}
+\date{July 2026 --- working draft, companion to the blindness-hierarchy paper}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We evaluate \textsc{cforge-fuzz}, a differential and metamorphic fuzzer
+for quantum circuit tooling built on an \emph{amplitude} oracle:
+equality of statevectors modulo a single global phase, rather than the
+distribution-level oracle used by prior work (MorphQ, QDiff). The
+amplitude oracle detects a class of gate-convention bug that is provably
+invisible to every sampling benchmark (Quantum Volume, XEB, mirror
+circuits, randomized benchmarking), established in the companion paper.
+Running the tool against five production stacks --- Qiskit, tket,
+PennyLane, Cirq, and the quantrs2 Rust simulator --- we find one new
+soundness bug in the Qiskit transpiler, a regression introduced in
+Qiskit 2.5.0 in which the \texttt{CommutativeCancellation} pass silently
+deletes an \texttt{sxdg\,$\cdot$\,sxdg} pair equal to $X$, flipping
+measurement outcomes at \texttt{optimization\_level}\,$\geq 2$. The same
+class of optimization in the four other stacks handles the analogous
+case correctly, across 56{,}000 random circuits. The main methodological
+contribution is that a sound metamorphic oracle must \emph{quotient the
+transformations the target is licensed to perform} --- global phase,
+layout permutation, approximate synthesis, and finite numerical
+precision --- and that the minimal shrunk witness \emph{names} which
+quotient a false positive came from.
+\end{abstract}
+
+\section{The amplitude oracle and its hierarchy}
+
+Given two statevectors $a, b \in \mathbb{C}^{2^n}$ produced by two
+implementations of the same circuit, the fuzzer computes three
+distances of decreasing strictness:
+
+\begin{itemize}
+\item \textbf{N1 (amplitude)}
+  $\;\min_{\varphi} \max_i \lvert e^{i\varphi} a_i - b_i \rvert$,
+  minimized at $\varphi = -\arg\langle a\vert b\rangle$. This is the
+  strongest notion of ``same circuit'' that ignores only an
+  unobservable global phase.
+\item \textbf{N2 (probability)}
+  $\;\max_i \bigl\lvert \lvert a_i\rvert^2 - \lvert b_i\rvert^2 \bigr\rvert$.
+  Everything any sampling benchmark can observe.
+\item \textbf{N3 (observable)}
+  $\;\max_q \lvert \langle Z_q\rangle_a - \langle Z_q\rangle_b\rvert$.
+\end{itemize}
+
+A divergence at N1 with agreement at N2 is, by the conjugation-invariance
+theorem of the companion paper, invisible to Quantum Volume, XEB, mirror
+circuits and randomized benchmarking. The quantrs2 v0.2.0 $R_z$
+sign bug is exactly such a case: N1 distance $0.88$, N2 distance $0$.
+
+\section{Targets and campaigns}
+
+Each target is tested either differentially (two implementations of the
+same semantics) or metamorphically (one implementation before and after
+a semantics-preserving pass). All campaigns use a shared weighted
+generator that over-samples the phase-family and discrete complex gates
+($R_z$, $P$, $S$, $S^\dagger$, $\sqrt{X}$, $\sqrt{X}^\dagger$, $T$,
+$T^\dagger$) at $5\times$, since convention bugs surface where a buggy
+gate meets a correctly-implemented complex gate.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llll}
+\toprule
+Target & Test & Circuits & Result \\
+\midrule
+quantrs2 0.2.0 & vs native statevector & 10{,}000 & \textbf{bug} ($R_z$ sign) \\
+Qiskit 2.5.0 Aer & vs exact statevector & 3{,}000 & clean \\
+Qiskit 2.5.0 transpiler & O3 metamorphic & 8{,}000 & \textbf{bug} (see \S4) \\
+tket 2.18 & 4 passes metamorphic & 16{,}000 & clean \\
+PennyLane 0.42 & lightning vs default & 3{,}000 & clean \\
+PennyLane 0.42 & 5 transforms metamorphic & 20{,}000 & clean \\
+Cirq 1.5 & 4 transformers metamorphic & 16{,}000 & clean \\
+\bottomrule
+\end{tabular}
+\caption{Campaign results. One soundness bug across roughly
+$76{,}000$ random circuits; the mature frameworks are otherwise correct
+on this gate set. This ``few but real'' yield is the expected signature
+of differential testing on mature software (cf.\ Csmith on C
+compilers).}
+\end{table}
+
+\section{Case study: \texttt{CommutativeCancellation} deletes
+\texorpdfstring{$\sqrt{X}^\dagger\!\cdot\sqrt{X}^\dagger = X$}{sxdg sxdg = X}}
+
+The metamorphic property under test is that the transpiler preserves the
+circuit unitary modulo global phase. The oracle compares
+$\mathrm{Op}(C)$ with $\mathrm{Op}\bigl(\mathrm{transpile}(C)\bigr)$,
+undoing the transpiler's declared qubit permutation with
+\texttt{Operator.from\_circuit} and disabling approximate synthesis with
+\texttt{approximation\_degree=1.0} (\S5).
+
+The shrinker reduces every hit to the same three-gate core:
+
+\begin{lstlisting}[language=Python]
+from qiskit import QuantumCircuit
+from qiskit.transpiler import PassManager
+from qiskit.transpiler.passes import CommutativeCancellation
+from qiskit.quantum_info import Operator
+
+qc = QuantumCircuit(2)
+qc.sxdg(1); qc.sx(0); qc.sxdg(1)
+
+out = PassManager([CommutativeCancellation()]).run(qc)
+print(out)                                 # only sx(0) remains
+print(Operator(qc).equiv(Operator(out)))   # False
+\end{lstlisting}
+
+\noindent
+The two $\sqrt{X}^\dagger$ gates on qubit~1 are separated by a gate on
+qubit~0 and are then cancelled as if they were an inverse pair. They are
+not: $\sqrt{X}^\dagger \cdot \sqrt{X}^\dagger = R_x(-\pi) = X$ up to a
+global phase, not the identity. At \texttt{optimization\_level}
+$\geq 2$, where the pass runs, this flips the measured value of qubit~1
+from $1$ to $0$ with certainty.
+
+\paragraph{Root cause and scope.} The pass classifies gates into
+cancellable families; in \texttt{commutative\_cancellation.py} the set
+\texttt{\_x\_rotations} is \texttt{\{"x","rx","sx","sxdg"\}}. Two
+identical $\sqrt{X}^\dagger$ gates are treated as inverses. Source
+inspection across releases shows this set was \texttt{\{"x","rx"\}} from
+Qiskit 1.4.0 through 2.4.0 and gained \texttt{sx}/\texttt{sxdg} in 2.5.0:
+the bug is a regression in the current release. The adjacent case (two
+$\sqrt{X}^\dagger$ with nothing between them) is folded correctly; the
+fault requires an interleaved operation on another qubit. Reported
+upstream as Qiskit issue \#16594.
+
+\paragraph{Contrast.} The same class of pass in the other stacks handles
+the analogue $\sqrt{X}\cdot\sqrt{X} = X$ correctly: PennyLane
+\texttt{cancel\_inverses}, \texttt{merge\_rotations},
+\texttt{single\_qubit\_fusion} ($20{,}000$ circuits) and tket
+\texttt{RemoveRedundancies}, \texttt{CliffordSimp}, \texttt{SynthesiseTket}
+($16{,}000$ circuits) are all clean. The bug is specific to the Qiskit
+2.5.0 regression, not an inherent difficulty of the transformation.
+
+\section{Methodological contribution: quotient the licensed
+transformations}
+
+A metamorphic oracle for an optimizer is only sound if it compares
+circuits up to exactly the transformations the optimizer is
+\emph{allowed} to make. Getting this wrong produces systematic false
+positives that swamp the real bugs. We encountered four such quotients,
+and in each case the shrunk minimal witness \emph{diagnosed} which one
+was missing:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+Licensed transformation & False-positive signature & Fix \\
+\midrule
+Global phase & any, $N1$ constant vs $N2{=}0$ & minimize over $\varphi$ \\
+Layout permutation & witness contains a \texttt{swap} & \texttt{Operator.from\_circuit} \\
+Approximate synthesis & lone small-angle gate & \texttt{approximation\_degree=1.0} \\
+Numerical precision & uniform $N1\!\approx\!10^{-7}$ across all passes & force \texttt{complex128} \\
+\bottomrule
+\end{tabular}
+\caption{The four quotients. In the Qiskit transpiler, comparing raw
+statevectors produced $119/3000$ false positives, every witness
+containing a swap (layout). In Cirq, the default single-precision
+simulator produced $80$ false positives with a telltale uniform
+$N1\approx1.3\times10^{-7}$ --- float32 epsilon --- across every
+transformer including the exact ones.}
+\end{table}
+
+The last row is the sharpest diagnostic: a real soundness bug in one
+pass does not produce an \emph{identical} worst-case distance in an
+unrelated pass. A uniform error floor across all passes is a property of
+the harness (here, the simulator dtype), not of any target. This is the
+concrete sense in which our approach differs from distribution-level
+differential testing: by working at amplitude precision we must be
+explicit about the numerical and algebraic gauge, and that explicitness
+is what lets the tool separate a genuine $X$-dropping bug from a
+$10^{-7}$ rounding artifact.
+
+\section{Threats to validity}
+
+The campaigns cover up to 5 qubits and 14 gates; deeper circuits may
+exercise passes our generator underweights. ``Clean'' means no N1
+divergence above $10^{-9}$ on the sampled distribution, not a proof of
+correctness. The single confirmed bug is a modest count, but it is
+consistent with the Csmith experience that mature tools yield few,
+high-value bugs under differential testing; the contribution is the
+oracle and the blindness result that explains \emph{why} this class was
+missed, not a large bug tally.
+
+\end{document}
