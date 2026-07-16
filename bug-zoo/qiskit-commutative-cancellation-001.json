@@ -4,7 +4,7 @@
   "target_version": "2.5.0 (latest at discovery, 2026-07-16)",
   "component": "qiskit.transpiler.passes.CommutativeCancellation (default at optimization_level >= 2)",
   "severity": "silent wrong answer — output distribution changes, no error raised",
-  "status": "discovered, not yet reported",
+  "status": "reported 2026-07-16 — https://github.com/Qiskit/qiskit/issues/16594",
   "found_by": "cforge-fuzz campaign via tools/fuzz_qiskit.py, N1 amplitude oracle, seed 42; 10/3000 random circuits hit it, shrinker reduced all to the same 3-gate core",
   "num_qubits": 2,
   "gates": [
