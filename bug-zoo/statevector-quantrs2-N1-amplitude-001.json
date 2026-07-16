@@ -1,0 +1,15 @@
+{
+  "id": "statevector-quantrs2-N1-amplitude-001",
+  "reference_backend": "statevector-native",
+  "device_backend": "statevector-quantrs2",
+  "generator_seed": 42,
+  "num_qubits": 2,
+  "num_gates": 2,
+  "gates": [{"gate":"sx","qubits":[1],"params":[]},{"gate":"rz","qubits":[1],"params":[1.791885017195]}],
+  "qasm2": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nsx q[1];\nrz(1.791885017195) q[1];\n",
+  "amplitude_distance": 8.835768536310e-1,
+  "probability_distance": 0.000000000000e0,
+  "classification": "rotation-convention (QGCS dim: Rz/Phase sign)",
+  "sampling_visible": false,
+  "note": "invisible to QV/XEB/mirror/RB/QPE by the conjugation-invariance theorem"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "statevector-quantrs2-N2-probability-001",
+  "reference_backend": "statevector-native",
+  "device_backend": "statevector-quantrs2",
+  "generator_seed": 42,
+  "num_qubits": 1,
+  "num_gates": 4,
+  "gates": [{"gate":"sx","qubits":[0],"params":[]},{"gate":"s","qubits":[0],"params":[]},{"gate":"rz","qubits":[0],"params":[-0.307809483171]},{"gate":"sxdg","qubits":[0],"params":[]}],
+  "qasm2": "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[1];\nsx q[0];\ns q[0];\nrz(-0.307809483171) q[0];\nsxdg q[0];\n",
+  "amplitude_distance": 2.167959395201e-1,
+  "probability_distance": 3.029718035093e-1,
+  "classification": "rotation-convention (QGCS dim: Rz/Phase sign)",
+  "sampling_visible": true,
+  "note": "detectable in measurement counts"
+}

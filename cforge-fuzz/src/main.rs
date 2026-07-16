@@ -1,15 +1,77 @@
-use std::f64::consts::PI;
+//! cforge-fuzz CLI — phase-sensitive differential fuzzing campaigns.
+//!
+//! Examples:
+//!   cforge-fuzz --device quantrs2                    # hunt real bugs
+//!   cforge-fuzz --device conjugated-all --oracle probability
+//!       # theorem demo: finds nothing, provably
+//!   cforge-fuzz --device conjugated-all --oracle amplitude
+//!       # same device, N1 oracle: 2-gate witness in seconds
+//!   cforge-fuzz --device conjugated-rz --oracle probability --zoo-dir bug-zoo
+//!       # rediscovers the H·Rz·S·H witness class automatically
 
-use clap::Parser;
-use num_complex::Complex64;
-use rand::{Rng, SeedableRng};
+use std::path::PathBuf;
+
+use clap::{Parser, ValueEnum};
 use rand::rngs::StdRng;
-use rayon::prelude::*;
+use rand::{Rng, SeedableRng};
 
-use cforge_backends::{NativeStateVectorBackend, QuantRS2Backend, SimulationBackend};
-use cforge_core::{Circuit, GateKind, Operation};
+use cforge_backends::{
+    ConjugatedStateVectorBackend, ConjugationScope, NativeStateVectorBackend, QuantRS2Backend,
+    RoqoqoBackend, SimulationBackend,
+};
+use cforge_core::Circuit;
+use cforge_fuzz::generator::random_circuit;
+use cforge_fuzz::oracle::{distance, OracleLevel};
+use cforge_fuzz::shrinker::shrink;
+use cforge_fuzz::triage::triage;
+use cforge_fuzz::zoo::{to_qasm2, ZooEntry};
 
-// ── CLI ──────────────────────────────────────────────────────────────────────
+#[derive(Clone, Copy, ValueEnum)]
+enum DeviceArg {
+    /// quantrs2 gate matrices (real target; known Rz sign bug in v0.2.0)
+    Quantrs2,
+    /// roqoqo gate matrices (real target)
+    Roqoqo,
+    /// Reference simulator with every gate conjugated (theorem demo)
+    ConjugatedAll,
+    /// Reference simulator with Rz/Phase-family sign bug (quantrs2 class)
+    ConjugatedRz,
+}
+
+impl DeviceArg {
+    fn backend(&self) -> Box<dyn SimulationBackend> {
+        match self {
+            DeviceArg::Quantrs2 => Box::new(QuantRS2Backend),
+            DeviceArg::Roqoqo => Box::new(RoqoqoBackend),
+            DeviceArg::ConjugatedAll => Box::new(ConjugatedStateVectorBackend::new(
+                ConjugationScope::AllGates,
+            )),
+            DeviceArg::ConjugatedRz => Box::new(ConjugatedStateVectorBackend::new(
+                ConjugationScope::RotationSignOnly,
+            )),
+        }
+    }
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+enum OracleArg {
+    /// N1 — amplitude equality modulo global phase (phase-sensitive)
+    Amplitude,
+    /// N2 — probability equality (what sampling benchmarks see)
+    Probability,
+    /// N3 — per-qubit ⟨Z⟩ equality
+    Observable,
+}
+
+impl From<OracleArg> for OracleLevel {
+    fn from(a: OracleArg) -> Self {
+        match a {
+            OracleArg::Amplitude => OracleLevel::Amplitude,
+            OracleArg::Probability => OracleLevel::Probability,
+            OracleArg::Observable => OracleLevel::Observable,
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(
@@ -17,6 +79,14 @@ use cforge_core::{Circuit, GateKind, Operation};
     about = "Quantum differential fuzzer — finds gate convention divergences automatically"
 )]
 struct Cli {
+    /// Device under test, compared against the native reference
+    #[arg(long, value_enum, default_value = "quantrs2")]
+    device: DeviceArg,
+
+    /// Oracle strictness level
+    #[arg(long, value_enum, default_value = "amplitude")]
+    oracle: OracleArg,
+
     /// Number of random circuits to generate and test
     #[arg(long, default_value_t = 10_000)]
     iterations: usize,
@@ -33,170 +103,35 @@ struct Cli {
     #[arg(long, default_value_t = 0)]
     seed: u64,
 
-    /// Amplitude tolerance for divergence detection
+    /// Divergence tolerance
     #[arg(long, default_value_t = 1e-6)]
     tol: f64,
 
-    /// Stop after finding this many divergences (0 = keep going)
+    /// Stop after this many divergences (0 = never stop early)
     #[arg(long, default_value_t = 1)]
     stop_after: usize,
+
+    /// Directory to write bug-zoo JSON entries (omit to skip)
+    #[arg(long)]
+    zoo_dir: Option<PathBuf>,
 }
 
-// ── Random circuit generation ─────────────────────────────────────────────────
-
-/// Gates that expose Rz sign and phase convention bugs.
-/// Deliberately excludes Clifford-only gates that are convention-safe.
-const CONVENTION_SENSITIVE: &[GateKind] = &[
-    GateKind::H,
-    GateKind::Rz,
-    GateKind::Rx,
-    GateKind::Ry,
-    GateKind::Phase,
-    GateKind::T,
-    GateKind::Tdg,
-    GateKind::S,
-    GateKind::Sdg,
-    GateKind::Cx,
-    GateKind::Cz,
-    GateKind::Cp,
-    GateKind::Crz,
-];
-
-fn random_circuit(rng: &mut StdRng, num_qubits: usize, depth: usize) -> Circuit {
-    let mut c = Circuit::new(num_qubits);
-    for _ in 0..depth {
-        let gate = CONVENTION_SENSITIVE[rng.gen_range(0..CONVENTION_SENSITIVE.len())];
-        let nq = gate.num_qubits().min(num_qubits);
-        if nq == 0 || num_qubits < nq { continue; }
-
-        // Pick distinct qubits
-        let qubits: Vec<usize> = {
-            let mut available: Vec<usize> = (0..num_qubits).collect();
-            let mut picked = Vec::with_capacity(nq);
-            for _ in 0..nq {
-                let idx = rng.gen_range(0..available.len());
-                picked.push(available.remove(idx));
-            }
-            picked
-        };
-
-        let params: Vec<f64> = (0..gate.num_params())
-            .map(|_| rng.gen_range(0.0..2.0 * PI))
-            .collect();
-
-        c.push(Operation::new(gate, qubits, params));
-    }
-    c
-}
-
-// ── Differential oracle ───────────────────────────────────────────────────────
-
-struct Divergence {
-    circuit:   Circuit,
-    sv_a:      Vec<Complex64>,
-    sv_b:      Vec<Complex64>,
-    max_delta: f64,
-}
-
-fn amplitude_distance(a: &[Complex64], b: &[Complex64]) -> f64 {
-    if a.len() != b.len() { return f64::INFINITY; }
-    a.iter().zip(b).map(|(x, y)| (x - y).norm()).fold(0.0_f64, f64::max)
-}
-
-fn run_backend(backend: &dyn SimulationBackend, circuit: &Circuit) -> Option<Vec<Complex64>> {
-    backend.run(circuit, 0, 0xdeadbeef).ok().map(|r| r.statevector)
-}
-
-fn check_divergence(
+fn diverges(
     circuit: &Circuit,
+    device: &dyn SimulationBackend,
+    level: OracleLevel,
     tol: f64,
-) -> Option<Divergence> {
-    let sv_a = run_backend(&NativeStateVectorBackend, circuit)?;
-    let sv_b = run_backend(&QuantRS2Backend, circuit)?;
-    let delta = amplitude_distance(&sv_a, &sv_b);
-    if delta > tol {
-        Some(Divergence { circuit: circuit.clone(), sv_a, sv_b, max_delta: delta })
-    } else {
-        None
-    }
+) -> Option<f64> {
+    let a = NativeStateVectorBackend.run(circuit, 0, 0).ok()?.statevector;
+    let b = device.run(circuit, 0, 0).ok()?.statevector;
+    let d = distance(&a, &b, level);
+    (d > tol).then_some(d)
 }
-
-// ── Delta-debugging minimizer ─────────────────────────────────────────────────
-
-/// Reduce the circuit to the smallest subsequence that still diverges.
-fn minimize(original: &Circuit, tol: f64) -> Circuit {
-    let ops: Vec<Operation> = original.operations.iter().cloned().collect();
-    let n = ops.len();
-    let nq = original.num_qubits();
-
-    // Try removing each gate one at a time (greedy single-pass)
-    let mut current = ops.clone();
-    let mut changed = true;
-    while changed {
-        changed = false;
-        let mut i = 0;
-        while i < current.len() {
-            let mut candidate = current.clone();
-            candidate.remove(i);
-            let mut c = Circuit::new(nq);
-            for op in &candidate { c.push(op.clone()); }
-            if check_divergence(&c, tol).is_some() {
-                current = candidate;
-                changed = true;
-                // don't increment i — next element shifted down
-            } else {
-                i += 1;
-            }
-        }
-    }
-
-    let mut minimal = Circuit::new(nq);
-    for op in &current { minimal.push(op.clone()); }
-    minimal
-}
-
-// ── Reporting ─────────────────────────────────────────────────────────────────
-
-fn print_divergence(d: &Divergence, minimal: &Circuit) {
-    println!();
-    println!("╔══════════════════════════════════════════════════════════════╗");
-    println!("║                 DIVERGENCE FOUND                            ║");
-    println!("╚══════════════════════════════════════════════════════════════╝");
-    println!();
-    println!("Original circuit : {} gates, {} qubits", d.circuit.operations.len(), d.circuit.num_qubits());
-    println!("Minimal witness  : {} gates", minimal.operations.len());
-    println!("Max |Δamplitude| : {:.2e}", d.max_delta);
-    println!();
-    println!("Minimal counterexample:");
-    for op in &minimal.operations {
-        let params_str = if op.params.is_empty() {
-            String::new()
-        } else {
-            format!("({})", op.params.iter().map(|p| format!("{:.4}", p)).collect::<Vec<_>>().join(", "))
-        };
-        println!("  {} q[{}]{}", op.kind.qasm_name(), op.qubits.iter().map(|q| q.to_string()).collect::<Vec<_>>().join(",q["), params_str);
-    }
-    println!();
-
-    println!("Statevector comparison (first 8 amplitudes):");
-    println!("  {:>5}  {:>30}  {:>30}", "index", "statevector (native)", "statevector (quantrs2)");
-    let len = d.sv_a.len().min(8);
-    for i in 0..len {
-        let a = d.sv_a[i];
-        let b = d.sv_b[i];
-        let delta = (a - b).norm();
-        let flag = if delta > 1e-9 { " ←" } else { "" };
-        println!("  [{:>3}]  {:>+.6}+{:>+.6}i  {:>+.6}+{:>+.6}i{}", i, a.re, a.im, b.re, b.im, flag);
-    }
-    println!();
-    println!("Likely cause: Rz sign inversion (native: diag(e^{{-iλ/2}}, e^{{+iλ/2}}); quantrs2: reversed)");
-    println!();
-}
-
-// ── Main ──────────────────────────────────────────────────────────────────────
 
 fn main() {
     let cli = Cli::parse();
+    let device = cli.device.backend();
+    let level: OracleLevel = cli.oracle.into();
 
     let seed = if cli.seed == 0 {
         rand::thread_rng().gen()
@@ -204,45 +139,78 @@ fn main() {
         cli.seed
     };
 
-    println!("╔══════════════════════════════════════════════════════════════╗");
-    println!("║    cforge-fuzz — Quantum Differential Fuzzer                ║");
-    println!("╠══════════════════════════════════════════════════════════════╣");
-    println!("║  Backends : statevector (oracle) vs quantrs2                ║");
-    println!("║  Seed     : {:<48}║", format!("0x{:x}", seed));
-    println!("║  Circuits : {:<48}║", cli.iterations);
-    println!("║  Tolerance: {:<48}║", format!("{:.0e}", cli.tol));
-    println!("╚══════════════════════════════════════════════════════════════╝");
+    println!("cforge-fuzz — phase-sensitive differential fuzzing");
+    println!("  reference : statevector-native");
+    println!("  device    : {}", device.name());
+    println!("  oracle    : {}", level.label());
+    println!("  circuits  : {} (≤{}q, ≤{} gates)", cli.iterations, cli.max_qubits, cli.max_depth);
+    println!("  seed      : 0x{seed:x}");
     println!();
 
+    let started = std::time::Instant::now();
     let mut found = 0usize;
+    let mut tried = 0usize;
 
     for i in 0..cli.iterations {
-        if i % 1000 == 0 && i > 0 {
-            eprintln!("[{}/{}] {} divergences so far...", i, cli.iterations, found);
-        }
-
+        tried = i + 1;
         let mut rng = StdRng::seed_from_u64(seed.wrapping_add(i as u64));
         let nq = rng.gen_range(1..=cli.max_qubits);
         let depth = rng.gen_range(1..=cli.max_depth);
         let circuit = random_circuit(&mut rng, nq, depth);
 
-        if let Some(div) = check_divergence(&circuit, cli.tol) {
-            found += 1;
-            let minimal = minimize(&div.circuit, cli.tol);
-            print_divergence(&div, &minimal);
+        let Some(dist) = diverges(&circuit, device.as_ref(), level, cli.tol) else {
+            continue;
+        };
+        found += 1;
 
-            if cli.stop_after > 0 && found >= cli.stop_after {
-                println!("Stopping after {} divergence(s). Use --stop-after 0 to continue.", found);
-                break;
+        let minimal = shrink(&circuit, &|cand| {
+            diverges(cand, device.as_ref(), level, cli.tol).is_some()
+        });
+
+        let sv_ref = NativeStateVectorBackend
+            .run(&minimal, 0, 0)
+            .expect("reference must simulate the minimal witness")
+            .statevector;
+        let sv_dev = device
+            .run(&minimal, 0, 0)
+            .expect("device must simulate the minimal witness")
+            .statevector;
+        let verdict = triage(&minimal, &sv_ref, &sv_dev, cli.tol);
+
+        println!("── divergence #{found} (circuit {i}, distance {dist:.3e}) ─────────────");
+        println!("  minimal witness ({} gates):", minimal.operations.len());
+        for line in to_qasm2(&minimal).lines().skip(3) {
+            println!("    {line}");
+        }
+        println!("  class      : {}", verdict.class.label());
+        println!("  N1 distance: {:.3e}", verdict.amplitude_distance);
+        println!("  N2 distance: {:.3e}", verdict.probability_distance);
+        println!("  visibility : {}", verdict.visibility_label());
+
+        if let Some(dir) = &cli.zoo_dir {
+            let entry = ZooEntry {
+                id: format!("{}-{}-{:03}", device.name(), level.label(), found),
+                reference_backend: "statevector-native",
+                device_backend: device.name(),
+                seed,
+                circuit: &minimal,
+                triage: &verdict,
+            };
+            match entry.save(dir) {
+                Ok(path) => println!("  zoo entry  : {}", path.display()),
+                Err(e) => eprintln!("  zoo write failed: {e}"),
             }
+        }
+        println!();
+
+        if cli.stop_after > 0 && found >= cli.stop_after {
+            break;
         }
     }
 
-    println!();
-    if found == 0 {
-        println!("Result: No divergences found in {} circuits. ✅", cli.iterations);
-    } else {
-        println!("Result: {} divergence(s) found in {} circuits. ❌", found, cli.iterations);
+    let secs = started.elapsed().as_secs_f64();
+    println!("Result: {found} divergence(s) in {tried} circuits ({secs:.1}s).");
+    if found > 0 {
         std::process::exit(1);
     }
 }
