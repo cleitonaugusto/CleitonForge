@@ -34,9 +34,20 @@ GATES = [
 ]
 
 
-def random_ops(rng: random.Random, num_qubits: int, depth: int) -> list:
-    """Random gate list [(name, qubits, params), ...]."""
-    eligible = [g for g in GATES if g[1] <= num_qubits]
+def random_ops(rng: random.Random, num_qubits: int, depth: int,
+               exclude: frozenset[str] = frozenset()) -> list:
+    """Random gate list [(name, qubits, params), ...].
+
+    exclude drops gates from the pool. The use for it is suppressing a bug you
+    have already reported so the search stops spending its budget rediscovering
+    it: against Qiskit 2.5.0, excluding sxdg makes #16594 essentially
+    unreachable, because that fault needs an accumulated X rotation at a
+    negative multiple of pi/2, sx and x contribute positively, and random rx
+    angles hit an exact multiple with probability zero.
+    """
+    eligible = [g for g in GATES if g[1] <= num_qubits and g[0] not in exclude]
+    if not eligible:
+        raise ValueError("gate pool is empty after exclusions")
     weights = [g[3] for g in eligible]
     ops = []
     for _ in range(depth):

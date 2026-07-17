@@ -91,6 +91,10 @@ def main() -> int:
     ap.add_argument("--zoo-dir", type=pathlib.Path, default=pathlib.Path("bug-zoo"))
     ap.add_argument("--all-to-all", action="store_true",
                     help="no coupling map (the old narrow regime)")
+    ap.add_argument("--exclude", nargs="*", default=[],
+                    help="drop gates from the pool. `--exclude sxdg` suppresses "
+                         "#16594, which otherwise eats ~2%% of the budget being "
+                         "rediscovered, and lets the rest of the space show")
     args = ap.parse_args()
 
     import qiskit
@@ -107,6 +111,9 @@ def main() -> int:
     print(f"fuzz_qiskit_wide — qiskit {qiskit.__version__}, oracle: QCEC")
     print(f"  {args.iterations} circuits, {num_qubits} qubits, depth "
           f"{args.min_depth}-{args.max_depth}, O{args.opt_level}, {topo}")
+    excluded = frozenset(args.exclude)
+    if excluded:
+        print(f"  excluding: {sorted(excluded)}")
     print(f"  seed {args.seed}\n")
 
     bugs = unknowns = errors = 0
@@ -122,7 +129,7 @@ def main() -> int:
 
         rng = random.Random(args.seed + i)
         depth = rng.randint(args.min_depth, args.max_depth)
-        ops = random_ops(rng, num_qubits, depth)
+        ops = random_ops(rng, num_qubits, depth, exclude=excluded)
 
         try:
             qc, tqc = compile_pair(ops, num_qubits, coupling, args.opt_level)
