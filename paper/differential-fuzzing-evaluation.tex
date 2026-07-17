@@ -88,8 +88,11 @@ The contribution of this paper is the evaluation. We ran \tool{} against
 six widely used stacks and report what it found. The headline is a single
 bug, but a real one: a regression in the current release of Qiskit whose
 transpiler silently miscompiles a two-gate identity and changes
-measurement results. We report it, give its root cause, and trace the
-release in which it appeared. We also report the negative results,
+measurement results. It has been confirmed by the Qiskit maintainers and
+is milestoned for the next patch release. We characterize its fault
+surface, delimit the release in which it appeared, and are explicit about
+the boundary between what differential testing established and what it
+did not. We also report the negative results,
 because on this class of test they carry information: four mature
 optimizers handle the analogous case correctly across tens of thousands
 of circuits, which is what lets us attribute the Qiskit failure to a
@@ -265,22 +268,91 @@ to a global phase, not the identity. At optimization level~2 and above,
 where the pass runs, the transpiled circuit measures qubit~1 as $0$ with
 certainty where the original circuit measures it as $1$.
 
-\paragraph{Root cause.}
-The pass sorts gates into cancellable families. In
-\texttt{commutative\_cancellation.py} the relevant set is
-\[
-\texttt{\_x\_rotations} = \{\texttt{"x"}, \texttt{"rx"}, \texttt{"sx"}, \texttt{"sxdg"}\}.
-\]
-Two identical $\sqrt{X}^\dagger$ gates are treated as mutual inverses.
-This is correct for \texttt{x} (self-inverse) but wrong for the
-square-root gates, whose square is $X$. Reading the source across
-releases, the set was $\{\texttt{"x"},\texttt{"rx"}\}$ from Qiskit~1.4.0
-through 2.4.0 and gained \texttt{sx} and \texttt{sxdg} in 2.5.0. The bug
-is a regression in the current release. The adjacent case, two
-$\sqrt{X}^\dagger$ with nothing between them, is folded correctly into a
-single gate; the fault needs an interleaved operation on another qubit,
-which is why hand tests miss it and random circuits find it. We reported
-the bug upstream as Qiskit issue~16594.
+\paragraph{Fault surface.}
+The shrunk witness is one point on a wider surface, which we mapped by
+sweeping the \emph{accumulated} rotation the pass has to emit. Replacing
+the two $\sqrt{X}^\dagger$ gates with a pair of $R_x(\theta/2)$ gates, so
+that the pass must synthesize a combined rotation of exactly $\theta$,
+gives Table~\ref{tab:sweep}. In Qiskit~2.5.0 a positive multiple of
+$\pi/2$ is emitted as the corresponding number of \texttt{sx} gates and
+is correct; a \emph{negative} multiple is emitted as no gates at all,
+which is wrong for every total that is not a multiple of $2\pi$. The
+cases $\theta = -2\pi, -4\pi$ pass only because emitting nothing is
+accidentally right there. The fault is therefore not specific to
+$\sqrt{X}^\dagger$, and not a matter of two gates being mistaken for an
+inverse pair: it reproduces with plain \texttt{rx} gates, and what
+distinguishes the failing cases is the \emph{sign} of the accumulated
+angle.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{rllll}
+\toprule
+& \multicolumn{2}{c}{Qiskit 2.4.0} & \multicolumn{2}{c}{Qiskit 2.5.0} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+$\theta \div (\pi/2)$ & emitted & sound & emitted & sound \\
+\midrule
+$-1$ & \texttt{rx} & yes & --- & \textbf{no} \\
+$-2$ & \texttt{rx} & yes & --- & \textbf{no} \\
+$-3$ & \texttt{rx} & yes & --- & \textbf{no} \\
+$-4$ & --- & yes & --- & yes \\
+$-5$ & \texttt{rx} & yes & --- & \textbf{no} \\
+$+1$ & \texttt{rx} & yes & \texttt{sx} & yes \\
+$+2$ & \texttt{rx} & yes & \texttt{sx sx} & yes \\
+$+3$ & \texttt{rx} & yes & \texttt{sx sx sx} & yes \\
+\bottomrule
+\end{tabular}
+\caption{Gates emitted for an accumulated $X$ rotation of $\theta$, and
+whether the result is equivalent to the input up to global phase.
+Qiskit~2.4.0 merges the pair into a single \texttt{rx} and is correct for
+both signs; 2.5.0 synthesizes into \texttt{sx} and drops negative
+totals.}
+\label{tab:sweep}
+\end{table}
+
+\paragraph{Delimiting the regression.}
+Running the same sweep under Qiskit~2.4.0 (Table~\ref{tab:sweep}, left)
+returns no divergence at any angle: that release merges the pair into a
+single \texttt{rx($\theta$)} and never takes the \texttt{sx} synthesis
+path. The regression is thus specific to 2.5.0 and is visible in the
+Python layer only as a widening of the gate set the pass considers, from
+$\{\texttt{x},\texttt{rx}\}$ in 1.4.0 through 2.4.0 to
+$\{\texttt{x},\texttt{rx},\texttt{sx},\texttt{sxdg}\}$ in 2.5.0.
+
+\paragraph{Confirmation, and the limits of what we established.}
+We reported the bug upstream as Qiskit issue~16594; a maintainer
+confirmed it within hours, labelled it a transpiler bug, and milestoned a
+fix for 2.5.1. Their account of the cause is that the pass computes the
+required rotation angle correctly and fails when synthesizing it into
+gates, for a negative multiple of $\pi/2$ with \texttt{sx} in the
+supported set --- consistent with the emitted-gate column above, and
+locating the defect in the pass's Rust implementation
+(\texttt{qiskit.\_accelerate}) rather than in the Python file that
+configures it.
+
+We record one correction, because it bears on what this kind of testing
+can claim. Our initial report proposed a root cause in the Python
+\texttt{\_x\_rotations} set, on the reading that two $\sqrt{X}^\dagger$
+were being treated as mutual inverses. That was wrong: the set only
+restricts which gates the commutation checker examines, the cancellation
+and synthesis happen in compiled code, and the sweep above shows the
+failure has nothing to do with inverse pairs. The narrative was
+plausible, matched a variable name, and survived a naive check --- deleting
+\texttt{sxdg} from the set does suppress the bug, because it stops the
+pass from touching those gates at all --- but suppressing a symptom by
+disabling a feature is not evidence of a mechanism. Differential testing
+localizes a fault and delimits the release that introduced it; it does
+not root-cause it, and reading source until a story fits is not a
+substitute for the maintainer who knows the compiled path. We state the
+fault surface, which we measured, and attribute the cause, which we did
+not.
+
+\paragraph{Why random circuits find it.}
+The adjacent case, two $\sqrt{X}^\dagger$ with nothing between them, is
+folded correctly into a single gate; the fault needs an interleaved
+operation on another qubit to push the pass onto the commutation path,
+which is why hand-written tests miss it and random circuits find it.
 
 \paragraph{Contrast with the other stacks.}
 The same class of pass elsewhere handles the analogous
@@ -383,7 +455,8 @@ Sampling benchmarks cannot certify gate conventions, and a companion
 result makes that precise. Building a fuzzer around an amplitude oracle
 closes the gap, at the cost of a quotienting discipline that we have made
 explicit. Run against six production stacks, the tool found a real
-soundness regression in the current Qiskit transpiler and confirmed the
+soundness regression in the current Qiskit transpiler --- confirmed
+upstream and milestoned for the next patch release --- and confirmed the
 correctness of four other optimizers on the same class of input. The bug
 is one; the method, and the proof that explains why the class was
 overlooked, are the durable part.
