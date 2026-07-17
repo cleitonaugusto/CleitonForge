@@ -94,10 +94,12 @@ $CU$), implement a convention normalization transpiler that restores fidelity
 to unity, and discuss implications for variational quantum algorithm
 portability.
 
-We further introduce the \textbf{Quantum Gate Convention Standard (QGCS) v0.1},
-a 12-check phase-sensitive conformance suite analogous to test262 for quantum
-simulators. Amplitude ratios and inner products between statevectors expose
-convention bugs that probability-based tests miss entirely. Results:
+We further describe the \textbf{Quantum Gate Convention Suite (QGCS) v0.1}, a
+12-check phase-sensitive test suite that operationalizes the gate semantics
+OpenQASM~3 already defines normatively in \texttt{stdgates.inc}. It proposes no
+new standard: it is a way of executing an existing one. Amplitude ratios and
+inner products between statevectors expose convention bugs that
+probability-based tests miss entirely. Results:
 the native backend achieves 12/12 (OpenQASM~3 compliant); \texttt{quantrs2}
 achieves 10/12 (inverted $R_z$ sign, $F(P, R_z)=0$). The \texttt{cforge
 certify} CLI command and \texttt{cf.certify()} Python API automate these checks.
@@ -355,17 +357,28 @@ After normalization, cross-backend fidelity between native and quantrs2
 on the QAOA circuit is restored to $F = 1.00000000$.
 
 % ─────────────────────────────────────────────────────────────────────────────
-\section{Quantum Gate Convention Standard (QGCS) v0.1}
+\section{Quantum Gate Convention Suite (QGCS) v0.1}
 
-\subsection{Motivation}
+\subsection{Motivation and scope}
 
 Quantum Volume, Clifford benchmarks, and any metric derived from measurement
 \emph{probabilities} are provably blind to the $R_z$ sign bug (Theorem~1).
 What is needed is a minimal set of \emph{amplitude-level} checks that observe
-the complex phase of the statevector directly. We define QGCS v0.1, a 12-check
-conformance suite analogous to test262 for JavaScript engines: a canonical
-behavioral specification that any OpenQASM~3-compliant statevector simulator
-must satisfy.
+the complex phase of the statevector directly. QGCS v0.1 is such a set: 12
+checks, each a short circuit and an assertion on a complex amplitude.
+
+We are explicit about what it is not. The normative definition of these gates
+already exists: OpenQASM~3 fixes them in \texttt{stdgates.inc}, and nothing
+here amends, extends, or competes with it. A useful contrast is test262, which
+is often invoked as a model for this kind of work: test262 is authoritative
+because TC39 owns both the specification and the suite, and conformance means
+agreement with the body that defines the language. No comparable claim applies
+to a suite written by one author outside any governance process, and we make
+none. QGCS is a test suite that executes a standard someone else wrote; a
+backend disagreeing with it is evidence of a bug worth investigating against
+\texttt{stdgates.inc}, not a verdict issued by us. If conformance vectors of
+this kind are ever wanted normatively, generating them from the specification
+under the relevant project's governance is the right way to do it.
 
 \subsection{Phase-sensitive checks}
 
@@ -534,18 +547,16 @@ and $\mathrm{CX}$---the KAK decomposition basis used by QV---the sign inversion
 $R_z \to R_z^*$ leaves all measurement probabilities exactly unchanged.
 This makes the divergence undetectable by \emph{any} probability-based metric.
 
-To close this detection gap, we introduced QGCS v0.1 (Quantum Gate Convention
-Standard), a 12-check phase-sensitive conformance suite. Three backends pass
-all 12 checks; \texttt{quantrs2} passes 10/12 with two failures that both
-originate from the inverted $R_z$ sign. The \texttt{cforge certify} CLI command
-and \texttt{cf.certify()} Python function automate these checks against any
-backend.
+To close this detection gap, we described QGCS v0.1 (Quantum Gate Convention
+Suite), a 12-check phase-sensitive test suite for the semantics OpenQASM~3
+already defines. Three backends pass all 12 checks; \texttt{quantrs2} passes
+10/12 with two failures that both originate from the inverted $R_z$ sign. The
+\texttt{cforge certify} CLI command and \texttt{cf.certify()} Python function
+automate these checks against any backend.
 
 Future work includes porting QGCS to additional backends (Cirq, Pennylane,
-Qiskit Aer), proposing QGCS as an OQASI (Open Quantum Assembly Standard
-Initiative) test suite, and extending \textsc{CleitonForge} with noise-channel
-convention checks (Lindblad vs.\ Kraus sign conventions in density-matrix
-backends).
+Qiskit Aer) and extending \textsc{CleitonForge} with noise-channel convention
+checks (Lindblad vs.\ Kraus sign conventions in density-matrix backends).
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section*{Reproducibility}
