@@ -41,6 +41,12 @@ from generator import build, random_ops, shrink, to_qasm2  # noqa: E402
 from oracle_qcec import Verdict, criterion_name, verdict, verify  # noqa: E402
 
 IBM_BASIS = ["rz", "sx", "x", "cx"]
+# Current IBM hardware targets ecr, not cx, and the two take different
+# synthesis paths: the same circuit comes out at depth 92 under ecr versus 55
+# under cx. cz is what several other vendors expose.
+TWO_QUBIT_BASES = {"cx": IBM_BASIS,
+                   "ecr": ["rz", "sx", "x", "ecr"],
+                   "cz": ["rz", "sx", "x", "cz"]}
 
 
 def heavy_hex(distance: int) -> CouplingMap:
@@ -58,12 +64,13 @@ def heavy_hex(distance: int) -> CouplingMap:
     return cm
 
 
-def compile_pair(ops, num_qubits: int, coupling: CouplingMap, opt_level: int):
-    """(original, transpiled) or None if the circuit cannot be compiled."""
+def compile_pair(ops, num_qubits: int, coupling: CouplingMap, opt_level: int,
+                 basis=None):
+    """(original, transpiled), or raises if the circuit cannot be compiled."""
     qc = build(num_qubits, ops)
     tqc = transpile(
         qc,
-        basis_gates=IBM_BASIS,
+        basis_gates=basis or IBM_BASIS,
         coupling_map=coupling,
         optimization_level=opt_level,
         approximation_degree=1.0,
@@ -87,6 +94,8 @@ def main() -> int:
                          "0.18s/circuit and always conclusive; at depth 100 the "
                          "decision diagrams blow up (31s/circuit, 2/8 timing out)")
     ap.add_argument("--opt-level", type=int, default=3)
+    ap.add_argument("--basis", choices=sorted(TWO_QUBIT_BASES), default="cx",
+                    help="two-qubit basis gate")
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--zoo-dir", type=pathlib.Path, default=pathlib.Path("bug-zoo"))
     ap.add_argument("--all-to-all", action="store_true",
@@ -110,7 +119,9 @@ def main() -> int:
 
     print(f"fuzz_qiskit_wide — qiskit {qiskit.__version__}, oracle: QCEC")
     print(f"  {args.iterations} circuits, {num_qubits} qubits, depth "
-          f"{args.min_depth}-{args.max_depth}, O{args.opt_level}, {topo}")
+          f"{args.min_depth}-{args.max_depth}, O{args.opt_level}, {topo}, "
+          f"basis {args.basis}")
+    basis = TWO_QUBIT_BASES[args.basis]
     excluded = frozenset(args.exclude)
     if excluded:
         print(f"  excluding: {sorted(excluded)}")
@@ -132,7 +143,7 @@ def main() -> int:
         ops = random_ops(rng, num_qubits, depth, exclude=excluded)
 
         try:
-            qc, tqc = compile_pair(ops, num_qubits, coupling, args.opt_level)
+            qc, tqc = compile_pair(ops, num_qubits, coupling, args.opt_level, basis)
         except Exception as e:  # noqa: BLE001 — a transpiler crash is a finding
             errors += 1
             print(f"  [crash] circuit {i}: {type(e).__name__}: {e}")
@@ -157,7 +168,7 @@ def main() -> int:
 
         def still_fails(cand):
             try:
-                pair = compile_pair(cand, num_qubits, coupling, args.opt_level)
+                pair = compile_pair(cand, num_qubits, coupling, args.opt_level, basis)
             except Exception:  # noqa: BLE001
                 return False
             try:
@@ -170,7 +181,7 @@ def main() -> int:
         for line in to_qasm2(minimal, num_qubits).splitlines()[3:]:
             print(f"    {line}")
 
-        qc_m, tqc_m = compile_pair(minimal, num_qubits, coupling, args.opt_level)
+        qc_m, tqc_m = compile_pair(minimal, num_qubits, coupling, args.opt_level, basis)
         res = verify(qc_m, tqc_m)
         entry = {
             "id": f"qiskit-wide-{num_qubits}q-{bugs:03}",
@@ -179,6 +190,7 @@ def main() -> int:
             "criterion": criterion_name(res),
             "topology": topo,
             "optimization_level": args.opt_level,
+            "basis": args.basis,
             "generator_seed": args.seed + i,
             "num_qubits": num_qubits,
             "gates": [{"gate": g, "qubits": qs, "params": ps} for g, qs, ps in minimal],
