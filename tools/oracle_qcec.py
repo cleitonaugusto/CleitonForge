@@ -98,6 +98,42 @@ def is_bug(qc, other, seed: int = DEFAULT_SEED, timeout: float = DEFAULT_TIMEOUT
     return verdict(qc, other, seed=seed, timeout=timeout) is Verdict.BUG
 
 
+# Widths where building the full 2^n x 2^n unitary is affordable. This is the
+# oracle we replaced, kept only as a second opinion on the small circuits a
+# shrinker produces, never as the primary check.
+CONFIRM_MAX_QUBITS = 10
+
+
+def confirm_bug(qc, other) -> bool | None:
+    """Second opinion on a BUG verdict. True if real, False if QCEC is wrong.
+
+    Returns None when the circuit is too wide to check this way.
+
+    QCEC is the better oracle but it is not infallible, and it fails in a way
+    that matters here: comparing a parametrised gate against the same operator
+    packed into a UnitaryGate, it reports not_equivalent for small angles even
+    though the two are bit-identical. Measured on ConsolidateBlocks output,
+    crz(theta) against its own matrix:
+
+        theta <= 1e-4   ->  not_equivalent, and the true error is exactly 0.0
+        theta >= 1e-3   ->  equivalent
+
+    Its decision diagram appears to prune entries below a tolerance, which
+    collapses a nearly-identity matrix while the rotation gate keeps its angle.
+    That produced a finding that looked new and was not there at all.
+
+    A witness is small by the time it is worth reporting, so the exact
+    comparison always fits. Cross-checking costs nothing and this project has no
+    business trusting a single oracle -- that is the whole argument it makes to
+    everyone else.
+    """
+    if qc.num_qubits > CONFIRM_MAX_QUBITS:
+        return None
+    from qiskit.quantum_info import Operator
+
+    return not Operator(qc).equiv(Operator(other))
+
+
 if __name__ == "__main__":
     import math
 

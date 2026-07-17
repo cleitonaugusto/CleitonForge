@@ -46,7 +46,7 @@ from qiskit.transpiler import passes as qpasses
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 from generator import build, random_ops, shrink, to_qasm2  # noqa: E402
-from oracle_qcec import Verdict, criterion_name, verdict, verify  # noqa: E402
+from oracle_qcec import Verdict, confirm_bug, criterion_name, verdict, verify  # noqa: E402
 
 
 def _pass_factories():
@@ -122,7 +122,7 @@ def main() -> int:
     totals = {}
     for name in targets:
         factory = PASSES[name]
-        bugs = unknowns = errors = 0
+        bugs = unknowns = errors = oracle_fps = 0
         first_witness = None
         t0 = time.perf_counter()
 
@@ -149,6 +149,14 @@ def main() -> int:
                 continue
             if v is Verdict.UNKNOWN:
                 unknowns += 1
+                continue
+
+            # Second opinion before counting it. QCEC reports not_equivalent for a
+            # small-angle rotation against its own UnitaryGate matrix, where the true
+            # error is 0.0, so ConsolidateBlocks output would otherwise produce
+            # findings that are not there.
+            if confirm_bug(qc, out) is False:
+                oracle_fps += 1
                 continue
 
             bugs += 1
@@ -187,7 +195,8 @@ def main() -> int:
         totals[name] = (bugs, unknowns, errors)
         rate = 100.0 * bugs / max(args.iterations, 1)
         print(f"{name:<38} {bugs:>4} bug ({rate:5.2f}%)  "
-              f"{unknowns:>3} unknown  {errors:>3} err  {el:>6.0f}s")
+              f"{unknowns:>3} unknown  {errors:>3} err  "
+              f"{oracle_fps:>3} oracle-fp  {el:>6.0f}s")
 
     print("\n== summary ==")
     control = totals.get("CommutativeCancellation")
