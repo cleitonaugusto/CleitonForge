@@ -15,3 +15,7 @@ paper/*.bbl
 paper/*.blg
 paper/*.fls
 paper/*.fdb_latexmk
+
+# Python
+__pycache__/
+*.pyc
