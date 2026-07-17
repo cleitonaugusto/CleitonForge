@@ -100,6 +100,12 @@ def main() -> int:
     ap.add_argument("--zoo-dir", type=pathlib.Path, default=pathlib.Path("bug-zoo"))
     ap.add_argument("--all-to-all", action="store_true",
                     help="no coupling map (the old narrow regime)")
+    ap.add_argument("--boundary-prob", type=float, default=0.0,
+                    help="probability of drawing an angle from the special "
+                         "values a compiler branches on, rather than uniform. "
+                         "A uniform draw hits an exact multiple of pi/2 with "
+                         "probability zero (measured: 0 in 200000), which is "
+                         "where rotation bugs live")
     ap.add_argument("--exclude", nargs="*", default=[],
                     help="drop gates from the pool. `--exclude sxdg` suppresses "
                          "#16594, which otherwise eats ~2%% of the budget being "
@@ -140,7 +146,7 @@ def main() -> int:
 
         rng = random.Random(args.seed + i)
         depth = rng.randint(args.min_depth, args.max_depth)
-        ops = random_ops(rng, num_qubits, depth, exclude=excluded)
+        ops = random_ops(rng, num_qubits, depth, exclude=excluded, boundary_prob=args.boundary_prob)
 
         try:
             qc, tqc = compile_pair(ops, num_qubits, coupling, args.opt_level, basis)

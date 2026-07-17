@@ -97,6 +97,12 @@ def main() -> int:
     ap.add_argument("--max-depth", type=int, default=14)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--timeout", type=float, default=10.0)
+    ap.add_argument("--boundary-prob", type=float, default=0.0,
+                    help="probability of drawing an angle from the special "
+                         "values a compiler branches on, rather than uniform. "
+                         "A uniform draw hits an exact multiple of pi/2 with "
+                         "probability zero (measured: 0 in 200000), which is "
+                         "where rotation bugs live")
     ap.add_argument("--exclude", nargs="*", default=[])
     ap.add_argument("--zoo-dir", type=pathlib.Path, default=pathlib.Path("bug-zoo"))
     args = ap.parse_args()
@@ -123,7 +129,7 @@ def main() -> int:
         for i in range(args.iterations):
             rng = random.Random(args.seed + i)
             depth = rng.randint(args.min_depth, args.max_depth)
-            ops = random_ops(rng, args.qubits, depth, exclude=excluded)
+            ops = random_ops(rng, args.qubits, depth, exclude=excluded, boundary_prob=args.boundary_prob)
             try:
                 qc, out = run_pass(factory, ops, args.qubits)
             except Exception as e:  # noqa: BLE001 — a pass crash is a finding
