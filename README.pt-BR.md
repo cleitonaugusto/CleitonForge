@@ -6,51 +6,86 @@
 [![Crates.io](https://img.shields.io/crates/v/cleitonforge)](https://crates.io/crates/cleitonforge)
 [![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
 
-**CleitonForge** é uma camada neutra e open-source de benchmarking e
-interoperabilidade para simuladores quânticos, escrita em Rust. O binário
-CLI se chama `cforge`.
+**CleitonForge** é um fuzzer diferencial para compiladores e simuladores
+quânticos, escrito em Rust. Ele gera circuitos aleatórios, roda cada um em mais
+de uma implementação e reporta os casos em que elas discordam. Quando acha um,
+encolhe o circuito até a menor versão que ainda falha. O binário CLI se chama
+`cforge`.
+
+Ele achou um bug de corretude no transpiler do Qiskit:
+[issue #16594](https://github.com/Qiskit/qiskit/issues/16594). O passe
+`CommutativeCancellation` cancelava `sxdg sxdg sx`, que é um X, até sobrar um
+circuito vazio, do nível 2 de otimização para cima. Sem erro, sem aviso, e o
+resultado medido muda. Um mantenedor do core confirmou e a correção saiu no
+Qiskit 2.5.1.
 
 ---
 
 ## O problema
 
-O ecossistema de software quântico está fragmentado entre frameworks
-incompatíveis — Qiskit (IBM), Cirq (Google), Amazon Braket, PennyLane
-(Xanadu) — e vários simuladores isolados escritos em Rust (QuantRS2, qoqo,
-q1tsim, qvnt). Cada framework mede desempenho de forma diferente, usa
-formatos de circuito distintos e define os mesmos algoritmos de maneiras
-incompatíveis.
+Simulador e compilador são difíceis de testar porque em geral não existe com o
+que comparar a resposta. Uma amplitude errada continua sendo uma amplitude bem
+formada. Nada levanta exceção, nada vai pro log, e o número que volta é
+idêntico a um número certo. Você só percebe quando já sabe qual devia ser a
+resposta, que é justamente o caso em que não precisava da ferramenta.
 
-A literatura acadêmica confirma o problema:
+Teste diferencial contorna isso. Em vez de perguntar "isso está certo", ele
+pergunta "essas duas concordam". Duas implementações da mesma especificação
+deveriam devolver o mesmo estado para o mesmo circuito. Quando não devolvem,
+uma das duas está errada, e a discordância é o sinal.
 
-- Um benchmark chamado "grover" pode implementar o algoritmo de Grover com
-  um oráculo completamente diferente em cada ferramenta, tornando os
-  resultados incomparáveis entre frameworks.
-- Ferramentas quânticas são difíceis de integrar em pipelines de CI/CD pela
-  ausência de formatos de intercâmbio padronizados.
-- Esforços de benchmarking agnóstico existem (QED-C, MQT Bench), mas os
-  próprios autores reconhecem que são "um passo", não uma solução definitiva.
+A ideia é essa. O resto é deixar isso preciso o bastante para valer a leitura:
 
-## Por que Rust, por que agora
+- **O gerador** mira nos limiares numéricos em que um compilador ramifica:
+  múltiplos de pi/2, ângulos logo abaixo de um corte de síntese, sequências que
+  colapsam para a identidade. Ângulo aleatório uniforme quase nunca cai ali.
+- **O oráculo** compara a menos de fase global, porque fase global não é
+  observável e acusá-la enterraria os achados reais no ruído. As harnesses dos
+  compiladores externos podem passar o veredicto para o
+  [MQT QCEC](https://github.com/cda-tum/mqt-qcec), que raciocina simbolicamente
+  em vez de simular.
+- **O shrinker** reduz a falha a uma testemunha 1-minimal, ou seja, tirar
+  qualquer gate faz o bug sumir. A #16594 saiu dele com três gates num qubit só.
+- **A triagem** confere todo veredicto contra o operador exato antes de chamar
+  qualquer coisa de bug, e separa classe conhecida de achado novo por rotação
+  acumulada, não por nome de gate.
 
-- **OpenQASM 3** é o padrão de intercâmbio de fato da indústria, mas sua
-  implementação de referência e a maior parte do tooling são em Python.
-- Parsers Rust para OpenQASM (`oq3_semantics`, `oq3_parser`, `oq3_syntax`)
-  existem com 680k+ downloads cada, mas estão sem manutenção há mais de um ano.
-- Simuladores em Rust existem mas são silos isolados sem API comum.
-- Rust entrega desempenho previsível e de baixo overhead — crítico para
-  benchmarking onde ruído de medição deve ser minimizado.
+## A taxa de acerto, sem enfeite
 
-## Posicionamento
+Mais ou menos um bug real a cada cem mil circuitos. Essas stacks são maduras e
+bem testadas, e a maioria das discordâncias acaba sendo uma transformação
+declarada sobre a qual o oráculo não tinha sido avisado, não um defeito. As
+campanhas contra tket, PennyLane e Cirq voltaram limpas.
 
-O CleitonForge não compete com Qiskit, Cirq, IBM ou qualquer fornecedor de
-hardware. O objetivo é ser a **camada neutra** que todos podem usar — um
-árbitro imparcial que mede e compara sem favorecer nenhum backend.
+Então o valor aqui não é volume. É que o que sobrevive à triagem é real,
+mínimo, e reproduzível por alguém que não confia em você. Está em
+[`bug-zoo/`](bug-zoo), um JSON por achado, com a lista de gates, um reprodutor
+em OpenQASM 2 e o registro de como foi encontrado. As divergências entre
+backends trazem também a semente do gerador e a distância em cada nível de
+oráculo.
 
-- Nunca otimizado para favorecer um simulador específico
-- Rastreia a proveniência de cada gate (qual framework, qual nome original)
-- Arquitetura de plugin (trait `SimulationBackend`) para que qualquer backend
-  seja adicionado pela comunidade sem tocar no núcleo
+## Por que Rust
+
+- O gerador, o vetor de estado e o shrinker estão todos no caminho quente de
+  uma campanha que roda dezenas de milhares de circuitos.
+- O transpiler do Qiskit está migrando para Rust, e o bug acima está em código
+  Rust. Ajuda ler a linguagem daquilo que você está fuzzando.
+- No lado do benchmarking, overhead baixo e previsível importa, porque ruído de
+  medição é justamente o que está sendo medido.
+
+## O lado do benchmarking
+
+O CleitonForge começou como camada de benchmarking entre backends, e essa parte
+continua funcionando e está documentada abaixo. O `cforge run` executa o mesmo
+arquivo OpenQASM em mais de um backend e reporta tempo, memória, profundidade e
+fidelidade lado a lado. Hoje é um componente do fuzzer, não o ponto do projeto.
+
+Duas regras que ficaram daquele período, porque são o que faz a comparação
+significar alguma coisa:
+
+- Nunca otimizado para favorecer um simulador específico.
+- Arquitetura de plugin (trait `SimulationBackend`), para que um backend seja
+  adicionado sem tocar no IR do núcleo.
 
 ---
 
@@ -62,9 +97,24 @@ CleitonForge/                    workspace Rust
 ├── cforge-parser/               Parsers OpenQASM 2 + OpenQASM 3
 ├── cforge-backends/             Trait SimulationBackend + implementações
 ├── cforge-metrics/              Fidelidade, profundidade, tempo, memória
+├── cforge-fuzz/                 O fuzzer
+│   ├── generator.rs             Gerador ponderado de circuitos
+│   ├── oracle.rs                Oráculos de divergência (N1 amplitude, N2 prob.)
+│   ├── shrinker.rs              Redução gulosa a uma testemunha 1-minimal
+│   ├── triage.rs                Classe conhecida vs achado novo
+│   └── zoo.rs                   Saída JSON para o bug-zoo/
 ├── cforge-cli/                  Binário `cforge` (clap + comfy-table)
 │   └── examples/
-│       └── compare_grover.rs   Algoritmo de Grover — exemplo via API Rust
+│       └── compare_grover.rs   Algoritmo de Grover, exemplo via API Rust
+├── cforge-py/                   Bindings Python (PyO3)
+├── tools/                       Harnesses para compiladores externos
+│   ├── fuzz_qiskit*.py          Qiskit: pipeline completo, passes isolados, wide
+│   ├── fuzz_pytket*.py          tket
+│   ├── fuzz_pennylane*.py       Devices e transforms do PennyLane
+│   ├── fuzz_cirq.py             Cirq
+│   ├── oracle_qcec.py           MQT QCEC como veredicto de três vias
+│   └── triage_known.py          Triagem por rotação acumulada
+├── bug-zoo/                     Contraexemplos minimizados, um JSON cada
 └── examples/
     └── bell.qasm               Estado de Bell em OpenQASM 2
 ```
@@ -292,9 +342,13 @@ enquanto o statevector está vivo na memória.
 | 4    | `cforge-metrics`  | ✓      |
 | 5    | `cforge-cli`      | ✓      |
 | 6    | exemplos + docs   | ✓      |
+| 7    | `cforge-py`       | ✓      |
+| 8    | `cforge-fuzz`     | ✓      |
+
+Os bindings Python já estão publicados: `pip install cleitonforge`.
 
 **Planejado:** backends adicionais (qoqo, q1tsim), modelagem de ruído,
-bindings Python (PyO3), cobertura estendida do OpenQASM 3, dashboard web.
+cobertura estendida do OpenQASM 3.
 
 ---
 
