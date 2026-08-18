@@ -131,7 +131,14 @@ def confirm_bug(qc, other) -> bool | None:
         return None
     from qiskit.quantum_info import Operator
 
-    return not Operator(qc).equiv(Operator(other))
+    # Tight on purpose. Operator.equiv defaults to rtol=1e-5, which is far
+    # blunter than the misfire this guard exists for: that one has a true error
+    # of exactly 0.0, so any tolerance rejects it. At the default, a genuine
+    # divergence of 1e-5 is also called equivalent and gets discarded as an
+    # oracle false positive, which is the one outcome that hides a real finding
+    # instead of surfacing it for judgement. bug-zoo/qiskit-cp-small-angle-002
+    # is exactly that shape, with an error of O(theta).
+    return not Operator(qc).equiv(Operator(other), rtol=0.0, atol=1e-12)
 
 
 if __name__ == "__main__":

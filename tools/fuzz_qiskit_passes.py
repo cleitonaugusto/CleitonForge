@@ -162,9 +162,17 @@ def main() -> int:
             bugs += 1
             if first_witness is None:
                 def still_fails(cand):
+                    # Same cross-check the counting path applies. Without it the
+                    # shrinker is free to walk a confirmed finding down to a
+                    # circuit that only QCEC's misfire keeps failing, and that
+                    # smaller circuit is what gets written to the zoo as the
+                    # witness. The guard has to hold at every step, not just at
+                    # the point where the finding is counted.
                     try:
-                        return verdict(*run_pass(factory, cand, args.qubits),
-                                       timeout=args.timeout) is Verdict.BUG
+                        cand_qc, cand_out = run_pass(factory, cand, args.qubits)
+                        if verdict(cand_qc, cand_out, timeout=args.timeout) is not Verdict.BUG:
+                            return False
+                        return confirm_bug(cand_qc, cand_out) is not False
                     except Exception:  # noqa: BLE001
                         return False
 

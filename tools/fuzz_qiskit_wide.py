@@ -38,7 +38,7 @@ from qiskit.transpiler import CouplingMap
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
 from generator import build, random_ops, shrink, to_qasm2  # noqa: E402
-from oracle_qcec import Verdict, criterion_name, verdict, verify  # noqa: E402
+from oracle_qcec import Verdict, confirm_bug, criterion_name, verdict, verify  # noqa: E402
 
 IBM_BASIS = ["rz", "sx", "x", "cx"]
 # Current IBM hardware targets ecr, not cx, and the two take different
@@ -133,7 +133,7 @@ def main() -> int:
         print(f"  excluding: {sorted(excluded)}")
     print(f"  seed {args.seed}\n")
 
-    bugs = unknowns = errors = 0
+    bugs = unknowns = errors = oracle_fps = 0
     t_start = time.perf_counter()
 
     for i in range(args.iterations):
@@ -142,7 +142,8 @@ def main() -> int:
         if i and i % 50 == 0:
             el = time.perf_counter() - t_start
             print(f"[{i}/{args.iterations}] {el:.0f}s, {el / i:.2f}s/circuit, "
-                  f"{bugs} bug(s), {unknowns} unknown, {errors} error(s)")
+                  f"{bugs} bug(s), {unknowns} unknown, {oracle_fps} oracle-fp, "
+                  f"{errors} error(s)")
 
         rng = random.Random(args.seed + i)
         depth = rng.randint(args.min_depth, args.max_depth)
@@ -169,6 +170,15 @@ def main() -> int:
             print(f"  [unknown] circuit {i} — inconclusive, not counted as a bug")
             continue
 
+        # Second opinion before counting it, same as fuzz_qiskit_passes.py.
+        # This harness runs full transpile(), which invokes ConsolidateBlocks,
+        # and that is the pass QCEC misreports on small angles. Without this the
+        # campaign records findings that are not there.
+        if confirm_bug(qc, tqc) is False:
+            oracle_fps += 1
+            print(f"  [oracle-fp] circuit {i} — QCEC says not_equivalent, exact operator disagrees")
+            continue
+
         bugs += 1
         print(f"\n── divergence #{bugs} at circuit {i} ({depth} gates)")
 
@@ -178,7 +188,9 @@ def main() -> int:
             except Exception:  # noqa: BLE001
                 return False
             try:
-                return verdict(*pair, timeout=args.timeout) is Verdict.BUG
+                if verdict(*pair, timeout=args.timeout) is not Verdict.BUG:
+                    return False
+                return confirm_bug(*pair) is not False
             except Exception:  # noqa: BLE001
                 return False
 
@@ -209,6 +221,7 @@ def main() -> int:
 
     el = time.perf_counter() - t_start
     print(f"\nResult: {bugs} divergence(s), {unknowns} inconclusive, "
+          f"{oracle_fps} rejected by the exact-operator cross-check, "
           f"{errors} error(s) in {args.iterations} circuits ({el:.0f}s).")
     return 1 if bugs else 0
 
