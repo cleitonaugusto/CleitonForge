@@ -107,11 +107,18 @@ def random_angle(rng: random.Random, boundary_prob: float = 0.5,
     share matters: it is what exercises the generic path, and a generator that
     only ever produced special values would stop testing the ordinary one.
     """
-    roll = rng.random()
-    if roll < near_miss_prob:
-        return rng.choice(NEAR_MISS_ANGLES)
-    if roll < near_miss_prob + boundary_prob:
-        return rng.choice(SPECIAL_ANGLES)
+    # The roll is only drawn when it can change the outcome. Drawing it
+    # unconditionally advances the RNG one extra step per angle, which keeps the
+    # distribution but changes the sequence, so a seed recorded before this
+    # function existed stops regenerating its circuit. bug-zoo entries store
+    # generator_seed and the README calls them reproducible, so the stream is
+    # part of the contract, not an implementation detail.
+    if near_miss_prob or boundary_prob:
+        roll = rng.random()
+        if roll < near_miss_prob:
+            return rng.choice(NEAR_MISS_ANGLES)
+        if roll < near_miss_prob + boundary_prob:
+            return rng.choice(SPECIAL_ANGLES)
     return rng.uniform(-math.pi, math.pi)
 
 
