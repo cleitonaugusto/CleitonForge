@@ -1,10 +1,23 @@
 # Bug Zoo — minimal counterexamples for quantum simulator divergences
 
-Public, versioned corpus of minimized circuits on which two quantum
-simulator implementations disagree. Every entry is produced by
-[`cforge-fuzz`](../cforge-fuzz) and is fully reproducible: pinned
-backend names, the exact gate list, an OpenQASM 2 reproducer, the
-generator seed, and the divergence distances at each oracle level.
+Public, versioned corpus of minimized circuits on which two
+implementations disagree, either two simulator backends or a compiler
+pass against the circuit it was given.
+
+Entries come from two places, and the schema differs a little between
+them because the questions do:
+
+- The `statevector-*` entries come from [`cforge-fuzz`](../cforge-fuzz),
+  the Rust fuzzer, comparing simulator backends. They carry the
+  generator seed and the divergence distance at each oracle level.
+- The `qiskit-*` entries come from the Python harnesses in
+  [`tools/`](../tools), which share the same architecture and run
+  against Qiskit's transpiler. They carry the pass name and the version
+  it was found on, and the oracle is MQT QCEC rather than an amplitude
+  comparison, so there is no distance to record.
+
+Every entry carries the minimal gate list and an OpenQASM 2 reproducer,
+which is what makes the finding checkable without rerunning the search.
 
 ## Reading an entry
 
@@ -16,6 +29,19 @@ generator seed, and the divergence distances at each oracle level.
 | `probability_distance` | N2 — max \|p_a − p_b\| over basis states |
 | `classification` | Automatic triage by QGCS dimension |
 | `sampling_visible` | `false` = provably invisible to QV, XEB, mirror circuits, RB and any other sampling benchmark, by the conjugation-invariance theorem (see `paper/blindness-hierarchy.tex`) |
+
+Those six fields are the `statevector-*` schema. The `qiskit-*` entries
+use `pass`, `qiskit_version`, `oracle` and `criterion` instead, since a
+compiler pass is compared against its own input rather than against a
+second backend.
+
+One caveat worth stating rather than leaving for someone to discover:
+`generator_seed` regenerates the circuit only for entries produced by the
+generator version current at the time. `tools/generator.py` had its RNG
+stream shifted once, in the commit that added boundary angles, which
+broke seed reproduction for `qiskit-16594-single-qubit-003` until it was
+restored. `tools/test_generator_stream.py` now guards that. The gate list
+and the OpenQASM reproducer never depended on it.
 
 ## Fuzzing harnesses
 
