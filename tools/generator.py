@@ -98,12 +98,14 @@ GATES = [
 ]
 
 
-def random_angle(rng: random.Random, boundary_prob: float = 0.5,
+def random_angle(rng: random.Random, boundary_prob: float = 0.0,
                  near_miss_prob: float = 0.0) -> float:
     """An angle, biased towards the values a compiler special-cases.
 
     Draws a near-miss with near_miss_prob, an exact special value with
-    boundary_prob, and otherwise uniform over (-pi, pi). Keeping the uniform
+    boundary_prob, and otherwise uniform over (-pi, pi). Both default to 0, the
+    same as random_ops, so that calling this directly gives a plain uniform draw
+    rather than a silent 50% bias towards special values. Keeping the uniform
     share matters: it is what exercises the generic path, and a generator that
     only ever produced special values would stop testing the ordinary one.
     """

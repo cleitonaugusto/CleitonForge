@@ -103,6 +103,11 @@ def main() -> int:
                          "A uniform draw hits an exact multiple of pi/2 with "
                          "probability zero (measured: 0 in 200000), which is "
                          "where rotation bugs live")
+    ap.add_argument("--near-miss-prob", type=float, default=0.0,
+                    help="probability of drawing an angle just inside or just "
+                         "outside a compiler's rounding threshold, rather than "
+                         "an exact special value. Exact values probe for real "
+                         "faults; near-misses probe the tolerance itself")
     ap.add_argument("--exclude", nargs="*", default=[])
     ap.add_argument("--zoo-dir", type=pathlib.Path, default=pathlib.Path("bug-zoo"))
     args = ap.parse_args()
@@ -122,14 +127,15 @@ def main() -> int:
     totals = {}
     for name in targets:
         factory = PASSES[name]
-        bugs = unknowns = errors = oracle_fps = 0
+        bugs = unknowns = errors = oracle_fps = unconfirmable = 0
         first_witness = None
         t0 = time.perf_counter()
 
         for i in range(args.iterations):
             rng = random.Random(args.seed + i)
             depth = rng.randint(args.min_depth, args.max_depth)
-            ops = random_ops(rng, args.qubits, depth, exclude=excluded, boundary_prob=args.boundary_prob)
+            ops = random_ops(rng, args.qubits, depth, exclude=excluded, boundary_prob=args.boundary_prob,
+                             near_miss_prob=args.near_miss_prob)
             try:
                 qc, out = run_pass(factory, ops, args.qubits)
             except Exception as e:  # noqa: BLE001 — a pass crash is a finding
@@ -155,9 +161,16 @@ def main() -> int:
             # small-angle rotation against its own UnitaryGate matrix, where the true
             # error is 0.0, so ConsolidateBlocks output would otherwise produce
             # findings that are not there.
-            if confirm_bug(qc, out) is False:
+            confirmation = confirm_bug(qc, out)
+            if confirmation is False:
                 oracle_fps += 1
                 continue
+            if confirmation is None:
+                # Wider than CONFIRM_MAX_QUBITS, so the exact operator was never
+                # built and QCEC stands alone. Still counted as a finding, but
+                # tracked apart: "not cross-checked" is a different claim from
+                # "cross-checked and held", and the summary should not blur them.
+                unconfirmable += 1
 
             bugs += 1
             if first_witness is None:
@@ -200,7 +213,7 @@ def main() -> int:
                 print(f"    zoo: {out_path}\n")
 
         el = time.perf_counter() - t0
-        totals[name] = (bugs, unknowns, errors)
+        totals[name] = (bugs, unknowns, errors, oracle_fps, unconfirmable)
         rate = 100.0 * bugs / max(args.iterations, 1)
         print(f"{name:<38} {bugs:>4} bug ({rate:5.2f}%)  "
               f"{unknowns:>3} unknown  {errors:>3} err  "
@@ -208,11 +221,13 @@ def main() -> int:
 
     print("\n== summary ==")
     control = totals.get("CommutativeCancellation")
-    for name, (b, u, e) in totals.items():
+    for name, (b, u, e, fp, nc) in totals.items():
         tag = ""
         if name == "CommutativeCancellation":
             tag = "  (positive control: #16594)"
-        print(f"  {name:<38} {b:>4} bug  {u:>3} unknown  {e:>3} err{tag}")
+        extra = f"  {nc:>3} not cross-checked" if nc else ""
+        print(f"  {name:<38} {b:>4} bug  {u:>3} unknown  {e:>3} err  "
+              f"{fp:>3} oracle-fp{extra}{tag}")
 
     # Measured reachability of #16594 at 4 qubits, from the earlier campaigns.
     CONTROL_RATE = 0.007
@@ -229,7 +244,7 @@ def main() -> int:
               f"{args.iterations} iterations it only expects {expected:.1f}, so "
               f"that says nothing either way. Run at least "
               f"{int(3 / CONTROL_RATE)} to make the control meaningful.")
-    return 1 if any(b for b, _, _ in totals.values()) else 0
+    return 1 if any(b for b, _, _, _, _ in totals.values()) else 0
 
 
 if __name__ == "__main__":

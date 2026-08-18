@@ -106,6 +106,11 @@ def main() -> int:
                          "A uniform draw hits an exact multiple of pi/2 with "
                          "probability zero (measured: 0 in 200000), which is "
                          "where rotation bugs live")
+    ap.add_argument("--near-miss-prob", type=float, default=0.0,
+                    help="probability of drawing an angle just inside or just "
+                         "outside a compiler's rounding threshold, rather than "
+                         "an exact special value. Exact values probe for real "
+                         "faults; near-misses probe the tolerance itself")
     ap.add_argument("--exclude", nargs="*", default=[],
                     help="drop gates from the pool. `--exclude sxdg` suppresses "
                          "#16594, which otherwise eats ~2%% of the budget being "
@@ -147,7 +152,9 @@ def main() -> int:
 
         rng = random.Random(args.seed + i)
         depth = rng.randint(args.min_depth, args.max_depth)
-        ops = random_ops(rng, num_qubits, depth, exclude=excluded, boundary_prob=args.boundary_prob)
+        ops = random_ops(rng, num_qubits, depth, exclude=excluded,
+                         boundary_prob=args.boundary_prob,
+                         near_miss_prob=args.near_miss_prob)
 
         try:
             qc, tqc = compile_pair(ops, num_qubits, coupling, args.opt_level, basis)
