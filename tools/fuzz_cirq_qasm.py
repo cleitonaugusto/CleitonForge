@@ -113,6 +113,14 @@ def emit(args) -> int:
             if len(sv) != 2 ** num_qubits:
                 raise ValueError(f"state has {len(sv)}, expected {2 ** num_qubits}")
             rec["state"] = [[float(a.real), float(a.imag)] for a in sv]
+            # The operator too, not just one column of it. Comparing the state
+            # from |0...0> only exercises the first column: measured by mutation,
+            # deleting a gate from a circuit is caught 65% of the time, and the
+            # misses are gates that land as identity on the state reached so far.
+            # A fault that only shows from another input is invisible to that.
+            u = cirq.unitary(circuit)
+            rec["unitary"] = [[[float(z.real), float(z.imag)] for z in row]
+                              for row in np.asarray(u)]
             rec["qasm2"] = cirq.qasm(circuit)
         except Exception as e:  # noqa: BLE001 — an export failure is a finding
             rec["error"] = f"{type(e).__name__}: {e}"
