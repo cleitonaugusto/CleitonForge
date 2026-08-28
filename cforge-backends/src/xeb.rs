@@ -10,7 +10,7 @@
 //! ```
 //!
 //! Because F_XEB depends only on the ideal *probabilities* |⟨x|C|0⟩|²,
-//! it inherits the conjugation blindness proved in the QGCS paper: a
+//! it inherits the conjugation blindness described in Chapter 10b of the book: a
 //! simulator that implements every gate as its complex conjugate U*
 //! produces exactly the same XEB score as a correct one. The backends in
 //! this module make that failure mode concrete and testable.

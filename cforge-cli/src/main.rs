@@ -64,13 +64,18 @@ enum Commands {
         circuit: PathBuf,
     },
 
-    /// Run the QGCS conformance suite against one backend.
+    /// Report which gate conventions a backend uses.
     ///
-    /// Reports which OpenQASM 3 gate conventions the backend satisfies,
-    /// covering: Rz sign, T/Tdg phase, T²=S, T⁴=Z, Sdg phase,
-    /// P vs Rz (global vs controlled), and qubit endianness.
-    Certify {
-        /// Backend to certify: statevector, quantrs2
+    /// Covers Rz sign, T/Tdg phase, T²=S, T⁴=Z, Sdg phase, P vs Rz
+    /// (global phase vs controlled), and qubit ordering.
+    ///
+    /// This describes a backend; it does not certify one. Disagreements come
+    /// back in two buckets: DIFFERS, for self-consistent documented choices
+    /// like qubit ordering, and FAIL, for cases where the backend contradicts
+    /// its own gate set.
+    #[command(alias = "certify")]
+    Conventions {
+        /// Backend to inspect: statevector, quantrs2
         #[arg(long, default_value = "quantrs2")]
         backend: String,
     },
@@ -90,7 +95,7 @@ fn main() {
             cmd_run(&circuit, &backends, shots, format, seed);
         }
         Commands::Validate { circuit } => cmd_validate(&circuit),
-        Commands::Certify { backend } => cmd_certify(&backend),
+        Commands::Conventions { backend } => cmd_conventions(&backend),
     }
 }
 
@@ -279,9 +284,9 @@ fn cmd_validate(path: &PathBuf) {
     }
 }
 
-// ── cforge certify ───────────────────────────────────────────────────────────
+// ── cforge conventions ───────────────────────────────────────────────────────
 
-fn cmd_certify(backend_name: &str) {
+fn cmd_conventions(backend_name: &str) {
     let backend: Box<dyn SimulationBackend> = match backend_name.trim() {
         "statevector" | "native" => Box::new(NativeStateVectorBackend),
         "quantrs2" => Box::new(QuantRS2Backend),
@@ -292,10 +297,10 @@ fn cmd_certify(backend_name: &str) {
     };
 
     println!("╔══════════════════════════════════════════════════════════════╗");
-    println!("║        CleitonForge — QGCS Conformance Report               ║");
+    println!("║        CleitonForge — Gate Convention Report                 ║");
     println!("╠══════════════════════════════════════════════════════════════╣");
-    println!("║  Backend : {:<50}║", backend_name);
-    println!("║  Standard: OpenQASM 3 / IBM gate convention                 ║");
+    println!("║  Backend  : {:<49}║", backend_name);
+    println!("║  Reference: OpenQASM 3 / Qiskit                              ║");
     println!("╚══════════════════════════════════════════════════════════════╝");
     println!();
 
@@ -305,18 +310,26 @@ fn cmd_certify(backend_name: &str) {
     table.load_preset(UTF8_FULL);
     table.set_header(["Dimension", "Check", "Status", "Detail"]);
 
-    let mut passed = 0usize;
+    let mut matched = 0usize;
     let mut skipped = 0usize;
+    let mut differs = 0usize;
     for r in &results {
         let (status_str, detail) = match &r.status {
             CheckStatus::Pass => {
-                passed += 1;
-                ("✅ PASS".to_string(), String::new())
+                matched += 1;
+                ("✅ MATCH".to_string(), String::new())
             }
             CheckStatus::Fail { expected, got } => (
                 "❌ FAIL".to_string(),
                 format!("expected {expected}, got {got}"),
             ),
+            CheckStatus::Convention { reference, got } => {
+                differs += 1;
+                (
+                    "◆ DIFFERS".to_string(),
+                    format!("reference {reference}, this backend {got}"),
+                )
+            }
             CheckStatus::Skip { reason } => {
                 skipped += 1;
                 ("⚠  SKIP".to_string(), reason.clone())
@@ -329,15 +342,24 @@ fn cmd_certify(backend_name: &str) {
     println!();
 
     let total = results.len();
-    let failed = total - passed - skipped;
-    if failed == 0 && skipped == 0 {
-        println!("Result: {passed}/{total} passed — ✅ OpenQASM 3 compliant");
-    } else if failed == 0 && skipped > 0 {
+    let failed = total - matched - skipped - differs;
+
+    println!("Matches the OpenQASM 3 reference on {matched}/{total} checks.");
+    if differs > 0 {
         println!(
-            "Result: {passed}/{total} passed, {skipped} skipped — ⚠  PARTIAL (unsupported gates)"
+            "{differs} documented convention difference(s). Not defects — handle them \
+             when comparing backends."
         );
-    } else {
-        println!("Result: {passed}/{total} passed — ❌ NOT OpenQASM 3 compliant");
+    }
+    if skipped > 0 {
+        println!("{skipped} skipped (gate not supported by this backend).");
+    }
+    if failed > 0 {
+        println!(
+            "\n{failed} check(s) FAILED. These are cases where the backend contradicts \
+             its own gate set,\nnot cases where it merely chose differently. Worth reporting \
+             upstream."
+        );
     }
 }
 

@@ -601,16 +601,21 @@ fn normalize_qasm(source: &str, from_convention: &str, to_convention: &str) -> P
     })
 }
 
-// ── QGCS certify ─────────────────────────────────────────────────────────────
+// ── gate conventions ─────────────────────────────────────────────────────────
 
-/// One QGCS conformance check result.
+/// One gate convention check result.
 ///
 /// Attributes:
 ///     dimension (str): Convention category (e.g. ``"Rz sign"``, ``"T gate"``).
 ///     name (str): Short description of the specific check.
-///     passed (bool): ``True`` if the check passed.
-///     status (str): ``"pass"``, ``"fail"``, or ``"skip"``.
-///     detail (str): Expected vs. actual values on failure; skip reason on skip.
+///     passed (bool): ``True`` if the backend matches the reference.
+///     status (str): ``"pass"``, ``"fail"``, ``"differs"``, or ``"skip"``.
+///
+///         ``"fail"`` means the backend contradicts its own gate set.
+///         ``"differs"`` means it made a different but self-consistent and
+///         documented choice — qubit ordering is the usual case, and it is
+///         **not** a defect.
+///     detail (str): Reference vs. actual values; skip reason on skip.
 #[pyclass(name = "CheckResult")]
 pub struct PyCheckResult {
     #[pyo3(get)]
@@ -635,14 +640,21 @@ impl PyCheckResult {
     }
 }
 
-/// Run the QGCS conformance suite against a backend.
+/// Report which gate conventions a backend uses.
 ///
 /// Returns a list of :class:`CheckResult` covering 12 phase-sensitive checks:
 /// Rz sign, T/Tdg phase, T²=S, T⁴=Z, Sdg phase, S·Sdg=I,
-/// P~Rz global phase, CP≠CRz superposition, and qubit endianness (3 checks).
+/// P~Rz global phase, CP≠CRz superposition, and qubit ordering (3 checks).
+///
+/// This describes a backend; it does not certify one. The nine phase and
+/// relation checks report ``"fail"`` on disagreement, because those are claims
+/// the backend's own code contradicts. The three ordering checks report
+/// ``"differs"``, because indexing qubits the other way round is a documented
+/// choice — Qiskit puts qubit 0 in the least significant bit, Cirq and CUDA-Q
+/// in the most significant, and none of them is wrong.
 ///
 /// Args:
-///     backend (str): ``"statevector"`` (always 12/12) or ``"quantrs2"`` (10/12).
+///     backend (str): ``"statevector"``, ``"quantrs2"``, or ``"roqoqo"``.
 ///
 /// Returns:
 ///     list[CheckResult]
@@ -651,23 +663,23 @@ impl PyCheckResult {
 ///
 ///     import cleitonforge as cf
 ///
-///     results = cf.certify("quantrs2")
+///     results = cf.conventions("quantrs2")
 ///     for r in results:
-///         icon = "✅" if r.passed else "❌"
-///         print(f"{icon} [{r.dimension}] {r.name}")
-///         if not r.passed:
-///             print(f"   → {r.detail}")
+///         if r.status == "fail":
+///             print(f"DEFECT  [{r.dimension}] {r.name}: {r.detail}")
+///         elif r.status == "differs":
+///             print(f"differs [{r.dimension}] {r.name}: {r.detail}")
 ///
-///     passed = sum(1 for r in results if r.passed)
-///     print(f"\n{passed}/{len(results)} checks passed")
+///     defects = sum(1 for r in results if r.status == "fail")
+///     print(f"\n{defects} check(s) the backend contradicts itself on")
 #[pyfunction]
 #[pyo3(signature = (backend = "statevector"))]
-fn certify(backend: &str) -> PyResult<Vec<PyCheckResult>> {
+fn conventions(backend: &str) -> PyResult<Vec<PyCheckResult>> {
     match backend {
         "statevector" | "native" | "quantrs2" | "roqoqo" => {}
         other => {
             return Err(PyValueError::new_err(format!(
-                "certify() requires a pure statevector backend. \
+                "conventions() requires a pure statevector backend. \
                  Got '{other}'; valid: statevector, quantrs2, roqoqo. \
                  Noisy/density-matrix backends produce spurious phase failures."
             )))
@@ -683,6 +695,10 @@ fn certify(backend: &str) -> PyResult<Vec<PyCheckResult>> {
                 CheckStatus::Fail { expected, got } => (
                     "fail".to_string(),
                     format!("expected {expected}, got {got}"),
+                ),
+                CheckStatus::Convention { reference, got } => (
+                    "differs".to_string(),
+                    format!("reference {reference}, this backend {got}"),
                 ),
                 CheckStatus::Skip { reason } => ("skip".to_string(), reason.clone()),
             };
@@ -708,7 +724,7 @@ fn cleitonforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(validate_qasm, m)?)?;
     m.add_function(wrap_pyfunction!(normalize, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_qasm, m)?)?;
-    m.add_function(wrap_pyfunction!(certify, m)?)?;
+    m.add_function(wrap_pyfunction!(conventions, m)?)?;
     m.add_class::<PyCheckResult>()?;
     m.add("DEFAULT_SEED", DEFAULT_SEED)?;
     m.add("CONVENTION_STANDARD", "standard")?;

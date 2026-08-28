@@ -1,7 +1,7 @@
 //! Automatic classification of a minimized divergence.
 //!
 //! Triage answers the two questions a maintainer asks first:
-//! *what kind of bug is this* (which QGCS dimension) and *could any
+//! *what kind of bug is this* (which convention dimension) and *could any
 //! standard benchmark have caught it* (benchmark visibility). The
 //! second answer comes directly from the oracle hierarchy: a divergence
 //! at N1-amplitude with agreement at N2-probability is invisible to
@@ -12,7 +12,7 @@ use cforge_core::{Circuit, GateKind};
 use crate::oracle::{amplitude_distance_mod_phase, probability_distance};
 use num_complex::Complex64;
 
-/// Coarse bug classification aligned with QGCS dimensions.
+/// Coarse bug classification by convention dimension.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BugClass {
     /// Divergence in the diagonal rotation family (Rz/Phase/Crz/Cp) —
@@ -30,9 +30,9 @@ pub enum BugClass {
 impl BugClass {
     pub fn label(&self) -> &'static str {
         match self {
-            BugClass::RotationConvention => "rotation-convention (QGCS dim: Rz/Phase sign)",
-            BugClass::DiscretePhaseGate => "discrete-phase-gate (QGCS dim: S/T/√X phase)",
-            BugClass::MultiQubitConvention => "multi-qubit convention (QGCS dim: ordering)",
+            BugClass::RotationConvention => "rotation-convention (dimension: Rz/Phase sign)",
+            BugClass::DiscretePhaseGate => "discrete-phase-gate (dimension: S/T/√X phase)",
+            BugClass::MultiQubitConvention => "multi-qubit convention (dimension: qubit ordering)",
             BugClass::Unclassified => "unclassified",
         }
     }

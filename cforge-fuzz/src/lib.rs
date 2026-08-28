@@ -11,7 +11,7 @@
 //!    every sampling benchmark (QV, XEB, mirror, RB, QPE) by the
 //!    conjugation-invariance theorem;
 //! 3. [`shrinker`] — delta-debugging to a minimal counterexample;
-//! 4. [`triage`] — classification by QGCS dimension and benchmark
+//! 4. [`triage`] — classification by convention dimension and benchmark
 //!    visibility, plus [`zoo`] for the public bug corpus.
 
 pub mod generator;

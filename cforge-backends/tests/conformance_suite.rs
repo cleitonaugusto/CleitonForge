@@ -1,4 +1,4 @@
-//! Quantum Gate Convention Conformance Suite (QGCS v0.1)
+//! Gate convention checks — witness circuits with analytically derived expectations.
 //!
 //! Phase-sensitive tests verifying NativeStateVectorBackend against the
 //! OpenQASM 3 gate convention standard. Each test checks amplitude ratios,
@@ -36,7 +36,7 @@ fn fidelity(a: &[Complex64], b: &[Complex64]) -> f64 {
     inner.norm_sqr()
 }
 
-// ── Rz sign (most critical QGCS check) ───────────────────────────────────────
+// ── Rz sign (the one a production backend got wrong) ───────────────────────────────────────
 
 /// OpenQASM 3: Rz(λ) = diag(e^{-iλ/2}, e^{+iλ/2}).
 ///

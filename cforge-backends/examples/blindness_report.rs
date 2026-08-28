@@ -8,7 +8,7 @@
 //! Expected result, per the conjugation-invariance theorem: QV-HOG,
 //! XEB, mirror circuits and even full Quantum Phase Estimation return
 //! identical scores for the correct and the bugged simulators. Only the
-//! amplitude-level QGCS checks (and, for the partial bug, a crafted
+//! amplitude-level convention checks (and, for the partial bug, a crafted
 //! 4-gate witness) separate them.
 //!
 //! Run with: cargo run -p cforge-backends --example blindness_report
@@ -148,7 +148,7 @@ fn main() {
         (p_good - p_bad_all).abs()
     );
 
-    // 5b. QGCS amplitude-level checks.
+    // 5b. amplitude-level convention checks.
     for (label, backend) in [
         ("U*-conjugated", &conj_all as &dyn SimulationBackend),
         ("Rz-sign bug", &conj_rz as &dyn SimulationBackend),
@@ -161,7 +161,7 @@ fn main() {
             .collect();
         let total = results.len();
         println!(
-            "   QGCS certify({label}): {}/{} checks FAIL → {}",
+            "   conventions({label}): {}/{} checks FAIL → {}",
             failed.len(),
             total,
             failed.join(", ")
@@ -171,12 +171,12 @@ fn main() {
     // Sanity: the correct backend passes everything.
     let clean = certify(&ideal);
     let clean_fails = clean.iter().filter(|r| !r.passed() && !r.skipped()).count();
-    println!("   QGCS certify(correct): {clean_fails} failures\n");
+    println!("   conventions(correct): {clean_fails} failures\n");
 
     println!("════════════════════════════════════════════════════════════════");
     println!(" Conclusion: QV, XEB, mirror and QPE cannot distinguish a correct");
     println!(" simulator from a conjugated one — provably. Amplitude-level");
-    println!(" conformance (QGCS) is the only test here that can.");
+    println!(" the amplitude-level convention check is the only test here that can.");
     println!("════════════════════════════════════════════════════════════════");
 }
 

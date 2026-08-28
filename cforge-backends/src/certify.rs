@@ -1,8 +1,21 @@
-//! QGCS conformance checks — runs against any SimulationBackend.
+//! Gate convention checks — runs against any SimulationBackend.
 //!
 //! Each check builds a small witness circuit, runs it on the target backend,
-//! and verifies the output amplitude against the OpenQASM 3 specification.
+//! and compares the output amplitude against the OpenQASM 3 / Qiskit reference.
 //! The expected value is derived analytically before the circuit is written.
+//!
+//! Two kinds of disagreement come out of this, and they are not the same thing:
+//!
+//! - A **defect**: the backend contradicts itself. Its `Rz(π/2)` returns `S†`
+//!   while its own `S` returns `S`; its `RX` and `RY` use the standard sign but
+//!   its `Rz` does not. That is reportable without appealing to any authority.
+//! - A **convention**: the backend is self-consistent and documented, it just
+//!   made a different choice. Qubit ordering is the standard example — Qiskit
+//!   puts qubit 0 in the least significant bit, Cirq and CUDA-Q put it in the
+//!   most significant, and none of the three is wrong.
+//!
+//! Reporting the second as if it were the first is how you lose an argument you
+//! were right about. These checks keep them in separate buckets.
 
 use num_complex::Complex64;
 use std::f64::consts::{FRAC_1_SQRT_2, FRAC_PI_2, PI};
@@ -18,6 +31,9 @@ const PHASE_TOL: f64 = 1e-9;
 pub enum CheckStatus {
     Pass,
     Fail { expected: String, got: String },
+    /// The backend made a different but self-consistent, documented choice.
+    /// Not a defect. Callers must not count this as a failure.
+    Convention { reference: String, got: String },
     Skip { reason: String },
 }
 
@@ -35,6 +51,24 @@ impl CheckResult {
     pub fn skipped(&self) -> bool {
         matches!(self.status, CheckStatus::Skip { .. })
     }
+
+    /// A documented convention difference, not a defect.
+    pub fn is_convention(&self) -> bool {
+        matches!(self.status, CheckStatus::Convention { .. })
+    }
+}
+
+/// Rewrites a `Fail` into a `Convention`. Used by the qubit-ordering checks,
+/// where a disagreement means the backend indexes qubits the other way round
+/// rather than that it is broken.
+fn as_convention(mut r: CheckResult) -> CheckResult {
+    if let CheckStatus::Fail { expected, got } = r.status {
+        r.status = CheckStatus::Convention {
+            reference: expected,
+            got,
+        };
+    }
+    r
 }
 
 fn skip(name: &'static str, dimension: &'static str, reason: String) -> CheckResult {
@@ -399,7 +433,12 @@ fn check_endianness_3q(b: &dyn SimulationBackend) -> CheckResult {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/// Runs all 12 QGCS conformance checks against `backend`.
+/// Runs all 12 gate convention checks against `backend`.
+///
+/// The nine phase and relation checks report `Fail` on disagreement: those are
+/// claims the backend's own code contradicts. The three qubit-ordering checks
+/// report `Convention` instead, because indexing qubits the other way round is
+/// a documented choice and not a defect.
 pub fn certify(backend: &dyn SimulationBackend) -> Vec<CheckResult> {
     vec![
         check_rz_sign(backend),
@@ -411,8 +450,8 @@ pub fn certify(backend: &dyn SimulationBackend) -> Vec<CheckResult> {
         check_s_sdg_identity(backend),
         check_phase_rz_global(backend),
         check_cp_crz_differ(backend),
-        check_endianness_q0_lsb(backend),
-        check_cx_ordering(backend),
-        check_endianness_3q(backend),
+        as_convention(check_endianness_q0_lsb(backend)),
+        as_convention(check_cx_ordering(backend)),
+        as_convention(check_endianness_3q(backend)),
     ]
 }
