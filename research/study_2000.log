@@ -1,0 +1,40 @@
+  1/216 cells  (2s)  2/216 cells  (3s)  3/216 cells  (5s)  4/216 cells  (7s)  6/216 cells  (9s)  7/216 cells  (12s)  8/216 cells  (15s)  9/216 cells  (18s)  10/216 cells  (21s)  12/216 cells  (24s)  13/216 cells  (31s)  14/216 cells  (36s)  15/216 cells  (41s)  16/216 cells  (45s)  18/216 cells  (51s)  19/216 cells  (52s)  20/216 cells  (54s)  21/216 cells  (55s)  22/216 cells  (57s)  24/216 cells  (59s)  25/216 cells  (61s)  26/216 cells  (64s)  27/216 cells  (67s)  28/216 cells  (69s)  30/216 cells  (72s)  31/216 cells  (77s)  32/216 cells  (82s)  33/216 cells  (87s)  34/216 cells  (92s)  36/216 cells  (97s)  37/216 cells  (99s)  38/216 cells  (101s)  39/216 cells  (102s)  40/216 cells  (104s)  42/216 cells  (106s)  43/216 cells  (109s)  44/216 cells  (112s)  45/216 cells  (115s)  46/216 cells  (118s)  48/216 cells  (122s)  49/216 cells  (128s)  50/216 cells  (133s)  51/216 cells  (139s)  52/216 cells  (145s)  54/216 cells  (152s)  55/216 cells  (154s)  58/216 cells  (156s)  59/216 cells  (157s)  61/216 cells  (160s)  64/216 cells  (163s)  65/216 cells  (166s)  67/216 cells  (170s)  70/216 cells  (176s)  71/216 cells  (180s)  73/216 cells  (183s)  76/216 cells  (186s)  77/216 cells  (188s)  79/216 cells  (192s)  82/216 cells  (198s)  83/216 cells  (201s)  85/216 cells  (207s)  88/216 cells  (215s)  89/216 cells  (219s)  91/216 cells  (221s)  94/216 cells  (223s)  95/216 cells  (224s)  97/216 cells  (227s)  100/216 cells  (230s)  101/216 cells  (232s)  103/216 cells  (237s)  106/216 cells  (244s)  107/216 cells  (250s)  109/216 cells  (253s)  112/216 cells  (254s)  113/216 cells  (256s)  115/216 cells  (258s)  118/216 cells  (261s)  119/216 cells  (264s)  121/216 cells  (269s)  124/216 cells  (275s)  125/216 cells  (279s)  127/216 cells  (281s)  130/216 cells  (283s)  131/216 cells  (284s)  133/216 cells  (286s)  136/216 cells  (289s)  137/216 cells  (292s)  139/216 cells  (296s)  142/216 cells  (302s)  143/216 cells  (305s)  145/216 cells  (307s)  148/216 cells  (309s)  149/216 cells  (311s)  151/216 cells  (313s)  154/216 cells  (317s)  155/216 cells  (319s)  157/216 cells  (325s)  160/216 cells  (348s)  161/216 cells  (353s)  163/216 cells  (356s)  164/216 cells  (359s)  165/216 cells  (360s)  166/216 cells  (362s)  168/216 cells  (366s)  169/216 cells  (368s)  170/216 cells  (371s)  171/216 cells  (374s)  172/216 cells  (436s)  174/216 cells  (440s)  175/216 cells  (444s)  176/216 cells  (604s)  177/216 cells  (609s)  178/216 cells  (613s)  180/216 cells  (618s)  181/216 cells  (620s)  182/216 cells  (621s)  183/216 cells  (622s)  184/216 cells  (624s)  186/216 cells  (626s)  187/216 cells  (628s)  188/216 cells  (631s)  189/216 cells  (633s)  190/216 cells  (636s)  192/216 cells  (639s)  193/216 cells  (644s)  194/216 cells  (649s)  195/216 cells  (654s)  196/216 cells  (659s)  198/216 cells  (665s)  199/216 cells  (667s)  200/216 cells  (668s)  201/216 cells  (670s)  202/216 cells  (672s)  204/216 cells  (674s)  205/216 cells  (677s)  206/216 cells  (681s)  207/216 cells  (684s)  208/216 cells  (688s)  210/216 cells  (692s)  211/216 cells  (698s)  212/216 cells  (704s)  213/216 cells  (709s)  214/216 cells  (715s)  216/216 cells  (721s)
+
+284595 mutants generated, 26666 equivalent (9.4%), 257929 non-equivalent.
+Power below is against non-equivalent mutants only. The operator oracle is the reference (power 1 by construction) and is omitted from the tables.
+
+Sampled-counts false positives, measured on the 26666 equivalent mutants (operators identical, so every alarm is wrong):
+  231/26666 = 0.9%  [95% CI 0.8%, 1.0%]
+  Its detection rate is inflated by roughly this much and is therefore not a power.
+
+By fault class
+                              equiv  sampled counts    exact counts           state
+-----------------------------------------------------------------------------------
+drop gate                      0.0%     44.4% ± 0.4     47.7% ± 0.4     62.3% ± 0.4
+rotation sign (one gate)       0.0%     43.4% ± 0.5     52.0% ± 0.5     81.1% ± 0.4
+Rz convention (all gates)      0.0%     30.1% ± 0.5     33.9% ± 0.5     82.8% ± 0.4
+qubit order                   37.4%     62.0% ± 0.4     63.0% ± 0.4     69.4% ± 0.4
+angle truncation               0.0%     42.5% ± 0.5     69.8% ± 0.5     81.2% ± 0.4
+adjoint neighbour              0.0%      7.2% ± 0.3      6.3% ± 0.3     41.7% ± 0.5
+
+By circuit family
+                              equiv  sampled counts    exact counts           state
+-----------------------------------------------------------------------------------
+blind {H,X,Z,Ry,Rz,CX,CZ}      9.9%     36.7% ± 0.3     43.2% ± 0.3     72.8% ± 0.3
+Clifford {H,S,CX,CZ}          16.7%     23.7% ± 0.4     23.0% ± 0.4     49.8% ± 0.5
+Clifford+T                    16.7%     23.6% ± 0.4     22.9% ± 0.4     45.3% ± 0.5
+variational {Rx,Ry,Rz,CX}      0.0%     59.4% ± 0.3     73.0% ± 0.3     86.0% ± 0.2
+
+By width (qubits)
+                              equiv  sampled counts    exact counts           state
+-----------------------------------------------------------------------------------
+3                              9.4%     44.0% ± 0.3     50.4% ± 0.3     72.7% ± 0.3
+4                              9.3%     39.8% ± 0.3     46.3% ± 0.3     68.4% ± 0.3
+5                              9.4%     36.3% ± 0.3     42.8% ± 0.3     64.8% ± 0.3
+
+By depth (gates)
+                              equiv  sampled counts    exact counts           state
+-----------------------------------------------------------------------------------
+10                             9.5%     29.9% ± 0.3     34.2% ± 0.3     54.5% ± 0.3
+20                             9.4%     38.7% ± 0.3     46.1% ± 0.3     69.1% ± 0.3
+40                             9.2%     51.1% ± 0.3     58.8% ± 0.3     81.8% ± 0.3
