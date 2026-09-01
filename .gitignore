@@ -20,3 +20,6 @@ paper/*.fdb_latexmk
 __pycache__/
 *.pyc
 research/.venv-qec/
+client.log
+research/qec_*.log
+research/__pycache__/
