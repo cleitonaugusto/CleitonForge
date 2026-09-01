@@ -1,0 +1,32 @@
+{
+  "title": "CleitonForge: differential testing for quantum compilers, with declared oracle power",
+  "upload_type": "software",
+  "creators": [
+    {
+      "name": "Correa Bezerra, Cleiton Augusto",
+      "affiliation": "Independent researcher, Porto Velho, Brazil"
+    }
+  ],
+  "license": "MIT",
+  "keywords": [
+    "quantum computing",
+    "differential testing",
+    "mutation testing",
+    "test oracle",
+    "quantum error correction",
+    "compiler correctness",
+    "Rust"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/Deltakit/deltakit/issues/347",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/Qiskit/qiskit/issues/16594",
+      "relation": "references",
+      "scheme": "url"
+    }
+  ]
+}
