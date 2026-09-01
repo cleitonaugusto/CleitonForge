@@ -19,3 +19,4 @@ paper/*.fdb_latexmk
 # Python
 __pycache__/
 *.pyc
+research/.venv-qec/
