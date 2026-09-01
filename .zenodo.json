@@ -7,7 +7,7 @@
       "affiliation": "Independent researcher, Porto Velho, Brazil"
     }
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": [
     "quantum computing",
     "differential testing",
