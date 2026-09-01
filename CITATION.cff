@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+title: >-
+  CleitonForge: differential testing for quantum compilers, with declared
+  oracle power
+message: >-
+  If you use this software, or the oracle-power results in research/,
+  please cite it using these metadata.
+type: software
+authors:
+  - given-names: Cleiton Augusto
+    family-names: Correa Bezerra
+    email: augusto.cleiton@gmail.com
+    city: Porto Velho
+    country: BR
+repository-code: 'https://github.com/cleitonaugusto/CleitonForge'
+abstract: >-
+  A differential fuzzer for quantum compilers, and a measurement of what its
+  oracles can actually detect. A negative result in differential testing has no
+  meaning without a declared oracle power, and this repository measures that
+  power rather than asserting it.
+
+  Two blindness results are established. First, an outcome-counts oracle has
+  provably and empirically zero power against a global Rz sign convention fault
+  over the gate family {H, X, Z, Ry, Rz, CX, CZ}: 0 of 16418 non-equivalent
+  mutants, 95% Wilson interval [0.000%, 0.023%]. Inverting a single Rz is a
+  different fault class and is ordinarily visible, which the earlier literature
+  conflates.
+
+  Second, in quantum error correction, an oracle that derives its reference from
+  the circuit under test has zero power against a deterministically inserted
+  Pauli: 0 of 321 for X and 0 of 211 for Z on a rotated surface code, while
+  detecting every other injected fault class at 100%. A four-instruction witness
+  exhibits two circuits with identical detector error models, identical
+  self-referential detection rates, and cross-referential rates of 0 and 1.
+
+  Power throughout is measured against non-equivalent mutants only, with the
+  reference oracle validated by a known-answer battery before use.
+keywords:
+  - quantum computing
+  - differential testing
+  - mutation testing
+  - test oracle
+  - quantum error correction
+  - compiler correctness
+  - Rust
+license: MIT
