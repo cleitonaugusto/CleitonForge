@@ -1,0 +1,6343 @@
+{
+ "trials_per_cell": 2000,
+ "seed": 20260901,
+ "seconds": 721.3,
+ "rows": [
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 917,
+     "power": 0.4585,
+     "ci95": [
+      0.4367625034250278,
+      0.4803966173358148
+     ]
+    },
+    "exact counts": {
+     "detected": 946,
+     "power": 0.473,
+     "ci95": [
+      0.45119119263276497,
+      0.4949123317176627
+     ]
+    },
+    "state": {
+     "detected": 1228,
+     "power": 0.614,
+     "ci95": [
+      0.5924644998318348,
+      0.6350983973552483
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 1933,
+   "equivalent": 0,
+   "non_equivalent": 1933,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 433,
+     "power": 0.2240041386445939,
+     "ci95": [
+      0.20597542180690784,
+      0.24312769535042703
+     ]
+    },
+    "exact counts": {
+     "detected": 458,
+     "power": 0.23693740300051733,
+     "ci95": [
+      0.21851521340432797,
+      0.2564031278787175
+     ]
+    },
+    "state": {
+     "detected": 1285,
+     "power": 0.6647697878944646,
+     "ci95": [
+      0.6434163949738475,
+      0.6854695603877062
+     ]
+    },
+    "operator": {
+     "detected": 1933,
+     "power": 1.0,
+     "ci95": [
+      0.9980165646999735,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1572,
+   "equivalent": 0,
+   "non_equivalent": 1572,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 11,
+     "power": 0.006997455470737914,
+     "ci95": [
+      0.003911700089948583,
+      0.012486902409185846
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.002437808470089887
+     ]
+    },
+    "state": {
+     "detected": 779,
+     "power": 0.4955470737913486,
+     "ci95": [
+      0.4708718218012191,
+      0.5202440365439344
+     ]
+    },
+    "operator": {
+     "detected": 1572,
+     "power": 1.0,
+     "ci95": [
+      0.9975621915299102,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1940,
+   "equivalent": 962,
+   "non_equivalent": 978,
+   "sampled_false_positives": 9,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 576,
+     "power": 0.588957055214724,
+     "ci95": [
+      0.5578304203348843,
+      0.61938757490997
+     ]
+    },
+    "exact counts": {
+     "detected": 582,
+     "power": 0.5950920245398773,
+     "ci95": [
+      0.564012957315266,
+      0.6254269686361299
+     ]
+    },
+    "state": {
+     "detected": 662,
+     "power": 0.6768916155419223,
+     "ci95": [
+      0.6469384070431625,
+      0.7054605949954555
+     ]
+    },
+    "operator": {
+     "detected": 978,
+     "power": 1.0,
+     "ci95": [
+      0.9960873525831456,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 1930,
+   "equivalent": 0,
+   "non_equivalent": 1930,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 753,
+     "power": 0.3901554404145078,
+     "ci95": [
+      0.3686318274470092,
+      0.41211546850525493
+     ]
+    },
+    "exact counts": {
+     "detected": 985,
+     "power": 0.5103626943005182,
+     "ci95": [
+      0.4880617325586329,
+      0.532622484804361
+     ]
+    },
+    "state": {
+     "detected": 1248,
+     "power": 0.6466321243523316,
+     "ci95": [
+      0.6250335398661007,
+      0.6676481358202637
+     ]
+    },
+    "operator": {
+     "detected": 1930,
+     "power": 1.0,
+     "ci95": [
+      0.998013487764458,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1099,
+     "power": 0.5495,
+     "ci95": [
+      0.5276199933554512,
+      0.5711902120020981
+     ]
+    },
+    "exact counts": {
+     "detected": 1180,
+     "power": 0.59,
+     "ci95": [
+      0.5682918953922924,
+      0.6113630234396152
+     ]
+    },
+    "state": {
+     "detected": 1489,
+     "power": 0.7445,
+     "ci95": [
+      0.7249290831061427,
+      0.7631334463872067
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 748,
+     "power": 0.374,
+     "ci95": [
+      0.353054258953174,
+      0.3954288546821553
+     ]
+    },
+    "exact counts": {
+     "detected": 866,
+     "power": 0.433,
+     "ci95": [
+      0.4114330566356753,
+      0.4548238371227934
+     ]
+    },
+    "state": {
+     "detected": 1536,
+     "power": 0.768,
+     "ci95": [
+      0.748997071799906,
+      0.7859753531662191
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1898,
+   "equivalent": 0,
+   "non_equivalent": 1898,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 14,
+     "power": 0.007376185458377239,
+     "ci95": [
+      0.004398888618349746,
+      0.01234362032666439
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.002019936886436809
+     ]
+    },
+    "state": {
+     "detected": 1599,
+     "power": 0.8424657534246576,
+     "ci95": [
+      0.8253862270059493,
+      0.8581617614279982
+     ]
+    },
+    "operator": {
+     "detected": 1898,
+     "power": 1.0,
+     "ci95": [
+      0.9979800631135631,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1997,
+   "equivalent": 990,
+   "non_equivalent": 1007,
+   "sampled_false_positives": 13,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 768,
+     "power": 0.76266137040715,
+     "ci95": [
+      0.7354161981509153,
+      0.787910107375094
+     ]
+    },
+    "exact counts": {
+     "detected": 786,
+     "power": 0.7805362462760675,
+     "ci95": [
+      0.75393301494462,
+      0.8050071790481876
+     ]
+    },
+    "state": {
+     "detected": 827,
+     "power": 0.8212512413108243,
+     "ci95": [
+      0.7963791442225182,
+      0.8436815735002191
+     ]
+    },
+    "operator": {
+     "detected": 1007,
+     "power": 1.0,
+     "ci95": [
+      0.9961996023907209,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 1998,
+   "equivalent": 0,
+   "non_equivalent": 1998,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 830,
+     "power": 0.41541541541541543,
+     "ci95": [
+      0.3939894344286614,
+      0.4371660376126829
+     ]
+    },
+    "exact counts": {
+     "detected": 1209,
+     "power": 0.6051051051051051,
+     "ci95": [
+      0.5834884754558792,
+      0.6263183344335744
+     ]
+    },
+    "state": {
+     "detected": 1540,
+     "power": 0.7707707707707707,
+     "ci95": [
+      0.7518302171916125,
+      0.7886720882855041
+     ]
+    },
+    "operator": {
+     "detected": 1998,
+     "power": 1.0,
+     "ci95": [
+      0.9980809670455443,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1351,
+     "power": 0.6755,
+     "ci95": [
+      0.6546612313541912,
+      0.6956658603680287
+     ]
+    },
+    "exact counts": {
+     "detected": 1454,
+     "power": 0.727,
+     "ci95": [
+      0.7070537499082747,
+      0.7460758787010924
+     ]
+    },
+    "state": {
+     "detected": 1689,
+     "power": 0.8445,
+     "ci95": [
+      0.8279590116143201,
+      0.8597200943589267
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1218,
+     "power": 0.609,
+     "ci95": [
+      0.5874241019583675,
+      0.6301579664047208
+     ]
+    },
+    "exact counts": {
+     "detected": 1437,
+     "power": 0.7185,
+     "ci95": [
+      0.6983852381210847,
+      0.7377769814874913
+     ]
+    },
+    "state": {
+     "detected": 1761,
+     "power": 0.8805,
+     "ci95": [
+      0.865549047686269,
+      0.8939920258197406
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1997,
+   "equivalent": 0,
+   "non_equivalent": 1997,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 14,
+     "power": 0.007010515773660491,
+     "ci95": [
+      0.004180584753031307,
+      0.011733518592280985
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      1.0842021724855044e-19,
+      0.0019199920673380637
+     ]
+    },
+    "state": {
+     "detected": 1967,
+     "power": 0.9849774661992989,
+     "ci95": [
+      0.9786355005907262,
+      0.9894571260319908
+     ]
+    },
+    "operator": {
+     "detected": 1997,
+     "power": 1.0,
+     "ci95": [
+      0.9980800079326619,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 967,
+   "non_equivalent": 1033,
+   "sampled_false_positives": 13,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 910,
+     "power": 0.8809293320425944,
+     "ci95": [
+      0.8597535822840323,
+      0.8992823205964076
+     ]
+    },
+    "exact counts": {
+     "detected": 922,
+     "power": 0.8925459825750242,
+     "ci95": [
+      0.8721848794149227,
+      0.9099982428672078
+     ]
+    },
+    "state": {
+     "detected": 926,
+     "power": 0.8964181994191674,
+     "ci95": [
+      0.8763433748255345,
+      0.9135554872571596
+     ]
+    },
+    "operator": {
+     "detected": 1033,
+     "power": 1.0,
+     "ci95": [
+      0.9962949017477692,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 875,
+     "power": 0.4375,
+     "ci95": [
+      0.4158987467573487,
+      0.4593408929427154
+     ]
+    },
+    "exact counts": {
+     "detected": 1502,
+     "power": 0.751,
+     "ci95": [
+      0.7315786180484644,
+      0.7694589889160782
+     ]
+    },
+    "state": {
+     "detected": 1759,
+     "power": 0.8795,
+     "ci95": [
+      0.864499928957565,
+      0.8930449787836456
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 927,
+     "power": 0.4635,
+     "ci95": [
+      0.44173582226303204,
+      0.48540412732180543
+     ]
+    },
+    "exact counts": {
+     "detected": 949,
+     "power": 0.4745,
+     "ci95": [
+      0.4526848707583717,
+      0.4964129022392544
+     ]
+    },
+    "state": {
+     "detected": 1141,
+     "power": 0.5705,
+     "ci95": [
+      0.5486906854693024,
+      0.5920390009490252
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 1920,
+   "equivalent": 0,
+   "non_equivalent": 1920,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 406,
+     "power": 0.21145833333333333,
+     "ci95": [
+      0.19377821383330848,
+      0.23029079475866712
+     ]
+    },
+    "exact counts": {
+     "detected": 432,
+     "power": 0.225,
+     "ci95": [
+      0.20688097121021298,
+      0.24421728968611034
+     ]
+    },
+    "state": {
+     "detected": 1219,
+     "power": 0.6348958333333333,
+     "ci95": [
+      0.6131102923659877,
+      0.6561426440503992
+     ]
+    },
+    "operator": {
+     "detected": 1920,
+     "power": 1.0,
+     "ci95": [
+      0.998003162006685,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1574,
+   "equivalent": 0,
+   "non_equivalent": 1574,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 10,
+     "power": 0.0063532401524777635,
+     "ci95": [
+      0.003454567843058424,
+      0.01165569417563851
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.0024347184153339597
+     ]
+    },
+    "state": {
+     "detected": 599,
+     "power": 0.380559085133418,
+     "ci95": [
+      0.3568909636764036,
+      0.4048088165803725
+     ]
+    },
+    "operator": {
+     "detected": 1574,
+     "power": 1.0,
+     "ci95": [
+      0.9975652815846661,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1929,
+   "equivalent": 902,
+   "non_equivalent": 1027,
+   "sampled_false_positives": 9,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 543,
+     "power": 0.5287244401168452,
+     "ci95": [
+      0.49814441321415903,
+      0.559090374361352
+     ]
+    },
+    "exact counts": {
+     "detected": 553,
+     "power": 0.5384615384615384,
+     "ci95": [
+      0.5078851038508332,
+      0.5687513066316308
+     ]
+    },
+    "state": {
+     "detected": 596,
+     "power": 0.5803310613437196,
+     "ci95": [
+      0.5499035167250312,
+      0.6101598722573305
+     ]
+    },
+    "operator": {
+     "detected": 1027,
+     "power": 1.0,
+     "ci95": [
+      0.9962733362720326,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 1944,
+   "equivalent": 0,
+   "non_equivalent": 1944,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 820,
+     "power": 0.4218106995884774,
+     "ci95": [
+      0.40003262581197074,
+      0.44389718860415006
+     ]
+    },
+    "exact counts": {
+     "detected": 1066,
+     "power": 0.5483539094650206,
+     "ci95": [
+      0.5261574948043526,
+      0.5703595936488359
+     ]
+    },
+    "state": {
+     "detected": 1261,
+     "power": 0.6486625514403292,
+     "ci95": [
+      0.6271665932247765,
+      0.6695721148919409
+     ]
+    },
+    "operator": {
+     "detected": 1944,
+     "power": 1.0,
+     "ci95": [
+      0.9980277657074373,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 941,
+     "power": 0.4705,
+     "ci95": [
+      0.4487021680640436,
+      0.4924109418743866
+     ]
+    },
+    "exact counts": {
+     "detected": 1005,
+     "power": 0.5025,
+     "ci95": [
+      0.48060302958215084,
+      0.5243873848298466
+     ]
+    },
+    "state": {
+     "detected": 1322,
+     "power": 0.661,
+     "ci95": [
+      0.6399625943864469,
+      0.6814200937461881
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 1996,
+   "equivalent": 0,
+   "non_equivalent": 1996,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 611,
+     "power": 0.3061122244488978,
+     "ci95": [
+      0.2862816189041247,
+      0.32668772826817133
+     ]
+    },
+    "exact counts": {
+     "detected": 685,
+     "power": 0.34318637274549096,
+     "ci95": [
+      0.3226767518722942,
+      0.36429845656421395
+     ]
+    },
+    "state": {
+     "detected": 1441,
+     "power": 0.7219438877755511,
+     "ci95": [
+      0.701875867817832,
+      0.7411592205611676
+     ]
+    },
+    "operator": {
+     "detected": 1996,
+     "power": 1.0,
+     "ci95": [
+      0.9980790478605907,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1909,
+   "equivalent": 0,
+   "non_equivalent": 1909,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 13,
+     "power": 0.006809848088004191,
+     "ci95": [
+      0.00398401385657457,
+      0.011616650620818644
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.0020083210235494666
+     ]
+    },
+    "state": {
+     "detected": 1481,
+     "power": 0.7757988475641697,
+     "ci95": [
+      0.7565467169057392,
+      0.7939431929749325
+     ]
+    },
+    "operator": {
+     "detected": 1909,
+     "power": 1.0,
+     "ci95": [
+      0.9979916789764506,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1999,
+   "equivalent": 981,
+   "non_equivalent": 1018,
+   "sampled_false_positives": 5,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 714,
+     "power": 0.7013752455795678,
+     "ci95": [
+      0.6725470152104776,
+      0.7286893407961677
+     ]
+    },
+    "exact counts": {
+     "detected": 735,
+     "power": 0.7220039292730844,
+     "ci95": [
+      0.6936869652960422,
+      0.7486516515698203
+     ]
+    },
+    "state": {
+     "detected": 784,
+     "power": 0.7701375245579568,
+     "ci95": [
+      0.7433041761008616,
+      0.7949397161031748
+     ]
+    },
+    "operator": {
+     "detected": 1018,
+     "power": 1.0,
+     "ci95": [
+      0.9962405132067436,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 1998,
+   "equivalent": 0,
+   "non_equivalent": 1998,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 805,
+     "power": 0.4029029029029029,
+     "ci95": [
+      0.3816020157246202,
+      0.4245764551394083
+     ]
+    },
+    "exact counts": {
+     "detected": 1156,
+     "power": 0.5785785785785785,
+     "ci95": [
+      0.5567960539868995,
+      0.6000595134066444
+     ]
+    },
+    "state": {
+     "detected": 1446,
+     "power": 0.7237237237237237,
+     "ci95": [
+      0.7037012656157298,
+      0.742887515434679
+     ]
+    },
+    "operator": {
+     "detected": 1998,
+     "power": 1.0,
+     "ci95": [
+      0.9980809670455443,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1252,
+     "power": 0.626,
+     "ci95": [
+      0.6045711453178447,
+      0.6469457410468261
+     ]
+    },
+    "exact counts": {
+     "detected": 1379,
+     "power": 0.6895,
+     "ci95": [
+      0.6688742480669644,
+      0.7093991643624412
+     ]
+    },
+    "state": {
+     "detected": 1637,
+     "power": 0.8185,
+     "ci95": [
+      0.8010022576123582,
+      0.8347765384761151
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1004,
+     "power": 0.502,
+     "ci95": [
+      0.4801038898127836,
+      0.5238884417168144
+     ]
+    },
+    "exact counts": {
+     "detected": 1222,
+     "power": 0.611,
+     "ci95": [
+      0.589439978159067,
+      0.632134421733619
+     ]
+    },
+    "state": {
+     "detected": 1686,
+     "power": 0.843,
+     "ci95": [
+      0.8263998808237136,
+      0.8582849765023344
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1994,
+   "equivalent": 0,
+   "non_equivalent": 1994,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 19,
+     "power": 0.009528585757271816,
+     "ci95": [
+      0.006108541427489157,
+      0.014834860692078282
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      1.0842021724855044e-19,
+      0.001922875166880097
+     ]
+    },
+    "state": {
+     "detected": 1954,
+     "power": 0.9799398194583752,
+     "ci95": [
+      0.972799952941211,
+      0.9852339572546724
+     ]
+    },
+    "operator": {
+     "detected": 1994,
+     "power": 1.0,
+     "ci95": [
+      0.9980771248331199,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 978,
+   "non_equivalent": 1022,
+   "sampled_false_positives": 4,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 854,
+     "power": 0.8356164383561644,
+     "ci95": [
+      0.8116445261536807,
+      0.8570746991146259
+     ]
+    },
+    "exact counts": {
+     "detected": 881,
+     "power": 0.8620352250489237,
+     "ci95": [
+      0.8395320710164251,
+      0.8818268600310193
+     ]
+    },
+    "state": {
+     "detected": 890,
+     "power": 0.8708414872798435,
+     "ci95": [
+      0.8488825276010113,
+      0.8900229720394789
+     ]
+    },
+    "operator": {
+     "detected": 1022,
+     "power": 1.0,
+     "ci95": [
+      0.9962551723384974,
+      0.9999999999999998
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 802,
+     "power": 0.401,
+     "ci95": [
+      0.3797299308839851,
+      0.4226496584009165
+     ]
+    },
+    "exact counts": {
+     "detected": 1381,
+     "power": 0.6905,
+     "ci95": [
+      0.669890281147295,
+      0.7103792970469097
+     ]
+    },
+    "state": {
+     "detected": 1692,
+     "power": 0.846,
+     "ci95": [
+      0.8295186576346752,
+      0.8611546969857699
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 861,
+     "power": 0.4305,
+     "ci95": [
+      0.4089529030603304,
+      0.4523135762861409
+     ]
+    },
+    "exact counts": {
+     "detected": 890,
+     "power": 0.445,
+     "ci95": [
+      0.4233455876704987,
+      0.46686529526555776
+     ]
+    },
+    "state": {
+     "detected": 1052,
+     "power": 0.526,
+     "ci95": [
+      0.5040872659942158,
+      0.5478130438905576
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 1925,
+   "equivalent": 0,
+   "non_equivalent": 1925,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 339,
+     "power": 0.1761038961038961,
+     "ci95": [
+      0.159737551414415,
+      0.19376042374331695
+     ]
+    },
+    "exact counts": {
+     "detected": 355,
+     "power": 0.18441558441558442,
+     "ci95": [
+      0.16772494508062924,
+      0.20236329855741753
+     ]
+    },
+    "state": {
+     "detected": 1177,
+     "power": 0.6114285714285714,
+     "ci95": [
+      0.5894526653244522,
+      0.6329606214897684
+     ]
+    },
+    "operator": {
+     "detected": 1925,
+     "power": 1.0,
+     "ci95": [
+      0.9980083382689382,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1574,
+   "equivalent": 0,
+   "non_equivalent": 1574,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 9,
+     "power": 0.005717916137229987,
+     "ci95": [
+      0.0030110883732700827,
+      0.010831619285090553
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.0024347184153339597
+     ]
+    },
+    "state": {
+     "detected": 555,
+     "power": 0.3526048284625159,
+     "ci95": [
+      0.3293858802359398,
+      0.3765415081660393
+     ]
+    },
+    "operator": {
+     "detected": 1574,
+     "power": 1.0,
+     "ci95": [
+      0.9975652815846661,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1923,
+   "equivalent": 946,
+   "non_equivalent": 977,
+   "sampled_false_positives": 8,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 461,
+     "power": 0.4718526100307062,
+     "ci95": [
+      0.44072076260163584,
+      0.5032049436489964
+     ]
+    },
+    "exact counts": {
+     "detected": 469,
+     "power": 0.48004094165813715,
+     "ci95": [
+      0.4488524387069179,
+      0.5113857893617122
+     ]
+    },
+    "state": {
+     "detected": 498,
+     "power": 0.5097236438075742,
+     "ci95": [
+      0.47839993601471054,
+      0.5409711836441619
+     ]
+    },
+    "operator": {
+     "detected": 977,
+     "power": 1.0,
+     "ci95": [
+      0.9960833635114988,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 1924,
+   "equivalent": 0,
+   "non_equivalent": 1924,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 776,
+     "power": 0.40332640332640335,
+     "ci95": [
+      0.38161955747528253,
+      0.42541853113116723
+     ]
+    },
+    "exact counts": {
+     "detected": 1014,
+     "power": 0.527027027027027,
+     "ci95": [
+      0.5046859313443108,
+      0.5492604094753912
+     ]
+    },
+    "state": {
+     "detected": 1191,
+     "power": 0.6190228690228691,
+     "ci95": [
+      0.5971061963942654,
+      0.6404651891386539
+     ]
+    },
+    "operator": {
+     "detected": 1924,
+     "power": 1.0,
+     "ci95": [
+      0.9980073051644907,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 918,
+     "power": 0.459,
+     "ci95": [
+      0.43725973604706403,
+      0.480897467596178
+     ]
+    },
+    "exact counts": {
+     "detected": 976,
+     "power": 0.488,
+     "ci95": [
+      0.4661368484976979,
+      0.5099091623247144
+     ]
+    },
+    "state": {
+     "detected": 1281,
+     "power": 0.6405,
+     "ci95": [
+      0.6192185634157248,
+      0.661242726538531
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 533,
+     "power": 0.2665,
+     "ci95": [
+      0.2475839122260943,
+      0.28631138169334525
+     ]
+    },
+    "exact counts": {
+     "detected": 600,
+     "power": 0.3,
+     "ci95": [
+      0.2803149978293942,
+      0.32045184921081094
+     ]
+    },
+    "state": {
+     "detected": 1410,
+     "power": 0.705,
+     "ci95": [
+      0.684635336250235,
+      0.7245786455335547
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1903,
+   "equivalent": 0,
+   "non_equivalent": 1903,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 12,
+     "power": 0.006305832895428271,
+     "ci95": [
+      0.0036108505305317462,
+      0.01099004762482631
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      0.0,
+      0.0020146403350965285
+     ]
+    },
+    "state": {
+     "detected": 1316,
+     "power": 0.6915396741986337,
+     "ci95": [
+      0.6704198334784913,
+      0.7118877478119524
+     ]
+    },
+    "operator": {
+     "detected": 1903,
+     "power": 1.0,
+     "ci95": [
+      0.9979853596649036,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1997,
+   "equivalent": 986,
+   "non_equivalent": 1011,
+   "sampled_false_positives": 7,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 631,
+     "power": 0.6241345202769535,
+     "ci95": [
+      0.5938611891072414,
+      0.6534680492684815
+     ]
+    },
+    "exact counts": {
+     "detected": 658,
+     "power": 0.6508407517309595,
+     "ci95": [
+      0.620934602522231,
+      0.6796049102450817
+     ]
+    },
+    "state": {
+     "detected": 722,
+     "power": 0.7141444114737884,
+     "ci95": [
+      0.6855233442307055,
+      0.741144226353709
+     ]
+    },
+    "operator": {
+     "detected": 1011,
+     "power": 1.0,
+     "ci95": [
+      0.9962145816647643,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 749,
+     "power": 0.3745,
+     "ci95": [
+      0.35354762286221647,
+      0.39593357365551224
+     ]
+    },
+    "exact counts": {
+     "detected": 1077,
+     "power": 0.5385,
+     "ci95": [
+      0.5165986120792132,
+      0.5602537698655472
+     ]
+    },
+    "state": {
+     "detected": 1384,
+     "power": 0.692,
+     "ci95": [
+      0.6714145381055726,
+      0.7118492887358304
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1071,
+     "power": 0.5355,
+     "ci95": [
+      0.5135946351532961,
+      0.5572692494970675
+     ]
+    },
+    "exact counts": {
+     "detected": 1200,
+     "power": 0.6,
+     "ci95": [
+      0.5783572981107717,
+      0.6212592783691256
+     ]
+    },
+    "state": {
+     "detected": 1521,
+     "power": 0.7605,
+     "ci95": [
+      0.741307471008764,
+      0.7786937107213686
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 846,
+     "power": 0.423,
+     "ci95": [
+      0.4015158219909959,
+      0.4447794141194831
+     ]
+    },
+    "exact counts": {
+     "detected": 1031,
+     "power": 0.5155,
+     "ci95": [
+      0.4935883355952405,
+      0.5373522337591435
+     ]
+    },
+    "state": {
+     "detected": 1613,
+     "power": 0.8065,
+     "ci95": [
+      0.7886055744876445,
+      0.8232192324232411
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1997,
+   "equivalent": 0,
+   "non_equivalent": 1997,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 13,
+     "power": 0.006509764646970456,
+     "ci95": [
+      0.003808278000374418,
+      0.011106245967939715
+     ]
+    },
+    "exact counts": {
+     "detected": 0,
+     "power": 0.0,
+     "ci95": [
+      1.0842021724855044e-19,
+      0.0019199920673380637
+     ]
+    },
+    "state": {
+     "detected": 1936,
+     "power": 0.9694541812719079,
+     "ci95": [
+      0.9609588409021291,
+      0.976146825033645
+     ]
+    },
+    "operator": {
+     "detected": 1997,
+     "power": 1.0,
+     "ci95": [
+      0.9980800079326619,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 985,
+   "non_equivalent": 1015,
+   "sampled_false_positives": 13,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 823,
+     "power": 0.8108374384236453,
+     "ci95": [
+      0.7855884074803786,
+      0.83374240900768
+     ]
+    },
+    "exact counts": {
+     "detected": 852,
+     "power": 0.8394088669950739,
+     "ci95": [
+      0.8155478104026748,
+      0.8607104028465682
+     ]
+    },
+    "state": {
+     "detected": 869,
+     "power": 0.8561576354679803,
+     "ci95": [
+      0.8332241225306093,
+      0.8764053233027763
+     ]
+    },
+    "operator": {
+     "detected": 1015,
+     "power": 1.0,
+     "ci95": [
+      0.996229443320728,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "blind {H,X,Z,Ry,Rz,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 747,
+     "power": 0.3735,
+     "ci95": [
+      0.35256091914971066,
+      0.39492411160321905
+     ]
+    },
+    "exact counts": {
+     "detected": 1295,
+     "power": 0.6475,
+     "ci95": [
+      0.6262971373925011,
+      0.6681373129153475
+     ]
+    },
+    "state": {
+     "detected": 1628,
+     "power": 0.814,
+     "ci95": [
+      0.7963503962940377,
+      0.8304456538528402
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 582,
+     "power": 0.291,
+     "ci95": [
+      0.27150851005603377,
+      0.3112928451009806
+     ]
+    },
+    "exact counts": {
+     "detected": 570,
+     "power": 0.285,
+     "ci95": [
+      0.26564274600714793,
+      0.30518161456107257
+     ]
+    },
+    "state": {
+     "detected": 837,
+     "power": 0.4185,
+     "ci95": [
+      0.39705601734784973,
+      0.4402564728210338
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1999,
+   "equivalent": 1027,
+   "non_equivalent": 972,
+   "sampled_false_positives": 10,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 357,
+     "power": 0.36728395061728397,
+     "ci95": [
+      0.3375556335253548,
+      0.3980571954419696
+     ]
+    },
+    "exact counts": {
+     "detected": 352,
+     "power": 0.36213991769547327,
+     "ci95": [
+      0.3325221943218091,
+      0.39284306987680684
+     ]
+    },
+    "state": {
+     "detected": 453,
+     "power": 0.4660493827160494,
+     "ci95": [
+      0.4348835735965111,
+      0.49748249893001384
+     ]
+    },
+    "operator": {
+     "detected": 972,
+     "power": 1.0,
+     "ci95": [
+      0.9960632955184532,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1896,
+   "equivalent": 0,
+   "non_equivalent": 1896,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 35,
+     "power": 0.018459915611814346,
+     "ci95": [
+      0.01330286463409734,
+      0.025564375666357185
+     ]
+    },
+    "exact counts": {
+     "detected": 17,
+     "power": 0.008966244725738396,
+     "ci95": [
+      0.005605572047025826,
+      0.014312720088486946
+     ]
+    },
+    "state": {
+     "detected": 578,
+     "power": 0.3048523206751055,
+     "ci95": [
+      0.28454266903146125,
+      0.32595117424473613
+     ]
+    },
+    "operator": {
+     "detected": 1896,
+     "power": 1.0,
+     "ci95": [
+      0.9979779366869324,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 633,
+     "power": 0.3165,
+     "ci95": [
+      0.29648393665248174,
+      0.33721964550690653
+     ]
+    },
+    "exact counts": {
+     "detected": 613,
+     "power": 0.3065,
+     "ci95": [
+      0.28668096927289755,
+      0.327060955238501
+     ]
+    },
+    "state": {
+     "detected": 1096,
+     "power": 0.548,
+     "ci95": [
+      0.5261164472212747,
+      0.5696995094890762
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 987,
+   "non_equivalent": 1013,
+   "sampled_false_positives": 7,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 441,
+     "power": 0.4353405725567621,
+     "ci95": [
+      0.405109326392003,
+      0.46606038184967397
+     ]
+    },
+    "exact counts": {
+     "detected": 440,
+     "power": 0.43435340572556763,
+     "ci95": [
+      0.40413383316301077,
+      0.46506900039533294
+     ]
+    },
+    "state": {
+     "detected": 661,
+     "power": 0.6525172754195459,
+     "ci95": [
+      0.622667466039823,
+      0.6812146725351524
+     ]
+    },
+    "operator": {
+     "detected": 1013,
+     "power": 1.0,
+     "ci95": [
+      0.9962220271082536,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 1991,
+   "equivalent": 0,
+   "non_equivalent": 1991,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 136,
+     "power": 0.0683073832245103,
+     "ci95": [
+      0.05803693030012787,
+      0.08024051488649749
+     ]
+    },
+    "exact counts": {
+     "detected": 121,
+     "power": 0.06077348066298342,
+     "ci95": [
+      0.05110085148999099,
+      0.07213780565451611
+     ]
+    },
+    "state": {
+     "detected": 961,
+     "power": 0.4826720241084882,
+     "ci95": [
+      0.46077676817484275,
+      0.5046340193282851
+     ]
+    },
+    "operator": {
+     "detected": 1991,
+     "power": 1.0,
+     "ci95": [
+      0.9980742330619132,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 792,
+     "power": 0.396,
+     "ci95": [
+      0.3747848148919418,
+      0.4176139455689649
+     ]
+    },
+    "exact counts": {
+     "detected": 783,
+     "power": 0.3915,
+     "ci95": [
+      0.37033620622474833,
+      0.413079808294563
+     ]
+    },
+    "state": {
+     "detected": 1403,
+     "power": 0.7015,
+     "ci95": [
+      0.6810740067164597,
+      0.7211533948905336
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 957,
+   "non_equivalent": 1043,
+   "sampled_false_positives": 10,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 551,
+     "power": 0.5282837967401726,
+     "ci95": [
+      0.4979392794747246,
+      0.5584207276170836
+     ]
+    },
+    "exact counts": {
+     "detected": 548,
+     "power": 0.5254074784276127,
+     "ci95": [
+      0.49506418201170177,
+      0.5555642989351771
+     ]
+    },
+    "state": {
+     "detected": 829,
+     "power": 0.7948226270373921,
+     "ci95": [
+      0.7692534805324384,
+      0.818227949322852
+     ]
+    },
+    "operator": {
+     "detected": 1043,
+     "power": 1.0,
+     "ci95": [
+      0.996330294860273,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 311,
+     "power": 0.1555,
+     "ci95": [
+      0.14027990564107343,
+      0.17204098838568002
+     ]
+    },
+    "exact counts": {
+     "detected": 292,
+     "power": 0.146,
+     "ci95": [
+      0.13120305076383465,
+      0.1621542684973285
+     ]
+    },
+    "state": {
+     "detected": 1352,
+     "power": 0.676,
+     "ci95": [
+      0.655168475643999,
+      0.6961566989606205
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 570,
+     "power": 0.285,
+     "ci95": [
+      0.26564274600714793,
+      0.30518161456107257
+     ]
+    },
+    "exact counts": {
+     "detected": 562,
+     "power": 0.281,
+     "ci95": [
+      0.2617346056555131,
+      0.30110509185351164
+     ]
+    },
+    "state": {
+     "detected": 751,
+     "power": 0.3755,
+     "ci95": [
+      0.35453442291966886,
+      0.39694293936285885
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 981,
+   "non_equivalent": 1019,
+   "sampled_false_positives": 5,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 303,
+     "power": 0.29735034347399414,
+     "ci95": [
+      0.270088383861772,
+      0.326134530810451
+     ]
+    },
+    "exact counts": {
+     "detected": 299,
+     "power": 0.2934249263984298,
+     "ci95": [
+      0.2662851595335351,
+      0.3221164072388762
+     ]
+    },
+    "state": {
+     "detected": 375,
+     "power": 0.3680078508341511,
+     "ci95": [
+      0.33894407051109143,
+      0.39806310635774134
+     ]
+    },
+    "operator": {
+     "detected": 1019,
+     "power": 1.0,
+     "ci95": [
+      0.9962441887385106,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1898,
+   "equivalent": 0,
+   "non_equivalent": 1898,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 31,
+     "power": 0.016332982086406742,
+     "ci95": [
+      0.011530060524857132,
+      0.02308985734842947
+     ]
+    },
+    "exact counts": {
+     "detected": 8,
+     "power": 0.004214963119072708,
+     "ci95": [
+      0.002137296861920941,
+      0.008295538343702911
+     ]
+    },
+    "state": {
+     "detected": 473,
+     "power": 0.24920969441517388,
+     "ci95": [
+      0.23026902983216127,
+      0.26916352017620965
+     ]
+    },
+    "operator": {
+     "detected": 1898,
+     "power": 1.0,
+     "ci95": [
+      0.9979800631135631,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 587,
+     "power": 0.2935,
+     "ci95": [
+      0.27395382077672664,
+      0.31383794879228516
+     ]
+    },
+    "exact counts": {
+     "detected": 573,
+     "power": 0.2865,
+     "ci95": [
+      0.2671087895476373,
+      0.30670981966778166
+     ]
+    },
+    "state": {
+     "detected": 965,
+     "power": 0.4825,
+     "ci95": [
+      0.46065448631398687,
+      0.5044126128020311
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1001,
+   "non_equivalent": 999,
+   "sampled_false_positives": 14,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 409,
+     "power": 0.4094094094094094,
+     "ci95": [
+      0.37932024492385297,
+      0.44019262729844
+     ]
+    },
+    "exact counts": {
+     "detected": 402,
+     "power": 0.4024024024024024,
+     "ci95": [
+      0.37242285654259744,
+      0.43312968535434804
+     ]
+    },
+    "state": {
+     "detected": 577,
+     "power": 0.5775775775775776,
+     "ci95": [
+      0.5467073291942209,
+      0.607853470836412
+     ]
+    },
+    "operator": {
+     "detected": 999,
+     "power": 1.0,
+     "ci95": [
+      0.9961692853587246,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 1993,
+   "equivalent": 0,
+   "non_equivalent": 1993,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 90,
+     "power": 0.04515805318615153,
+     "ci95": [
+      0.036883270497893736,
+      0.05518292043082089
+     ]
+    },
+    "exact counts": {
+     "detected": 64,
+     "power": 0.032112393376818864,
+     "ci95": [
+      0.025227584730868766,
+      0.04079748205459885
+     ]
+    },
+    "state": {
+     "detected": 857,
+     "power": 0.43000501756146514,
+     "ci95": [
+      0.4084244236683566,
+      0.4518549294861451
+     ]
+    },
+    "operator": {
+     "detected": 1993,
+     "power": 1.0,
+     "ci95": [
+      0.9980761618748328,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 707,
+     "power": 0.3535,
+     "ci95": [
+      0.3328473290252137,
+      0.37471438643173655
+     ]
+    },
+    "exact counts": {
+     "detected": 695,
+     "power": 0.3475,
+     "ci95": [
+      0.32694098377557623,
+      0.36864373709258014
+     ]
+    },
+    "state": {
+     "detected": 1319,
+     "power": 0.6595,
+     "ci95": [
+      0.6384432932415345,
+      0.6799451462439019
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1003,
+   "non_equivalent": 997,
+   "sampled_false_positives": 6,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 508,
+     "power": 0.5095285857572718,
+     "ci95": [
+      0.4785203269712722,
+      0.5404636960749319
+     ]
+    },
+    "exact counts": {
+     "detected": 501,
+     "power": 0.5025075225677031,
+     "ci95": [
+      0.4715209972582498,
+      0.5334747982802251
+     ]
+    },
+    "state": {
+     "detected": 752,
+     "power": 0.7542627883650953,
+     "ci95": [
+      0.726596086986946,
+      0.7799775806144008
+     ]
+    },
+    "operator": {
+     "detected": 997,
+     "power": 1.0,
+     "ci95": [
+      0.996161630371879,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 218,
+     "power": 0.109,
+     "ci95": [
+      0.09608392673815988,
+      0.12341525922544125
+     ]
+    },
+    "exact counts": {
+     "detected": 207,
+     "power": 0.1035,
+     "ci95": [
+      0.09090113877201708,
+      0.11761913548518968
+     ]
+    },
+    "state": {
+     "detected": 1266,
+     "power": 0.633,
+     "ci95": [
+      0.611639751032527,
+      0.6538502956857365
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 607,
+     "power": 0.3035,
+     "ci95": [
+      0.2837422384675725,
+      0.324011188749429
+     ]
+    },
+    "exact counts": {
+     "detected": 593,
+     "power": 0.2965,
+     "ci95": [
+      0.2768891471842483,
+      0.3168911196791604
+     ]
+    },
+    "state": {
+     "detected": 747,
+     "power": 0.3735,
+     "ci95": [
+      0.35256091914971066,
+      0.39492411160321905
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1998,
+   "equivalent": 975,
+   "non_equivalent": 1023,
+   "sampled_false_positives": 8,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 322,
+     "power": 0.3147605083088954,
+     "ci95": [
+      0.2870387059595334,
+      0.34386833948934603
+     ]
+    },
+    "exact counts": {
+     "detected": 317,
+     "power": 0.3098729227761486,
+     "ci95": [
+      0.28228998664392896,
+      0.3388784584210159
+     ]
+    },
+    "state": {
+     "detected": 368,
+     "power": 0.3597262952101662,
+     "ci95": [
+      0.33089198968041195,
+      0.3896101793006657
+     ]
+    },
+    "operator": {
+     "detected": 1023,
+     "power": 1.0,
+     "ci95": [
+      0.9962588192765077,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1883,
+   "equivalent": 0,
+   "non_equivalent": 1883,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 23,
+     "power": 0.012214551248008496,
+     "ci95": [
+      0.008152849731202217,
+      0.01826251020150225
+     ]
+    },
+    "exact counts": {
+     "detected": 6,
+     "power": 0.003186404673393521,
+     "ci95": [
+      0.00146113104754336,
+      0.006934698257894892
+     ]
+    },
+    "state": {
+     "detected": 379,
+     "power": 0.2012745618693574,
+     "ci95": [
+      0.1837807544321991,
+      0.2199847762832568
+     ]
+    },
+    "operator": {
+     "detected": 1883,
+     "power": 1.0,
+     "ci95": [
+      0.997964005033597,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 602,
+     "power": 0.301,
+     "ci95": [
+      0.281294068209306,
+      0.3214689445956981
+     ]
+    },
+    "exact counts": {
+     "detected": 588,
+     "power": 0.294,
+     "ci95": [
+      0.27444296982146754,
+      0.3143468826299437
+     ]
+    },
+    "state": {
+     "detected": 914,
+     "power": 0.457,
+     "ci95": [
+      0.4352709380480115,
+      0.4788939340656327
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1024,
+   "non_equivalent": 976,
+   "sampled_false_positives": 11,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 395,
+     "power": 0.4047131147540984,
+     "ci95": [
+      0.3743507233674863,
+      0.4358226760880991
+     ]
+    },
+    "exact counts": {
+     "detected": 388,
+     "power": 0.3975409836065574,
+     "ci95": [
+      0.36729694482654346,
+      0.42858843093215054
+     ]
+    },
+    "state": {
+     "detected": 530,
+     "power": 0.5430327868852459,
+     "ci95": [
+      0.5116723000637814,
+      0.5740558421175671
+     ]
+    },
+    "operator": {
+     "detected": 976,
+     "power": 1.0,
+     "ci95": [
+      0.9960793662975729,
+      0.9999999999999998
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 1995,
+   "equivalent": 0,
+   "non_equivalent": 1995,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 62,
+     "power": 0.03107769423558897,
+     "ci95": [
+      0.024318333856517882,
+      0.03963951052694903
+     ]
+    },
+    "exact counts": {
+     "detected": 38,
+     "power": 0.01904761904761905,
+     "ci95": [
+      0.01390855307124264,
+      0.026035382456214867
+     ]
+    },
+    "state": {
+     "detected": 764,
+     "power": 0.3829573934837093,
+     "ci95": [
+      0.36187035527281897,
+      0.404494323148923
+     ]
+    },
+    "operator": {
+     "detected": 1995,
+     "power": 1.0,
+     "ci95": [
+      0.9980780868278908,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 640,
+     "power": 0.32,
+     "ci95": [
+      0.29991755388542335,
+      0.34077260845076135
+     ]
+    },
+    "exact counts": {
+     "detected": 630,
+     "power": 0.315,
+     "ci95": [
+      0.29501279273331715,
+      0.33569654077887257
+     ]
+    },
+    "state": {
+     "detected": 1230,
+     "power": 0.615,
+     "ci95": [
+      0.59347286288999,
+      0.636086200061892
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 996,
+   "non_equivalent": 1004,
+   "sampled_false_positives": 9,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 495,
+     "power": 0.49302788844621515,
+     "ci95": [
+      0.4621879297885642,
+      0.5239209984398401
+     ]
+    },
+    "exact counts": {
+     "detected": 493,
+     "power": 0.4910358565737052,
+     "ci95": [
+      0.46020544368290395,
+      0.521934606896473
+     ]
+    },
+    "state": {
+     "detected": 712,
+     "power": 0.7091633466135459,
+     "ci95": [
+      0.6803160588661288,
+      0.736416094281747
+     ]
+    },
+    "operator": {
+     "detected": 1004,
+     "power": 1.0,
+     "ci95": [
+      0.9961882899058743,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford {H,S,CX,CZ}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 194,
+     "power": 0.097,
+     "ci95": [
+      0.08479110556577746,
+      0.110754091220236
+     ]
+    },
+    "exact counts": {
+     "detected": 175,
+     "power": 0.0875,
+     "ci95": [
+      0.07589342255659658,
+      0.10068819946382658
+     ]
+    },
+    "state": {
+     "detected": 1133,
+     "power": 0.5665,
+     "ci95": [
+      0.5446741781008965,
+      0.5880708452582354
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 482,
+     "power": 0.241,
+     "ci95": [
+      0.22276357373926617,
+      0.26022949317779953
+     ]
+    },
+    "exact counts": {
+     "detected": 471,
+     "power": 0.2355,
+     "ci95": [
+      0.21742174733614805,
+      0.2545924078745233
+     ]
+    },
+    "state": {
+     "detected": 736,
+     "power": 0.368,
+     "ci95": [
+      0.34713577792313716,
+      0.38937034112339824
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1985,
+   "equivalent": 985,
+   "non_equivalent": 1000,
+   "sampled_false_positives": 7,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 327,
+     "power": 0.327,
+     "ci95": [
+      0.2986340029941519,
+      0.3566901039167394
+     ]
+    },
+    "exact counts": {
+     "detected": 324,
+     "power": 0.324,
+     "ci95": [
+      0.29571431654715963,
+      0.3536327517552499
+     ]
+    },
+    "state": {
+     "detected": 399,
+     "power": 0.399,
+     "ci95": [
+      0.36909071095309687,
+      0.4296823225613542
+     ]
+    },
+    "operator": {
+     "detected": 1000,
+     "power": 1.0,
+     "ci95": [
+      0.9961731014136095,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1986,
+   "equivalent": 0,
+   "non_equivalent": 1986,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 46,
+     "power": 0.023162134944612285,
+     "ci95": [
+      0.01740973859339365,
+      0.030755703319168628
+     ]
+    },
+    "exact counts": {
+     "detected": 26,
+     "power": 0.013091641490433032,
+     "ci95": [
+      0.008949586907711995,
+      0.01911375240532679
+     ]
+    },
+    "state": {
+     "detected": 528,
+     "power": 0.26586102719033233,
+     "ci95": [
+      0.24689610711793944,
+      0.28573000744313914
+     ]
+    },
+    "operator": {
+     "detected": 1986,
+     "power": 1.0,
+     "ci95": [
+      0.9980693940663417,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 576,
+     "power": 0.288,
+     "ci95": [
+      0.2685750988910168,
+      0.3082377589716006
+     ]
+    },
+    "exact counts": {
+     "detected": 558,
+     "power": 0.279,
+     "ci95": [
+      0.25978125527119156,
+      0.2990661107082352
+     ]
+    },
+    "state": {
+     "detected": 1002,
+     "power": 0.501,
+     "ci95": [
+      0.47910567582684765,
+      0.5228904899379512
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 988,
+   "non_equivalent": 1012,
+   "sampled_false_positives": 9,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 485,
+     "power": 0.4792490118577075,
+     "ci95": [
+      0.4486061456352469,
+      0.5100488257697438
+     ]
+    },
+    "exact counts": {
+     "detected": 483,
+     "power": 0.4772727272727273,
+     "ci95": [
+      0.4466426037644427,
+      0.5080747458695947
+     ]
+    },
+    "state": {
+     "detected": 629,
+     "power": 0.6215415019762845,
+     "ci95": [
+      0.5912528597098382,
+      0.6509108792037875
+     ]
+    },
+    "operator": {
+     "detected": 1012,
+     "power": 1.0,
+     "ci95": [
+      0.9962183080511763,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 167,
+     "power": 0.0835,
+     "ci95": [
+      0.07215968769833091,
+      0.09643727126289638
+     ]
+    },
+    "exact counts": {
+     "detected": 150,
+     "power": 0.075,
+     "ci95": [
+      0.06425346485532411,
+      0.0873760851051119
+     ]
+    },
+    "state": {
+     "detected": 894,
+     "power": 0.447,
+     "ci95": [
+      0.42533225857885604,
+      0.4688709558867984
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 823,
+     "power": 0.4115,
+     "ci95": [
+      0.3901222093274034,
+      0.4332171204878874
+     ]
+    },
+    "exact counts": {
+     "detected": 815,
+     "power": 0.4075,
+     "ci95": [
+      0.3861620478864297,
+      0.4291926188696651
+     ]
+    },
+    "state": {
+     "detected": 1306,
+     "power": 0.653,
+     "ci95": [
+      0.631862314136204,
+      0.6735510478780392
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1022,
+   "non_equivalent": 978,
+   "sampled_false_positives": 6,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 647,
+     "power": 0.6615541922290389,
+     "ci95": [
+      0.6313173200552408,
+      0.6905268552170231
+     ]
+    },
+    "exact counts": {
+     "detected": 645,
+     "power": 0.6595092024539877,
+     "ci95": [
+      0.6292371457240462,
+      0.6885330526460369
+     ]
+    },
+    "state": {
+     "detected": 764,
+     "power": 0.7811860940695297,
+     "ci95": [
+      0.7542012377396587,
+      0.8059705863101676
+     ]
+    },
+    "operator": {
+     "detected": 978,
+     "power": 1.0,
+     "ci95": [
+      0.9960873525831456,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 3,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 485,
+     "power": 0.2425,
+     "ci95": [
+      0.22422117208537146,
+      0.2617661434788927
+     ]
+    },
+    "exact counts": {
+     "detected": 472,
+     "power": 0.236,
+     "ci95": [
+      0.21790719089644706,
+      0.2551050471966238
+     ]
+    },
+    "state": {
+     "detected": 1320,
+     "power": 0.66,
+     "ci95": [
+      0.6389497012614651,
+      0.6804368211063709
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 467,
+     "power": 0.2335,
+     "ci95": [
+      0.21548033102033562,
+      0.2525414926607378
+     ]
+    },
+    "exact counts": {
+     "detected": 456,
+     "power": 0.228,
+     "ci95": [
+      0.21014442445559814,
+      0.24689848751908092
+     ]
+    },
+    "state": {
+     "detected": 643,
+     "power": 0.3215,
+     "ci95": [
+      0.3013895082500113,
+      0.3422949027333718
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1984,
+   "equivalent": 1005,
+   "non_equivalent": 979,
+   "sampled_false_positives": 9,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 289,
+     "power": 0.29519918283963226,
+     "ci95": [
+      0.2674713660295217,
+      0.3245279958208518
+     ]
+    },
+    "exact counts": {
+     "detected": 284,
+     "power": 0.2900919305413687,
+     "ci95": [
+      0.26252897234908484,
+      0.3192958099963104
+     ]
+    },
+    "state": {
+     "detected": 354,
+     "power": 0.3615934627170582,
+     "ci95": [
+      0.33209142154234833,
+      0.392177473872742
+     ]
+    },
+    "operator": {
+     "detected": 979,
+     "power": 1.0,
+     "ci95": [
+      0.9960913335373677,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1986,
+   "equivalent": 0,
+   "non_equivalent": 1986,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 43,
+     "power": 0.0216515609264854,
+     "ci95": [
+      0.016113760015870778,
+      0.029036366506762983
+     ]
+    },
+    "exact counts": {
+     "detected": 17,
+     "power": 0.008559919436052367,
+     "ci95": [
+      0.005351227446820978,
+      0.01366616569643223
+     ]
+    },
+    "state": {
+     "detected": 440,
+     "power": 0.2215508559919436,
+     "ci95": [
+      0.20383321275433638,
+      0.24034365036883884
+     ]
+    },
+    "operator": {
+     "detected": 1986,
+     "power": 1.0,
+     "ci95": [
+      0.9980693940663417,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 512,
+     "power": 0.256,
+     "ci95": [
+      0.23735336585610178,
+      0.2755821875329485
+     ]
+    },
+    "exact counts": {
+     "detected": 494,
+     "power": 0.247,
+     "ci95": [
+      0.22859583081041532,
+      0.2663742306954443
+     ]
+    },
+    "state": {
+     "detected": 896,
+     "power": 0.448,
+     "ci95": [
+      0.4263257274015744,
+      0.46987365282887894
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1012,
+   "non_equivalent": 988,
+   "sampled_false_positives": 7,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 389,
+     "power": 0.3937246963562753,
+     "ci95": [
+      0.3637270534959301,
+      0.42454559003908615
+     ]
+    },
+    "exact counts": {
+     "detected": 387,
+     "power": 0.3917004048582996,
+     "ci95": [
+      0.3617381699798147,
+      0.422501571527297
+     ]
+    },
+    "state": {
+     "detected": 509,
+     "power": 0.5151821862348178,
+     "ci95": [
+      0.4840201598278592,
+      0.5462266053814243
+     ]
+    },
+    "operator": {
+     "detected": 988,
+     "power": 1.0,
+     "ci95": [
+      0.9961268008924006,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 95,
+     "power": 0.0475,
+     "ci95": [
+      0.039013879394732026,
+      0.05772111203373219
+     ]
+    },
+    "exact counts": {
+     "detected": 74,
+     "power": 0.037,
+     "ci95": [
+      0.029575183198912953,
+      0.046200067699162024
+     ]
+    },
+    "state": {
+     "detected": 736,
+     "power": 0.368,
+     "ci95": [
+      0.34713577792313716,
+      0.38937034112339824
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 801,
+     "power": 0.4005,
+     "ci95": [
+      0.37923531465090804,
+      0.422146191751594
+     ]
+    },
+    "exact counts": {
+     "detected": 792,
+     "power": 0.396,
+     "ci95": [
+      0.3747848148919418,
+      0.4176139455689649
+     ]
+    },
+    "state": {
+     "detected": 1291,
+     "power": 0.6455,
+     "ci95": [
+      0.6242741897158216,
+      0.666167929062429
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 988,
+   "non_equivalent": 1012,
+   "sampled_false_positives": 8,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 594,
+     "power": 0.5869565217391305,
+     "ci95": [
+      0.5563467261920955,
+      0.6169086317298483
+     ]
+    },
+    "exact counts": {
+     "detected": 589,
+     "power": 0.5820158102766798,
+     "ci95": [
+      0.5513728100997144,
+      0.6120384933948462
+     ]
+    },
+    "state": {
+     "detected": 740,
+     "power": 0.7312252964426877,
+     "ci95": [
+      0.7030745299734988,
+      0.7576272172280334
+     ]
+    },
+    "operator": {
+     "detected": 1012,
+     "power": 1.0,
+     "ci95": [
+      0.9962183080511763,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 4,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 342,
+     "power": 0.171,
+     "ci95": [
+      0.15513326229685265,
+      0.1881282010842849
+     ]
+    },
+    "exact counts": {
+     "detected": 317,
+     "power": 0.1585,
+     "ci95": [
+      0.143150650595349,
+      0.17515874072580137
+     ]
+    },
+    "state": {
+     "detected": 1142,
+     "power": 0.571,
+     "ci95": [
+      0.5491928501182408,
+      0.5925349191824862
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 456,
+     "power": 0.228,
+     "ci95": [
+      0.21014442445559814,
+      0.24689848751908092
+     ]
+    },
+    "exact counts": {
+     "detected": 441,
+     "power": 0.2205,
+     "ci95": [
+      0.20287541553143842,
+      0.23919625320724833
+     ]
+    },
+    "state": {
+     "detected": 610,
+     "power": 0.305,
+     "ci95": [
+      0.2852114779966111,
+      0.32553619786758886
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1985,
+   "equivalent": 1029,
+   "non_equivalent": 956,
+   "sampled_false_positives": 4,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 249,
+     "power": 0.2604602510460251,
+     "ci95": [
+      0.2336367751449736,
+      0.28920115978095584
+     ]
+    },
+    "exact counts": {
+     "detected": 245,
+     "power": 0.25627615062761505,
+     "ci95": [
+      0.22961486588914493,
+      0.28488836047653876
+     ]
+    },
+    "state": {
+     "detected": 284,
+     "power": 0.29707112970711297,
+     "ci95": [
+      0.2689623029488398,
+      0.3268043318792402
+     ]
+    },
+    "operator": {
+     "detected": 956,
+     "power": 1.0,
+     "ci95": [
+      0.9959976729493701,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 10,
+   "mutation": "adjoint neighbour",
+   "generated": 1986,
+   "equivalent": 0,
+   "non_equivalent": 1986,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 23,
+     "power": 0.011581067472306143,
+     "ci95": [
+      0.007729360060478041,
+      0.017318663862632217
+     ]
+    },
+    "exact counts": {
+     "detected": 6,
+     "power": 0.0030211480362537764,
+     "ci95": [
+      0.001385313300856205,
+      0.006575923412659081
+     ]
+    },
+    "state": {
+     "detected": 345,
+     "power": 0.17371601208459214,
+     "ci95": [
+      0.1576871988358925,
+      0.1910046769395461
+     ]
+    },
+    "operator": {
+     "detected": 1986,
+     "power": 1.0,
+     "ci95": [
+      0.9980693940663417,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 490,
+     "power": 0.245,
+     "ci95": [
+      0.22665119482615215,
+      0.26432653515010945
+     ]
+    },
+    "exact counts": {
+     "detected": 480,
+     "power": 0.24,
+     "ci95": [
+      0.22179201576587604,
+      0.2592048853863907
+     ]
+    },
+    "state": {
+     "detected": 778,
+     "power": 0.389,
+     "ci95": [
+      0.36786557826638094,
+      0.41056002184093293
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 1016,
+   "non_equivalent": 984,
+   "sampled_false_positives": 12,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 360,
+     "power": 0.36585365853658536,
+     "ci95": [
+      0.33633351010553586,
+      0.39641716571131586
+     ]
+    },
+    "exact counts": {
+     "detected": 354,
+     "power": 0.3597560975609756,
+     "ci95": [
+      0.330367726291509,
+      0.39023525297156314
+     ]
+    },
+    "state": {
+     "detected": 462,
+     "power": 0.4695121951219512,
+     "ci95": [
+      0.43850809863661816,
+      0.5007534185944846
+     ]
+    },
+    "operator": {
+     "detected": 984,
+     "power": 1.0,
+     "ci95": [
+      0.9961111174099169,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 20,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 57,
+     "power": 0.0285,
+     "ci95": [
+      0.022062412525640788,
+      0.03674542937164292
+     ]
+    },
+    "exact counts": {
+     "detected": 43,
+     "power": 0.0215,
+     "ci95": [
+      0.01600069407034465,
+      0.02883398747334623
+     ]
+    },
+    "state": {
+     "detected": 641,
+     "power": 0.3205,
+     "ci95": [
+      0.30040817848795204,
+      0.3412800667306321
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 630,
+     "power": 0.315,
+     "ci95": [
+      0.29501279273331715,
+      0.33569654077887257
+     ]
+    },
+    "exact counts": {
+     "detected": 618,
+     "power": 0.309,
+     "ci95": [
+      0.2891306780414581,
+      0.3296016608819379
+     ]
+    },
+    "state": {
+     "detected": 1133,
+     "power": 0.5665,
+     "ci95": [
+      0.5446741781008965,
+      0.5880708452582354
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 973,
+   "non_equivalent": 1027,
+   "sampled_false_positives": 8,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 545,
+     "power": 0.5306718597857838,
+     "ci95": [
+      0.5000916228079094,
+      0.5610234893489922
+     ]
+    },
+    "exact counts": {
+     "detected": 541,
+     "power": 0.5267770204479065,
+     "ci95": [
+      0.496197667211308,
+      0.5571567957828125
+     ]
+    },
+    "state": {
+     "detected": 698,
+     "power": 0.6796494644595911,
+     "ci95": [
+      0.6504871640054976,
+      0.707472778627784
+     ]
+    },
+    "operator": {
+     "detected": 1027,
+     "power": 1.0,
+     "ci95": [
+      0.9962733362720326,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "Clifford+T",
+   "width": 5,
+   "depth": 40,
+   "mutation": "adjoint neighbour",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 218,
+     "power": 0.109,
+     "ci95": [
+      0.09608392673815988,
+      0.12341525922544125
+     ]
+    },
+    "exact counts": {
+     "detected": 201,
+     "power": 0.1005,
+     "ci95": [
+      0.08807901861123035,
+      0.1144527583515795
+     ]
+    },
+    "state": {
+     "detected": 1040,
+     "power": 0.52,
+     "ci95": [
+      0.49808669426004354,
+      0.5418366210359359
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1157,
+     "power": 0.5785,
+     "ci95": [
+      0.5567280287388815,
+      0.5999709837978381
+     ]
+    },
+    "exact counts": {
+     "detected": 1345,
+     "power": 0.6725,
+     "ci95": [
+      0.6516183231771244,
+      0.6927202712506986
+     ]
+    },
+    "state": {
+     "detected": 1537,
+     "power": 0.7685,
+     "ci95": [
+      0.7495099990595752,
+      0.7864605087889492
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 765,
+     "power": 0.3825,
+     "ci95": [
+      0.36144470827267244,
+      0.4040058143634481
+     ]
+    },
+    "exact counts": {
+     "detected": 922,
+     "power": 0.461,
+     "ci95": [
+      0.43924888720440947,
+      0.4829006479684306
+     ]
+    },
+    "state": {
+     "detected": 1695,
+     "power": 0.8475,
+     "ci95": [
+      0.8310788250186569,
+      0.8625887782489867
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1881,
+   "equivalent": 0,
+   "non_equivalent": 1881,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 382,
+     "power": 0.20308346624136098,
+     "ci95": [
+      0.18551660445098142,
+      0.22186065207816144
+     ]
+    },
+    "exact counts": {
+     "detected": 529,
+     "power": 0.2812333864965444,
+     "ci95": [
+      0.2613767075215763,
+      0.301981826161042
+     ]
+    },
+    "state": {
+     "detected": 1486,
+     "power": 0.7900053163211058,
+     "ci95": [
+      0.771016603099979,
+      0.8078118777654688
+     ]
+    },
+    "operator": {
+     "detected": 1881,
+     "power": 1.0,
+     "ci95": [
+      0.9979618446451947,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1891,
+   "equivalent": 0,
+   "non_equivalent": 1891,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1341,
+     "power": 0.7091485986250661,
+     "ci95": [
+      0.6882710929574007,
+      0.729178048965597
+     ]
+    },
+    "exact counts": {
+     "detected": 1396,
+     "power": 0.7382337387625595,
+     "ci95": [
+      0.7179513153830944,
+      0.7575501724457564
+     ]
+    },
+    "state": {
+     "detected": 1396,
+     "power": 0.7382337387625595,
+     "ci95": [
+      0.7179513153830944,
+      0.7575501724457564
+     ]
+    },
+    "operator": {
+     "detected": 1891,
+     "power": 1.0,
+     "ci95": [
+      0.9979726009815281,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 890,
+     "power": 0.445,
+     "ci95": [
+      0.4233455876704987,
+      0.46686529526555776
+     ]
+    },
+    "exact counts": {
+     "detected": 1448,
+     "power": 0.724,
+     "ci95": [
+      0.703993269591393,
+      0.7431478617235773
+     ]
+    },
+    "state": {
+     "detected": 1685,
+     "power": 0.8425,
+     "ci95": [
+      0.8258802840165097,
+      0.8578064904271391
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1362,
+     "power": 0.681,
+     "ci95": [
+      0.6602423888320809,
+      0.7010636145965335
+     ]
+    },
+    "exact counts": {
+     "detected": 1608,
+     "power": 0.804,
+     "ci95": [
+      0.7860262008733626,
+      0.8208081916255258
+     ]
+    },
+    "state": {
+     "detected": 1744,
+     "power": 0.872,
+     "ci95": [
+      0.8566413685749112,
+      0.8859322959303071
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1299,
+     "power": 0.6495,
+     "ci95": [
+      0.6283204857295727,
+      0.670106296107874
+     ]
+    },
+    "exact counts": {
+     "detected": 1591,
+     "power": 0.7955,
+     "ci95": [
+      0.7772643903692261,
+      0.8126025931288708
+     ]
+    },
+    "state": {
+     "detected": 1816,
+     "power": 0.908,
+     "ci95": [
+      0.8945386935076891,
+      0.9198969385302924
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1995,
+   "equivalent": 0,
+   "non_equivalent": 1995,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1456,
+     "power": 0.7298245614035088,
+     "ci95": [
+      0.7099108470930993,
+      0.7488548700102471
+     ]
+    },
+    "exact counts": {
+     "detected": 1752,
+     "power": 0.8781954887218045,
+     "ci95": [
+      0.863112033325377,
+      0.8918252263354187
+     ]
+    },
+    "state": {
+     "detected": 1966,
+     "power": 0.9854636591478697,
+     "ci95": [
+      0.9792012875447348,
+      0.9898599927488113
+     ]
+    },
+    "operator": {
+     "detected": 1995,
+     "power": 1.0,
+     "ci95": [
+      0.9980780868278908,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1994,
+   "equivalent": 0,
+   "non_equivalent": 1994,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1670,
+     "power": 0.8375125376128385,
+     "ci95": [
+      0.8206741573322955,
+      0.8530529289392086
+     ]
+    },
+    "exact counts": {
+     "detected": 1693,
+     "power": 0.8490471414242728,
+     "ci95": [
+      0.8326629831514492,
+      0.864088951536466
+     ]
+    },
+    "state": {
+     "detected": 1693,
+     "power": 0.8490471414242728,
+     "ci95": [
+      0.8326629831514492,
+      0.864088951536466
+     ]
+    },
+    "operator": {
+     "detected": 1994,
+     "power": 1.0,
+     "ci95": [
+      0.9980771248331199,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 917,
+     "power": 0.4585,
+     "ci95": [
+      0.4367625034250278,
+      0.4803966173358148
+     ]
+    },
+    "exact counts": {
+     "detected": 1635,
+     "power": 0.8175,
+     "ci95": [
+      0.799968181254557,
+      0.8338144490691174
+     ]
+    },
+    "state": {
+     "detected": 1826,
+     "power": 0.913,
+     "ci95": [
+      0.8998427354074658,
+      0.9245737254545106
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1629,
+     "power": 0.8145,
+     "ci95": [
+      0.796867082728097,
+      0.8309270503011803
+     ]
+    },
+    "exact counts": {
+     "detected": 1808,
+     "power": 0.904,
+     "ci95": [
+      0.8903036035071562,
+      0.9161473654716293
+     ]
+    },
+    "state": {
+     "detected": 1865,
+     "power": 0.9325,
+     "ci95": [
+      0.9206545829215553,
+      0.9426871103540011
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1609,
+     "power": 0.8045,
+     "ci95": [
+      0.7865419879122189,
+      0.8212904874690687
+     ]
+    },
+    "exact counts": {
+     "detected": 1838,
+     "power": 0.919,
+     "ci95": [
+      0.9062236928798773,
+      0.9301697625708931
+     ]
+    },
+    "state": {
+     "detected": 1926,
+     "power": 0.963,
+     "ci95": [
+      0.953799932300838,
+      0.970424816801087
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1987,
+     "power": 0.9935,
+     "ci95": [
+      0.9889103647969807,
+      0.9961974401313133
+     ]
+    },
+    "exact counts": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    },
+    "state": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1878,
+     "power": 0.939,
+     "ci95": [
+      0.9276455886845992,
+      0.9486711820621504
+     ]
+    },
+    "exact counts": {
+     "detected": 1884,
+     "power": 0.942,
+     "ci95": [
+      0.9308831809521418,
+      0.9514220870890047
+     ]
+    },
+    "state": {
+     "detected": 1884,
+     "power": 0.942,
+     "ci95": [
+      0.9308831809521418,
+      0.9514220870890047
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 3,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1112,
+     "power": 0.556,
+     "ci95": [
+      0.5341376685300183,
+      0.5776476142987244
+     ]
+    },
+    "exact counts": {
+     "detected": 1848,
+     "power": 0.924,
+     "ci95": [
+      0.9115557877758631,
+      0.9348184964989021
+     ]
+    },
+    "state": {
+     "detected": 1924,
+     "power": 0.962,
+     "ci95": [
+      0.9526960596538981,
+      0.9695325236832278
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1101,
+     "power": 0.5505,
+     "ci95": [
+      0.5286224683093688,
+      0.5721839028129794
+     ]
+    },
+    "exact counts": {
+     "detected": 1273,
+     "power": 0.6365,
+     "ci95": [
+      0.6151758428999464,
+      0.6573007839951134
+     ]
+    },
+    "state": {
+     "detected": 1427,
+     "power": 0.7135,
+     "ci95": [
+      0.6932901803322183,
+      0.7328912104523627
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 555,
+     "power": 0.2775,
+     "ci95": [
+      0.2583165599610281,
+      0.2975365573712002
+     ]
+    },
+    "exact counts": {
+     "detected": 667,
+     "power": 0.3335,
+     "ci95": [
+      0.31317375323575003,
+      0.35446464692522084
+     ]
+    },
+    "state": {
+     "detected": 1639,
+     "power": 0.8195,
+     "ci95": [
+      0.8020365244017469,
+      0.8357384374515253
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1878,
+   "equivalent": 0,
+   "non_equivalent": 1878,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 248,
+     "power": 0.13205537806176784,
+     "ci95": [
+      0.11749169361898278,
+      0.148121310153492
+     ]
+    },
+    "exact counts": {
+     "detected": 338,
+     "power": 0.1799787007454739,
+     "ci95": [
+      0.16326218439892728,
+      0.19800180296323958
+     ]
+    },
+    "state": {
+     "detected": 1395,
+     "power": 0.7428115015974441,
+     "ci95": [
+      0.7225613097632798,
+      0.7620703404244938
+     ]
+    },
+    "operator": {
+     "detected": 1878,
+     "power": 1.0,
+     "ci95": [
+      0.9979585954524546,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1878,
+   "equivalent": 0,
+   "non_equivalent": 1878,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1190,
+     "power": 0.6336528221512248,
+     "ci95": [
+      0.6116093645847398,
+      0.6551506007598462
+     ]
+    },
+    "exact counts": {
+     "detected": 1249,
+     "power": 0.6650692225772098,
+     "ci95": [
+      0.6434052523894486,
+      0.6860592466417131
+     ]
+    },
+    "state": {
+     "detected": 1249,
+     "power": 0.6650692225772098,
+     "ci95": [
+      0.6434052523894486,
+      0.6860592466417131
+     ]
+    },
+    "operator": {
+     "detected": 1878,
+     "power": 1.0,
+     "ci95": [
+      0.9979585954524546,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 868,
+     "power": 0.434,
+     "ci95": [
+      0.41242527529003753,
+      0.45582778423323017
+     ]
+    },
+    "exact counts": {
+     "detected": 1398,
+     "power": 0.699,
+     "ci95": [
+      0.6785310554043019,
+      0.718705931790694
+     ]
+    },
+    "state": {
+     "detected": 1632,
+     "power": 0.816,
+     "ci95": [
+      0.7984174211292535,
+      0.8323709605472221
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1275,
+     "power": 0.6375,
+     "ci95": [
+      0.6161863753705952,
+      0.6582864172892637
+     ]
+    },
+    "exact counts": {
+     "detected": 1542,
+     "power": 0.771,
+     "ci95": [
+      0.7520751823476364,
+      0.7888857399128857
+     ]
+    },
+    "state": {
+     "detected": 1680,
+     "power": 0.84,
+     "ci95": [
+      0.8232831411176247,
+      0.8554132189140264
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1031,
+     "power": 0.5155,
+     "ci95": [
+      0.4935883355952405,
+      0.5373522337591435
+     ]
+    },
+    "exact counts": {
+     "detected": 1364,
+     "power": 0.682,
+     "ci95": [
+      0.6612574939690733,
+      0.7020446752243402
+     ]
+    },
+    "state": {
+     "detected": 1773,
+     "power": 0.8865,
+     "ci95": [
+      0.8718505801436812,
+      0.8996674879511223
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1998,
+   "equivalent": 0,
+   "non_equivalent": 1998,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1155,
+     "power": 0.5780780780780781,
+     "ci95": [
+      0.5562930430362565,
+      0.5995634443101949
+     ]
+    },
+    "exact counts": {
+     "detected": 1515,
+     "power": 0.7582582582582582,
+     "ci95": [
+      0.7390007361043077,
+      0.776524568195493
+     ]
+    },
+    "state": {
+     "detected": 1945,
+     "power": 0.9734734734734735,
+     "ci95": [
+      0.965466939151847,
+      0.9796627853977876
+     ]
+    },
+    "operator": {
+     "detected": 1998,
+     "power": 1.0,
+     "ci95": [
+      0.9980809670455443,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1994,
+   "equivalent": 0,
+   "non_equivalent": 1994,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1616,
+     "power": 0.8104312938816449,
+     "ci95": [
+      0.7926363424476601,
+      0.8270324040635748
+     ]
+    },
+    "exact counts": {
+     "detected": 1652,
+     "power": 0.8284854563691073,
+     "ci95": [
+      0.8113119232256465,
+      0.8443957164591014
+     ]
+    },
+    "state": {
+     "detected": 1652,
+     "power": 0.8284854563691073,
+     "ci95": [
+      0.8113119232256465,
+      0.8443957164591014
+     ]
+    },
+    "operator": {
+     "detected": 1994,
+     "power": 1.0,
+     "ci95": [
+      0.9980771248331199,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 823,
+     "power": 0.4115,
+     "ci95": [
+      0.3901222093274034,
+      0.4332171204878874
+     ]
+    },
+    "exact counts": {
+     "detected": 1550,
+     "power": 0.775,
+     "ci95": [
+      0.7561813922441188,
+      0.7927641930755992
+     ]
+    },
+    "state": {
+     "detected": 1783,
+     "power": 0.8915,
+     "ci95": [
+      0.877111200786105,
+      0.9043876961326933
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1513,
+     "power": 0.7565,
+     "ci95": [
+      0.7372095963894757,
+      0.7748069222814612
+     ]
+    },
+    "exact counts": {
+     "detected": 1729,
+     "power": 0.8645,
+     "ci95": [
+      0.8487992446627192,
+      0.8788031766065071
+     ]
+    },
+    "state": {
+     "detected": 1826,
+     "power": 0.913,
+     "ci95": [
+      0.8998427354074658,
+      0.9245737254545106
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1479,
+     "power": 0.7395,
+     "ci95": [
+      0.7198178465709941,
+      0.7582638540983604
+     ]
+    },
+    "exact counts": {
+     "detected": 1761,
+     "power": 0.8805,
+     "ci95": [
+      0.865549047686269,
+      0.8939920258197406
+     ]
+    },
+    "state": {
+     "detected": 1880,
+     "power": 0.94,
+     "ci95": [
+      0.9287239719834315,
+      0.949588964528117
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1971,
+     "power": 0.9855,
+     "ci95": [
+      0.9792530898098751,
+      0.9898853890000269
+     ]
+    },
+    "exact counts": {
+     "detected": 1996,
+     "power": 0.998,
+     "ci95": [
+      0.9948685655953601,
+      0.9992219852745291
+     ]
+    },
+    "state": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1808,
+     "power": 0.904,
+     "ci95": [
+      0.8903036035071562,
+      0.9161473654716293
+     ]
+    },
+    "exact counts": {
+     "detected": 1826,
+     "power": 0.913,
+     "ci95": [
+      0.8998427354074658,
+      0.9245737254545106
+     ]
+    },
+    "state": {
+     "detected": 1826,
+     "power": 0.913,
+     "ci95": [
+      0.8998427354074658,
+      0.9245737254545106
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 4,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 924,
+     "power": 0.462,
+     "ci95": [
+      0.44024359511038136,
+      0.4839021058272577
+     ]
+    },
+    "exact counts": {
+     "detected": 1785,
+     "power": 0.8925,
+     "ci95": [
+      0.8781643924974155,
+      0.9053306701861817
+     ]
+    },
+    "state": {
+     "detected": 1887,
+     "power": 0.9435,
+     "ci95": [
+      0.9325048021273105,
+      0.9527947145610346
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1037,
+     "power": 0.5185,
+     "ci95": [
+      0.4965870443342313,
+      0.5403420223145496
+     ]
+    },
+    "exact counts": {
+     "detected": 1225,
+     "power": 0.6125,
+     "ci95": [
+      0.5909521327154565,
+      0.6336165158244282
+     ]
+    },
+    "state": {
+     "detected": 1372,
+     "power": 0.686,
+     "ci95": [
+      0.6653189985041471,
+      0.7059678337484622
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 458,
+     "power": 0.229,
+     "ci95": [
+      0.21111426008711437,
+      0.24792481765236368
+     ]
+    },
+    "exact counts": {
+     "detected": 523,
+     "power": 0.2615,
+     "ci95": [
+      0.2427104536198302,
+      0.2812040114756145
+     ]
+    },
+    "state": {
+     "detected": 1552,
+     "power": 0.776,
+     "ci95": [
+      0.7572083176030392,
+      0.7937334334814777
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1884,
+   "equivalent": 0,
+   "non_equivalent": 1884,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 170,
+     "power": 0.09023354564755838,
+     "ci95": [
+      0.07811576305643243,
+      0.10401900926768624
+     ]
+    },
+    "exact counts": {
+     "detected": 215,
+     "power": 0.11411889596602973,
+     "ci95": [
+      0.10053965992670784,
+      0.12926860364794795
+     ]
+    },
+    "state": {
+     "detected": 1276,
+     "power": 0.6772823779193206,
+     "ci95": [
+      0.6558288804608365,
+      0.6980143657098166
+     ]
+    },
+    "operator": {
+     "detected": 1884,
+     "power": 1.0,
+     "ci95": [
+      0.9979650835112436,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "qubit order",
+   "generated": 1885,
+   "equivalent": 0,
+   "non_equivalent": 1885,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1072,
+     "power": 0.5687002652519894,
+     "ci95": [
+      0.5462249148990573,
+      0.5908961650263319
+     ]
+    },
+    "exact counts": {
+     "detected": 1131,
+     "power": 0.6,
+     "ci95": [
+      0.5777022104183199,
+      0.621891021751069
+     ]
+    },
+    "state": {
+     "detected": 1131,
+     "power": 0.6,
+     "ci95": [
+      0.5777022104183199,
+      0.621891021751069
+     ]
+    },
+    "operator": {
+     "detected": 1885,
+     "power": 1.0,
+     "ci95": [
+      0.9979661608469447,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 10,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 871,
+     "power": 0.4355,
+     "ci95": [
+      0.4139137714977225,
+      0.4573335366727436
+     ]
+    },
+    "exact counts": {
+     "detected": 1397,
+     "power": 0.6985,
+     "ci95": [
+      0.678022550160847,
+      0.7182163541517494
+     ]
+    },
+    "state": {
+     "detected": 1575,
+     "power": 0.7875,
+     "ci95": [
+      0.7690289671314038,
+      0.8048686902483012
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1164,
+     "power": 0.582,
+     "ci95": [
+      0.5602461898092507,
+      0.6034394029042652
+     ]
+    },
+    "exact counts": {
+     "detected": 1451,
+     "power": 0.7255,
+     "ci95": [
+      0.7055233715530806,
+      0.7446120084090881
+     ]
+    },
+    "state": {
+     "detected": 1614,
+     "power": 0.807,
+     "ci95": [
+      0.7891215813775984,
+      0.8237013084156869
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 841,
+     "power": 0.4205,
+     "ci95": [
+      0.3990379257366928,
+      0.44226689596178875
+     ]
+    },
+    "exact counts": {
+     "detected": 1123,
+     "power": 0.5615,
+     "ci95": [
+      0.5396555631873704,
+      0.5831086313477666
+     ]
+    },
+    "state": {
+     "detected": 1747,
+     "power": 0.8735,
+     "ci95": [
+      0.8582117261523223,
+      0.8873561870000946
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "Rz convention (all gates)",
+   "generated": 1991,
+   "equivalent": 0,
+   "non_equivalent": 1991,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 843,
+     "power": 0.42340532395781016,
+     "ci95": [
+      0.4018695272100575,
+      0.44523612769507376
+     ]
+    },
+    "exact counts": {
+     "detected": 1190,
+     "power": 0.5976896032144651,
+     "ci95": [
+      0.5759817398741053,
+      0.6190212117386943
+     ]
+    },
+    "state": {
+     "detected": 1920,
+     "power": 0.9643395278754395,
+     "ci95": [
+      0.95525847319353,
+      0.9716321631356905
+     ]
+    },
+    "operator": {
+     "detected": 1991,
+     "power": 1.0,
+     "ci95": [
+      0.9980742330619132,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "qubit order",
+   "generated": 1990,
+   "equivalent": 0,
+   "non_equivalent": 1990,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1460,
+     "power": 0.7336683417085427,
+     "ci95": [
+      0.7138097620852432,
+      0.7526264884173041
+     ]
+    },
+    "exact counts": {
+     "detected": 1531,
+     "power": 0.7693467336683417,
+     "ci95": [
+      0.7503298676796132,
+      0.7873256812867641
+     ]
+    },
+    "state": {
+     "detected": 1531,
+     "power": 0.7693467336683417,
+     "ci95": [
+      0.7503298676796132,
+      0.7873256812867641
+     ]
+    },
+    "operator": {
+     "detected": 1990,
+     "power": 1.0,
+     "ci95": [
+      0.9980732672043756,
+      0.9999999999999999
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 20,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 776,
+     "power": 0.388,
+     "ci95": [
+      0.3668774919437113,
+      0.4095519423988036
+     ]
+    },
+    "exact counts": {
+     "detected": 1528,
+     "power": 0.764,
+     "ci95": [
+      0.7448949528033763,
+      0.7820928091035529
+     ]
+    },
+    "state": {
+     "detected": 1732,
+     "power": 0.866,
+     "ci95": [
+      0.850366411818014,
+      0.8802302580984106
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "drop gate",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1402,
+     "power": 0.701,
+     "ci95": [
+      0.680565359639938,
+      0.7206639590846556
+     ]
+    },
+    "exact counts": {
+     "detected": 1657,
+     "power": 0.8285,
+     "ci95": [
+      0.8113537036099977,
+      0.8443867501264654
+     ]
+    },
+    "state": {
+     "detected": 1780,
+     "power": 0.89,
+     "ci95": [
+      0.87553208972497,
+      0.90297255854663
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "rotation sign (one gate)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1361,
+     "power": 0.6805,
+     "ci95": [
+      0.6597348767256827,
+      0.7005730438205321
+     ]
+    },
+    "exact counts": {
+     "detected": 1717,
+     "power": 0.8585,
+     "ci95": [
+      0.8425366046881927,
+      0.8730888219922396
+     ]
+    },
+    "state": {
+     "detected": 1872,
+     "power": 0.936,
+     "ci95": [
+      0.9244151051347421,
+      0.9459131683176109
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "Rz convention (all gates)",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1937,
+     "power": 0.9685,
+     "ci95": [
+      0.9599015931935316,
+      0.9753020676147878
+     ]
+    },
+    "exact counts": {
+     "detected": 1994,
+     "power": 0.997,
+     "ci95": [
+      0.9934699962513178,
+      0.9986243888537725
+     ]
+    },
+    "state": {
+     "detected": 1999,
+     "power": 0.9995,
+     "ci95": [
+      0.9971730649772383,
+      0.9999117345398496
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "qubit order",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 1756,
+     "power": 0.878,
+     "ci95": [
+      0.862926841258619,
+      0.8916238178353934
+     ]
+    },
+    "exact counts": {
+     "detected": 1783,
+     "power": 0.8915,
+     "ci95": [
+      0.877111200786105,
+      0.9043876961326933
+     ]
+    },
+    "state": {
+     "detected": 1783,
+     "power": 0.8915,
+     "ci95": [
+      0.877111200786105,
+      0.9043876961326933
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  },
+  {
+   "family": "variational {Rx,Ry,Rz,CX}",
+   "width": 5,
+   "depth": 40,
+   "mutation": "angle truncation",
+   "generated": 2000,
+   "equivalent": 0,
+   "non_equivalent": 2000,
+   "sampled_false_positives": 0,
+   "oracles": {
+    "sampled counts (1024 shots)": {
+     "detected": 859,
+     "power": 0.4295,
+     "ci95": [
+      0.40796099905097477,
+      0.4513093145306975
+     ]
+    },
+    "exact counts": {
+     "detected": 1725,
+     "power": 0.8625,
+     "ci95": [
+      0.8467106376913655,
+      0.8768994520482628
+     ]
+    },
+    "state": {
+     "detected": 1862,
+     "power": 0.931,
+     "ci95": [
+      0.9190455395176288,
+      0.9413019051107293
+     ]
+    },
+    "operator": {
+     "detected": 2000,
+     "power": 1.0,
+     "ci95": [
+      0.9980828823994873,
+      1.0
+     ]
+    }
+   }
+  }
+ ]
+}
