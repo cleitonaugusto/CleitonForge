@@ -30,11 +30,19 @@ const PHASE_TOL: f64 = 1e-9;
 
 pub enum CheckStatus {
     Pass,
-    Fail { expected: String, got: String },
+    Fail {
+        expected: String,
+        got: String,
+    },
     /// The backend made a different but self-consistent, documented choice.
     /// Not a defect. Callers must not count this as a failure.
-    Convention { reference: String, got: String },
-    Skip { reason: String },
+    Convention {
+        reference: String,
+        got: String,
+    },
+    Skip {
+        reason: String,
+    },
 }
 
 pub struct CheckResult {

@@ -122,7 +122,10 @@ fn diverges(
     level: OracleLevel,
     tol: f64,
 ) -> Option<f64> {
-    let a = NativeStateVectorBackend.run(circuit, 0, 0).ok()?.statevector;
+    let a = NativeStateVectorBackend
+        .run(circuit, 0, 0)
+        .ok()?
+        .statevector;
     let b = device.run(circuit, 0, 0).ok()?.statevector;
     let d = distance(&a, &b, level);
     (d > tol).then_some(d)
@@ -143,7 +146,10 @@ fn main() {
     println!("  reference : statevector-native");
     println!("  device    : {}", device.name());
     println!("  oracle    : {}", level.label());
-    println!("  circuits  : {} (≤{}q, ≤{} gates)", cli.iterations, cli.max_qubits, cli.max_depth);
+    println!(
+        "  circuits  : {} (≤{}q, ≤{} gates)",
+        cli.iterations, cli.max_qubits, cli.max_depth
+    );
     println!("  seed      : 0x{seed:x}");
     println!();
 

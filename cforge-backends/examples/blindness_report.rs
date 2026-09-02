@@ -37,8 +37,14 @@ fn main() {
 
     // ── 1. Quantum Volume HOG ────────────────────────────────────────
     println!("1. Quantum Volume — heavy-output-generation probability");
-    println!("   ({} random 5q×5 Rz/Ry/CX circuits, {} shots each)\n", N_CIRCUITS, SHOTS);
-    println!("   {:<8} {:>12} {:>12} {:>12}", "seed", "correct", "U* all", "Rz-sign");
+    println!(
+        "   ({} random 5q×5 Rz/Ry/CX circuits, {} shots each)\n",
+        N_CIRCUITS, SHOTS
+    );
+    println!(
+        "   {:<8} {:>12} {:>12} {:>12}",
+        "seed", "correct", "U* all", "Rz-sign"
+    );
     let mut max_hog_gap: f64 = 0.0;
     for seed in 0..N_CIRCUITS {
         let c = random_qv_circuit(5, 5, seed);
@@ -51,7 +57,10 @@ fn main() {
         }
     }
     println!("   …");
-    println!("   max |Δ HOG| across all {} circuits: {:.2e}\n", N_CIRCUITS, max_hog_gap);
+    println!(
+        "   max |Δ HOG| across all {} circuits: {:.2e}\n",
+        N_CIRCUITS, max_hog_gap
+    );
 
     // ── 2. Linear XEB ────────────────────────────────────────────────
     println!("2. Linear cross-entropy benchmarking (Google supremacy metric)\n");
@@ -71,7 +80,10 @@ fn main() {
         }
     }
     println!("   …");
-    println!("   max |Δ F_XEB| (exact) across all circuits: {:.2e}", max_xeb_gap);
+    println!(
+        "   max |Δ F_XEB| (exact) across all circuits: {:.2e}",
+        max_xeb_gap
+    );
     let c = random_qv_circuit(5, 5, 3);
     let fs0 = xeb_score_sampled(&c, &ideal, &ideal, SHOTS, 99).unwrap();
     let fs1 = xeb_score_sampled(&c, &ideal, &conj_all, SHOTS, 99).unwrap();

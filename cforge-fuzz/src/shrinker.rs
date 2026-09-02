@@ -83,7 +83,11 @@ mod tests {
             GateKind::H,
             GateKind::X,
         ] {
-            let params = if kind == GateKind::Rz { vec![0.5] } else { vec![] };
+            let params = if kind == GateKind::Rz {
+                vec![0.5]
+            } else {
+                vec![]
+            };
             c.push(Operation::new(kind, vec![0], params));
         }
 

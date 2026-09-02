@@ -43,7 +43,7 @@ use cforge_core::{Circuit, GateKind, Operation};
 
 const TRIALS: usize = 100;
 const MAX_WIDTH: usize = 5;
-const SEED: u64 = 2024_07_04;
+const SEED: u64 = 20_240_704;
 
 fn main() {
     println!("╔══════════════════════════════════════════════════════════════╗");

@@ -26,8 +26,7 @@ mod tests {
     use crate::oracle::{distance, OracleLevel};
     use crate::shrinker::shrink;
     use cforge_backends::{
-        ConjugatedStateVectorBackend, ConjugationScope, NativeStateVectorBackend,
-        SimulationBackend,
+        ConjugatedStateVectorBackend, ConjugationScope, NativeStateVectorBackend, SimulationBackend,
     };
     use cforge_core::{Circuit, GateKind};
     use rand::rngs::StdRng;
@@ -125,10 +124,7 @@ mod tests {
     #[test]
     fn global_phase_is_not_a_divergence() {
         use num_complex::Complex64;
-        let a = vec![
-            Complex64::new(0.6, 0.0),
-            Complex64::new(0.0, 0.8),
-        ];
+        let a = vec![Complex64::new(0.6, 0.0), Complex64::new(0.0, 0.8)];
         let phase = Complex64::from_polar(1.0, 1.234);
         let b: Vec<Complex64> = a.iter().map(|x| x * phase).collect();
         assert!(distance(&a, &b, OracleLevel::Amplitude) < 1e-12);

@@ -54,7 +54,9 @@ pub fn to_qasm2(circuit: &Circuit) -> String {
 }
 
 fn json_escape(s: &str) -> String {
-    s.replace('\\', "\\\\").replace('"', "\\\"").replace('\n', "\\n")
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
 }
 
 impl ZooEntry<'_> {
