@@ -289,8 +289,7 @@ mod tests {
     #[test]
     fn amplitude_damping_preserves_ground_state() {
         // |0⟩ never decays (no energy to lose)
-        let mut sv = vec![Complex64::new(1.0, 0.0), Complex64::new(0.0, 0.0)];
-        let orig = sv.clone();
+        let orig = vec![Complex64::new(1.0, 0.0), Complex64::new(0.0, 0.0)];
         let mut rng = SmallRng::seed_from_u64(0);
         for _ in 0..100 {
             let mut s = orig.clone();

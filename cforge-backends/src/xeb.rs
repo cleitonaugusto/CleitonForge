@@ -352,6 +352,9 @@ mod tests {
         let h_correct = heavy_output_probability(&c, &ideal, &ideal, SHOTS, 5).unwrap();
         let h_wrong = heavy_output_probability(&c, &ideal, &wrong, SHOTS, 5).unwrap();
         assert!((h_correct - h_wrong).abs() < 1e-12);
-        assert!(h_correct > 0.6, "HOG of ideal device should be heavy-biased");
+        assert!(
+            h_correct > 0.6,
+            "HOG of ideal device should be heavy-biased"
+        );
     }
 }
