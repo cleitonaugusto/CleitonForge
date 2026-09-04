@@ -4,7 +4,7 @@
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/cleitonaugusto?label=Sponsor&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/cleitonaugusto)
 [![Crates.io](https://img.shields.io/crates/v/cleitonforge)](https://crates.io/crates/cleitonforge)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22239105.svg)](https://doi.org/10.5281/zenodo.22239105)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22307398.svg)](https://doi.org/10.5281/zenodo.22307398)
 [![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
 
 **CleitonForge** is a differential fuzzer for quantum compilers and simulators,
