@@ -3,7 +3,6 @@
 **[English]** | [Português](README.pt-BR.md)
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/cleitonaugusto?label=Sponsor&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/cleitonaugusto)
-[![Crates.io](https://img.shields.io/crates/v/cleitonforge)](https://crates.io/crates/cleitonforge)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22307398.svg)](https://doi.org/10.5281/zenodo.22307398)
 [![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
 
@@ -156,13 +155,20 @@ cforge-parser  ──►  Circuit (canonical IR)
 git clone https://github.com/cleitonaugusto/CleitonForge.git
 cd CleitonForge
 cargo build --release
-# binary at: target/release/cforge
+```
+
+The binary lands at `target/release/cforge`. The commands below call it by that
+path so they work straight after the build. To type just `cforge` anywhere,
+install it onto your `PATH`:
+
+```bash
+cargo install --path cforge-cli
 ```
 
 ### Run a circuit on both backends
 
 ```bash
-cforge run --circuit examples/bell.qasm --backends statevector,quantrs2 --shots 1024
+./target/release/cforge run --circuit examples/bell.qasm --backends statevector,quantrs2 --shots 1024
 ```
 
 ```
@@ -176,10 +182,26 @@ Circuit: 2 qubits  |  2 gates  |  depth 2  |  seed 0xdeadbeefcafebabe
 └──────────────────────┴───────────┴────────┴───────┴───────┴──────────┴───────┘
 ```
 
+### Run the benchmark suite as a CI gate
+
+Six standard algorithms, each checked against a known expected outcome and, with
+two or more backends, against each other by state fidelity. Exits 1 if anything
+fails, so it drops straight into a pipeline step:
+
+```bash
+./target/release/cforge bench --backends statevector,quantrs2
+./target/release/cforge bench --format json > fidelity-report.json
+```
+
+The QAOA MaxCut case reports a fidelity of ~0 and still passes. That is the
+documented Rz sign divergence between the two backends: the disagreement is the
+result, not a regression, so it is shown and not gated. Everything else is
+gated at `--threshold` (0.9999 by default).
+
 ### Validate a circuit without simulation
 
 ```bash
-cforge validate --circuit examples/bell.qasm
+./target/release/cforge validate --circuit examples/bell.qasm
 ```
 
 ```
@@ -196,7 +218,7 @@ Status : OK
 ### Export results as JSON (for scripts / CI)
 
 ```bash
-cforge run --circuit examples/bell.qasm --shots 1024 --format json
+./target/release/cforge run --circuit examples/bell.qasm --shots 1024 --format json
 ```
 
 ```json
@@ -224,7 +246,7 @@ cforge run --circuit examples/bell.qasm --shots 1024 --format json
 3-qubit Grover search for |101⟩, 2 iterations, both backends:
 
 ```bash
-cargo run --example compare_grover -p cforge-cli
+cargo run --release --example compare_grover -p cforge-cli
 ```
 
 ```
