@@ -1,3 +1,4 @@
+pub mod bench;
 pub mod ibm_profile;
 
 use std::path::{Path, PathBuf};
@@ -57,6 +58,34 @@ enum Commands {
         seed: u64,
     },
 
+    /// Run the canonical benchmark suite across backends as a CI gate.
+    ///
+    /// Six standard algorithms, each checked against a known expected outcome
+    /// and, when two or more backends are selected, against each other by state
+    /// fidelity. Exits 1 if any case fails, so it drops straight into a
+    /// pipeline step.
+    Bench {
+        /// Comma-separated list of backends: statevector, quantrs2
+        #[arg(long, default_value = "statevector,quantrs2")]
+        backends: String,
+
+        /// Number of measurement shots per circuit
+        #[arg(long, default_value_t = 4096)]
+        shots: usize,
+
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Table)]
+        format: OutputFormat,
+
+        /// Seed for the shot-sampling PRNG
+        #[arg(long, default_value_t = DEFAULT_SEED)]
+        seed: u64,
+
+        /// Minimum cross-backend state fidelity before a case fails
+        #[arg(long, default_value_t = 0.9999)]
+        threshold: f64,
+    },
+
     /// Parse a circuit and show its statistics without running simulation.
     Validate {
         /// Path to a .qasm file (OpenQASM 2 or 3)
@@ -81,6 +110,24 @@ enum Commands {
     },
 }
 
+/// Resolves a backend name to an implementation, exiting with a usage error on
+/// an unknown one. Shared by `run`, `bench` and `conventions` so the accepted
+/// spellings cannot drift apart between subcommands.
+fn resolve_backend(name: &str) -> Box<dyn SimulationBackend> {
+    match name.trim() {
+        "statevector" | "native" => Box::new(NativeStateVectorBackend),
+        "quantrs2" => Box::new(QuantRS2Backend),
+        other => {
+            eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
+            std::process::exit(1);
+        }
+    }
+}
+
+fn resolve_backends(list: &str) -> Vec<Box<dyn SimulationBackend>> {
+    list.split(',').map(resolve_backend).collect()
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -94,6 +141,23 @@ fn main() {
         } => {
             cmd_run(&circuit, &backends, shots, format, seed);
         }
+        Commands::Bench {
+            backends,
+            shots,
+            format,
+            seed,
+            threshold,
+        } => {
+            let code = bench::cmd_bench(
+                resolve_backends(&backends),
+                shots,
+                seed,
+                threshold,
+                matches!(format, OutputFormat::Json),
+            );
+            std::process::exit(code);
+        }
+
         Commands::Validate { circuit } => cmd_validate(&circuit),
         Commands::Conventions { backend } => cmd_conventions(&backend),
     }
@@ -110,19 +174,7 @@ fn cmd_run(path: &PathBuf, backends_str: &str, shots: usize, format: OutputForma
     let circuit = load_circuit(&source, path);
     let stats = compute_stats(&circuit);
 
-    let selected: Vec<Box<dyn SimulationBackend>> = backends_str
-        .split(',')
-        .map(|name| -> Box<dyn SimulationBackend> {
-            match name.trim() {
-                "statevector" | "native" => Box::new(NativeStateVectorBackend),
-                "quantrs2" => Box::new(QuantRS2Backend),
-                other => {
-                    eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
-                    std::process::exit(1);
-                }
-            }
-        })
-        .collect();
+    let selected = resolve_backends(backends_str);
 
     // Native statevector used as fidelity reference (shots=0 → seed irrelevant).
     let ref_result = NativeStateVectorBackend.run(&circuit, 0, DEFAULT_SEED).ok();
@@ -287,14 +339,7 @@ fn cmd_validate(path: &PathBuf) {
 // ── cforge conventions ───────────────────────────────────────────────────────
 
 fn cmd_conventions(backend_name: &str) {
-    let backend: Box<dyn SimulationBackend> = match backend_name.trim() {
-        "statevector" | "native" => Box::new(NativeStateVectorBackend),
-        "quantrs2" => Box::new(QuantRS2Backend),
-        other => {
-            eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
-            std::process::exit(1);
-        }
-    };
+    let backend = resolve_backend(backend_name);
 
     println!("╔══════════════════════════════════════════════════════════════╗");
     println!("║        CleitonForge — Gate Convention Report                 ║");
