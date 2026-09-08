@@ -310,7 +310,30 @@ fn resolve_arg_from_qubit_map(
 /// `param_map` substitutes formal parameter names with their concrete values
 /// (used when evaluating expressions inside user-defined gate bodies).
 fn eval_param_with_subst(expr: &str, param_map: &HashMap<&str, f64>) -> Result<f64, ParseError> {
-    let s = expr.trim();
+    // The `qasm` crate hands parameters back as its own tokens rejoined with
+    // spaces, so "1e-5" arrives as "1 e - 5". Whitespace carries no meaning
+    // here and has to go, or scientific notation and a unary sign after an
+    // operator are both unparseable.
+    //
+    // The one thing closing a gap cannot do is open another: two numbers with
+    // only space between them, "2 3", would silently become 23. That is
+    // meaningless input and is rejected rather than concatenated.
+    let mut prev_digit = false;
+    let mut gap = false;
+    for c in expr.chars() {
+        if c.is_whitespace() {
+            gap = prev_digit;
+        } else {
+            if gap && c.is_ascii_digit() && prev_digit {
+                return Err(ParseError::InvalidParam(expr.to_string()));
+            }
+            prev_digit = c.is_ascii_digit();
+            gap = false;
+        }
+    }
+
+    let owned: String = expr.chars().filter(|c| !c.is_whitespace()).collect();
+    let s = owned.as_str();
     if let Ok(v) = s.parse::<f64>() {
         return Ok(v);
     }
@@ -325,23 +348,102 @@ fn eval_param_with_subst(expr: &str, param_map: &HashMap<&str, f64>) -> Result<f
     eval_simple_expr(&substituted).map_err(|_| ParseError::InvalidParam(expr.to_string()))
 }
 
-/// Evaluates simple additive/multiplicative expressions over f64 literals.
+/// Evaluates an additive/multiplicative expression over `f64` literals.
+///
+/// Recursive descent over the QASM 2 parameter grammar: additive, then
+/// multiplicative, then unary, with parentheses handled at the innermost level.
+/// Scanning right to left and recursing on the left operand gives the usual
+/// left associativity, so `8/4/2` is 1 rather than 4.
 fn eval_simple_expr(s: &str) -> Result<f64, ()> {
-    // Handle +/-
-    for (i, c) in s.char_indices().rev() {
-        if (c == '+' || c == '-') && i > 0 {
-            let left = eval_simple_expr(s[..i].trim())?;
-            let right = eval_simple_expr(s[i + 1..].trim())?;
-            return Ok(if c == '+' { left + right } else { left - right });
+    eval_additive(s.trim())
+}
+
+/// Index of the `+` or `-` that splits at the lowest precedence, if any.
+///
+/// A sign is only binary when something can sit to its left. After another
+/// operator it is unary (`2*-3`); after an `e` it belongs to an exponent
+/// (`1e-5`); at index zero it is a leading sign. Parenthesised subexpressions
+/// are skipped, so `(a+b)*c` does not split on the inner `+`.
+fn find_additive_split(s: &str) -> Option<usize> {
+    let b = s.as_bytes();
+    let mut depth = 0i32;
+    for i in (1..b.len()).rev() {
+        match b[i] {
+            b')' => depth += 1,
+            b'(' => depth -= 1,
+            b'+' | b'-'
+                if depth == 0
+                    && !matches!(b[i - 1], b'e' | b'E' | b'+' | b'-' | b'*' | b'/' | b'(') =>
+            {
+                return Some(i)
+            }
+            _ => {}
         }
     }
-    // Handle * and /
-    for (i, c) in s.char_indices().rev() {
-        if c == '*' || c == '/' {
-            let left = eval_simple_expr(s[..i].trim())?;
-            let right = eval_simple_expr(s[i + 1..].trim())?;
-            return Ok(if c == '*' { left * right } else { left / right });
+    None
+}
+
+/// Index of the rightmost `*` or `/` outside parentheses, with which it is.
+///
+/// Both operators have to be considered together. Looking for `*` first and
+/// splitting there regardless of position hands the remainder, `pi/4`, to the
+/// unary level, which cannot divide — which is how `2*pi/4` used to fail.
+fn find_multiplicative_split(s: &str) -> Option<(usize, u8)> {
+    let b = s.as_bytes();
+    let mut depth = 0i32;
+    for i in (0..b.len()).rev() {
+        match b[i] {
+            b')' => depth += 1,
+            b'(' => depth -= 1,
+            b'*' | b'/' if depth == 0 => return Some((i, b[i])),
+            _ => {}
         }
+    }
+    None
+}
+
+fn eval_additive(s: &str) -> Result<f64, ()> {
+    let s = s.trim();
+    if let Some(pos) = find_additive_split(s) {
+        let left = eval_additive(&s[..pos])?;
+        let right = eval_multiplicative(&s[pos + 1..])?;
+        return Ok(if s.as_bytes()[pos] == b'+' {
+            left + right
+        } else {
+            left - right
+        });
+    }
+    eval_multiplicative(s)
+}
+
+fn eval_multiplicative(s: &str) -> Result<f64, ()> {
+    let s = s.trim();
+    if let Some((pos, op)) = find_multiplicative_split(s) {
+        let left = eval_multiplicative(&s[..pos])?;
+        let right = eval_unary(&s[pos + 1..])?;
+        if op == b'/' {
+            // A literal division by zero is a malformed circuit, not an
+            // infinity to carry into a rotation angle.
+            if right == 0.0 {
+                return Err(());
+            }
+            return Ok(left / right);
+        }
+        return Ok(left * right);
+    }
+    eval_unary(s)
+}
+
+fn eval_unary(s: &str) -> Result<f64, ()> {
+    let s = s.trim();
+    if let Some(rest) = s.strip_prefix('-') {
+        return Ok(-eval_unary(rest)?);
+    }
+    if let Some(rest) = s.strip_prefix('+') {
+        return eval_unary(rest);
+    }
+    if s.starts_with('(') && s.ends_with(')') && s.len() >= 2 {
+        return eval_additive(&s[1..s.len() - 1]);
     }
     s.parse::<f64>().map_err(|_| ())
 }
@@ -366,6 +468,52 @@ measure q[1] -> c[1];
     /// Almost every OpenQASM 2 file in the world opens with this line, and
     /// nobody ships the file it names. The underlying `qasm` crate panics on
     /// an include it cannot open, so this must be handled before it gets there.
+    fn angle_of(expr: &str) -> Result<f64, ParseError> {
+        let src = format!("OPENQASM 2.0;\nqreg q[1];\nrz({expr}) q[0];\n");
+        parse_qasm2(&src, Path::new("/nonexistent")).map(|c| c.operations[0].params[0])
+    }
+
+    /// Parentheses, scientific notation and a sign after an operator are all
+    /// ordinary OpenQASM, and all three used to be rejected. The values matter
+    /// as much as the acceptance: an evaluator that parses and returns the
+    /// wrong angle is worse than one that refuses.
+    #[test]
+    fn parameter_expressions_evaluate_to_the_right_angle() {
+        use std::f64::consts::PI;
+        for (expr, want) in [
+            ("pi/2", PI / 2.0),
+            ("2*pi", 2.0 * PI),
+            ("-pi", -PI),
+            ("2*pi/4", PI / 2.0),
+            ("(pi+pi)/2", PI),
+            ("-(pi/2)", -PI / 2.0),
+            ("2*(pi/4)", PI / 2.0),
+            ("pi/2-pi/4", PI / 4.0),
+            ("8/4/2", 1.0),
+            ("2*-3", -6.0),
+            ("1e-5", 1e-5),
+            ("1.5e3", 1500.0),
+        ] {
+            let got = angle_of(expr).unwrap_or_else(|e| panic!("{expr}: {e}"));
+            assert!(
+                (got - want).abs() < 1e-12,
+                "{expr} evaluated to {got}, expected {want}"
+            );
+        }
+    }
+
+    /// Closing a gap must not open one. "2 3" is two numbers with a space
+    /// between them: meaningless, and it must not quietly become 23.
+    #[test]
+    fn malformed_parameters_are_refused() {
+        for expr in ["pi/0", "abacate", "2*", "2 3"] {
+            assert!(
+                angle_of(expr).is_err(),
+                "{expr} should not have produced an angle"
+            );
+        }
+    }
+
     #[test]
     fn standard_library_include_is_implicit() {
         let src = "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nh q[0];\ncx q[0],q[1];\n";
