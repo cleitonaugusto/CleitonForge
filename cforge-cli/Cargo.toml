@@ -14,10 +14,22 @@ path = "src/main.rs"
 [dependencies]
 cforge-core = { path = "../cforge-core" }
 cforge-parser = { path = "../cforge-parser" }
-cforge-backends = { path = "../cforge-backends", features = ["q1tsim"] }
+cforge-backends = { path = "../cforge-backends" }
 cforge-metrics = { path = "../cforge-metrics" }
 clap = { version = "4", features = ["derive"] }
 comfy-table = "7"
 serde_json = "1"
 rand = { version = "0.10", features = ["std_rng"] }
 num-complex = "0.4"
+
+[features]
+# q1tsim ships as a Rust dylib. Linking it makes the binary load libq1tsim and
+# libstd at run time from target/release/deps, which is not on the loader path,
+# so `cforge --version` fails before main() with a shared-object error. The CLI
+# never constructs Q1tSimBackend, so the cost bought nothing. Opt in with
+# `cargo build --features q1tsim` and run the binary from the workspace root.
+q1tsim = ["cforge-backends/q1tsim"]
+
+[[example]]
+name = "quantum_volume"
+required-features = ["q1tsim"]
