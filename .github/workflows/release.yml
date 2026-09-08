@@ -18,7 +18,7 @@ jobs:
       - uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist
+          args: --release --strip --out dist
           manylinux: auto
           working-directory: cforge-py
 
@@ -36,7 +36,7 @@ jobs:
       - uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist --target universal2-apple-darwin
+          args: --release --strip --out dist --target universal2-apple-darwin
           working-directory: cforge-py
 
       - uses: actions/upload-artifact@v4
@@ -53,7 +53,7 @@ jobs:
       - uses: PyO3/maturin-action@v1
         with:
           command: build
-          args: --release --out dist
+          args: --release --strip --out dist
           working-directory: cforge-py
 
       - uses: actions/upload-artifact@v4
