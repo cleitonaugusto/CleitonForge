@@ -11,6 +11,8 @@
 use std::collections::HashMap;
 
 use cforge_core::{Circuit, Operation, Qubit};
+use std::borrow::Cow;
+
 use oq3_semantics::asg::{self, ArithOp, BinaryOp, Expr, Literal, UnaryOp};
 use oq3_semantics::symbols::{SymbolId, SymbolTable, SymbolType};
 use oq3_semantics::syntax_to_semantics::parse_source_string;
@@ -36,9 +38,39 @@ const MAX_INLINE_DEPTH: usize = 32;
 
 // ── Main entry point ──────────────────────────────────────────────────────────
 
+/// Gives the version header an explicit minor version.
+///
+/// The OpenQASM 3 grammar spells the version as `[0-9]+ ('.' [0-9]+)?`, so
+/// `OPENQASM 3;` is valid and common in hand-written files. The parser behind
+/// this wants the minor part, and rejects the short form as a syntax error —
+/// which is a confusing thing to be told about a file that follows the spec.
+fn normalise_version(source: &str) -> Cow<'_, str> {
+    let trimmed = source.trim_start();
+    let Some(rest) = trimmed.strip_prefix("OPENQASM ") else {
+        return Cow::Borrowed(source);
+    };
+    let Some(end) = rest.find(';') else {
+        return Cow::Borrowed(source);
+    };
+    let version = rest[..end].trim();
+    if version.is_empty() || version.contains('.') || !version.bytes().all(|b| b.is_ascii_digit()) {
+        return Cow::Borrowed(source);
+    }
+
+    let offset = source.len() - trimmed.len();
+    let prefix_len = offset + "OPENQASM ".len();
+    let mut out = String::with_capacity(source.len() + 2);
+    out.push_str(&source[..prefix_len]);
+    out.push_str(version);
+    out.push_str(".0");
+    out.push_str(&rest[end..]);
+    Cow::Owned(out)
+}
+
 /// Parses an OpenQASM 3 source string and returns the canonical circuit.
 pub fn parse_qasm3(source: &str) -> Result<Circuit, ParseError> {
-    let result = parse_source_string(source, None, None::<&[&std::path::Path]>);
+    let source = normalise_version(source);
+    let result = parse_source_string(&source, None, None::<&[&std::path::Path]>);
 
     if result.any_syntax_errors() {
         return Err(ParseError::SyntaxError(
@@ -465,6 +497,25 @@ qubit[2] q;
 h q[0];
 cx q[0], q[1];
 "#;
+
+    /// The grammar spells the version as `[0-9]+ ('.' [0-9]+)?`, so the minor
+    /// part is optional and `OPENQASM 3;` is a valid header. The parser behind
+    /// this one wants it, and used to reject a spec-conformant file as a
+    /// syntax error.
+    #[test]
+    fn short_version_header_is_accepted() {
+        let src = "OPENQASM 3;\ninclude \"stdgates.inc\";\nqubit[3] q;\nh q[0];\ncx q[0], q[1];\ncx q[0], q[2];\n";
+        let c = parse_qasm3(src).expect("OPENQASM 3; is valid");
+        assert_eq!(c.num_qubits(), 3);
+        assert_eq!(c.operations.len(), 3);
+    }
+
+    /// And the long form has to keep working, since that is what Qiskit emits.
+    #[test]
+    fn long_version_header_still_works() {
+        let c = parse_qasm3(BELL_QASM3).expect("OPENQASM 3.0; is valid");
+        assert_eq!(c.num_qubits(), 2);
+    }
 
     #[test]
     fn bell_state_qasm3() {
