@@ -7,12 +7,19 @@ use clap::{Parser, Subcommand, ValueEnum};
 use comfy_table::{presets::UTF8_FULL, Table};
 
 use cforge_backends::{
-    certify, CheckStatus, NativeStateVectorBackend, QuantRS2Backend, SimulationBackend,
-    DEFAULT_SEED,
+    certify, CheckStatus, NativeStateVectorBackend, QuantRS2Backend, RoqoqoBackend,
+    SimulationBackend, DEFAULT_SEED,
 };
 use cforge_core::MetricsResult;
 use cforge_metrics::{compute_stats, measure};
 use cforge_parser::{parse_qasm2, parse_qasm3};
+
+/// Backends the CLI can select. q1tsim only appears when built with its
+/// feature, so the list the user is shown is the list that actually works.
+#[cfg(feature = "q1tsim")]
+const BACKEND_NAMES: &str = "statevector, quantrs2, roqoqo, q1tsim";
+#[cfg(not(feature = "q1tsim"))]
+const BACKEND_NAMES: &str = "statevector, quantrs2, roqoqo";
 
 #[derive(Parser)]
 #[command(
@@ -117,8 +124,13 @@ fn resolve_backend(name: &str) -> Box<dyn SimulationBackend> {
     match name.trim() {
         "statevector" | "native" => Box::new(NativeStateVectorBackend),
         "quantrs2" => Box::new(QuantRS2Backend),
+        "roqoqo" => Box::new(RoqoqoBackend),
+        // q1tsim ships as a dylib, so it is behind a feature: see the note in
+        // cforge-cli/Cargo.toml.
+        #[cfg(feature = "q1tsim")]
+        "q1tsim" => Box::new(cforge_backends::Q1tSimBackend),
         other => {
-            eprintln!("error: unknown backend '{other}'. Available: statevector, quantrs2");
+            eprintln!("error: unknown backend '{other}'. Available: {BACKEND_NAMES}");
             std::process::exit(1);
         }
     }
@@ -256,6 +268,31 @@ fn print_table(
     }
 
     println!("{table}");
+
+    if shots > 0 {
+        println!();
+        println!("Measurement counts ({shots} shots, seed {seed:#x}):");
+        let width = backends.iter().map(|b| b.name().len()).max().unwrap_or(0);
+        for (backend, result) in backends.iter().zip(results) {
+            let Ok(m) = result else { continue };
+            println!("  {:<width$}: {}", backend.name(), format_counts(&m.counts));
+        }
+    }
+}
+
+/// Renders counts highest first, ties broken by bitstring.
+///
+/// A `HashMap` iterates in an order that changes between runs, so printing it
+/// raw would make the same command produce output that will not diff against
+/// itself — which is the first thing anyone does with it.
+fn format_counts(counts: &std::collections::HashMap<String, usize>) -> String {
+    let mut pairs: Vec<_> = counts.iter().collect();
+    pairs.sort_by(|a, b| b.1.cmp(a.1).then_with(|| a.0.cmp(b.0)));
+    let body: Vec<String> = pairs
+        .iter()
+        .map(|(state, n)| format!("{state:?}: {n}"))
+        .collect();
+    format!("{{{}}}", body.join(", "))
 }
 
 fn print_json(
@@ -279,6 +316,7 @@ fn print_json(
                 "gates":        m.gate_count,
                 "fidelity":     m.fidelity,
                 "shots":        if shots > 0 { Some(shots) } else { None::<usize> },
+                "counts":       if shots > 0 { Some(&m.counts) } else { None },
                 "error":        null,
             }),
             Err(e) => serde_json::json!({

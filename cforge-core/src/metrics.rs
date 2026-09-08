@@ -17,4 +17,6 @@ pub struct MetricsResult {
     /// Peak memory used during the backend call, when measurable.
     pub memory_bytes: Option<u64>,
     pub backend_name: String,
+    /// Measured bitstring counts, empty when the run used no shots.
+    pub counts: std::collections::HashMap<String, usize>,
 }

@@ -56,5 +56,49 @@ pub fn measure(
         execution_time_ms: elapsed_ms,
         memory_bytes: Some(memory_bytes),
         backend_name: backend.name().to_string(),
+        counts: result.counts,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use cforge_backends::{NativeStateVectorBackend, DEFAULT_SEED};
+    use cforge_core::{GateKind, Operation};
+
+    fn bell() -> Circuit {
+        let mut c = Circuit::new(2);
+        c.push(Operation::new(GateKind::H, vec![0], vec![]));
+        c.push(Operation::new(GateKind::Cx, vec![0, 1], vec![]));
+        c
+    }
+
+    /// The backend produces counts and `measure` used to drop them, so the CLI
+    /// could run shots and never say what was measured.
+    #[test]
+    fn shots_produce_counts_that_sum_to_the_shot_count() {
+        let m = measure(&NativeStateVectorBackend, &bell(), 2048, DEFAULT_SEED, None).unwrap();
+        assert_eq!(m.counts.values().sum::<usize>(), 2048);
+        // A Bell state only ever lands on |00> or |11>.
+        let mut seen: Vec<&str> = m.counts.keys().map(String::as_str).collect();
+        seen.sort_unstable();
+        assert_eq!(seen, ["00", "11"]);
+    }
+
+    /// Without shots there is nothing to count, and an empty map says that
+    /// more honestly than zeros would.
+    #[test]
+    fn no_shots_means_no_counts() {
+        let m = measure(&NativeStateVectorBackend, &bell(), 0, DEFAULT_SEED, None).unwrap();
+        assert!(m.counts.is_empty());
+    }
+
+    /// The seed is documented as making a run reproducible. That is a claim
+    /// about behaviour, so it gets a test.
+    #[test]
+    fn the_same_seed_gives_the_same_counts() {
+        let a = measure(&NativeStateVectorBackend, &bell(), 2048, 42, None).unwrap();
+        let b = measure(&NativeStateVectorBackend, &bell(), 2048, 42, None).unwrap();
+        assert_eq!(a.counts, b.counts);
+    }
 }
