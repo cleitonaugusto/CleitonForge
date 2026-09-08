@@ -19,12 +19,11 @@ fn main() {
     println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/deps");
 
     // libstd comes from the toolchain, whose location is only known here.
-    if let Ok(out) = std::process::Command::new(
-        std::env::var("RUSTC").unwrap_or_else(|_| "rustc".into()),
-    )
-    .arg("--print")
-    .arg("target-libdir")
-    .output()
+    if let Ok(out) =
+        std::process::Command::new(std::env::var("RUSTC").unwrap_or_else(|_| "rustc".into()))
+            .arg("--print")
+            .arg("target-libdir")
+            .output()
     {
         if out.status.success() {
             let dir = String::from_utf8_lossy(&out.stdout).trim().to_string();
