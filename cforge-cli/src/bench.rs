@@ -243,7 +243,15 @@ fn run_benchmark(
             let decisive = cut.max(1.0 - cut);
             (
                 decisive,
-                format!("cut {:.0}% ({})", cut * 100.0, if cut >= 0.5 { "cut states" } else { "complement" }),
+                format!(
+                    "cut {:.0}% ({})",
+                    cut * 100.0,
+                    if cut >= 0.5 {
+                        "cut states"
+                    } else {
+                        "complement"
+                    }
+                ),
                 false,
             )
         }
@@ -308,7 +316,13 @@ fn suite() -> Vec<(&'static str, Circuit, ExpectKind, f64)> {
     ]
 }
 
-fn to_json(results: &[BenchResult], names: &[String], shots: usize, seed: u64, threshold: f64) -> Value {
+fn to_json(
+    results: &[BenchResult],
+    names: &[String],
+    shots: usize,
+    seed: u64,
+    threshold: f64,
+) -> Value {
     let cases: Vec<Value> = results
         .iter()
         .map(|r| {
@@ -370,7 +384,10 @@ fn print_table(results: &[BenchResult], names: &[String], shots: usize, seed: u6
     println!("║        CleitonForge — Canonical Benchmark Suite              ║");
     println!("╠══════════════════════════════════════════════════════════════╣");
     println!("║  Backends : {:<49}║", names.join(", "));
-    println!("║  Shots    : {:<49}║", format!("{shots}  |  seed {seed:#x}"));
+    println!(
+        "║  Shots    : {:<49}║",
+        format!("{shots}  |  seed {seed:#x}")
+    );
     println!("║  Threshold: {:<49}║", format!("fidelity ≥ {threshold}"));
     println!("╚══════════════════════════════════════════════════════════════╝");
     println!();
@@ -378,7 +395,14 @@ fn print_table(results: &[BenchResult], names: &[String], shots: usize, seed: u6
     let mut table = Table::new();
     table.load_preset(UTF8_FULL);
     table.set_header(vec![
-        "Benchmark", "Q", "Gates", "Depth", "Result", "Fidelity", "Time (ms)", "OK",
+        "Benchmark",
+        "Q",
+        "Gates",
+        "Depth",
+        "Result",
+        "Fidelity",
+        "Time (ms)",
+        "OK",
     ]);
 
     for r in results {
@@ -407,13 +431,19 @@ fn print_table(results: &[BenchResult], names: &[String], shots: usize, seed: u6
     println!("{table}");
 
     // Only worth explaining the asterisk if a row actually carries one.
-    if results.iter().any(|r| r.note.is_some() && r.fidelity.is_some()) {
+    if results
+        .iter()
+        .any(|r| r.note.is_some() && r.fidelity.is_some())
+    {
         println!();
         println!("  * Fidelity not gated — documented inter-framework Rz sign convention");
         println!("    divergence. Same circuit, different backend math: that disagreement");
         println!("    is the thing CleitonForge exists to surface, not a regression.");
     }
-    if results.iter().any(|r| r.fidelity.is_none() && r.note.is_none()) {
+    if results
+        .iter()
+        .any(|r| r.fidelity.is_none() && r.note.is_none())
+    {
         println!();
         println!("  — No cross-backend fidelity: only one backend was selected. Expected");
         println!("    outcomes were still checked. Pass two or more to gate on agreement.");
@@ -578,7 +608,10 @@ mod tests {
     fn quantrs2_alone_passes_every_benchmark() {
         let only = vec![Box::new(QuantRS2Backend) as Box<dyn SimulationBackend>];
         for (name, ..) in suite() {
-            assert!(run_one(name, &only, 0.9999).pass, "{name} on quantrs2 alone");
+            assert!(
+                run_one(name, &only, 0.9999).pass,
+                "{name} on quantrs2 alone"
+            );
         }
     }
 
@@ -596,7 +629,10 @@ mod tests {
         };
         let err = run_benchmark(n, &circuit, expect, min_prob, &backends, &opts)
             .expect_err("zero shots must not produce a result");
-        assert!(err.contains("--shots"), "the error should say how to fix it");
+        assert!(
+            err.contains("--shots"),
+            "the error should say how to fix it"
+        );
     }
 
     /// `worst_fidelity` gates dashboards, so it must describe the cases that are
