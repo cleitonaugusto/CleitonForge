@@ -9,6 +9,9 @@ pub enum ParseError {
     UnknownGate(String),
     /// A numeric parameter expression could not be evaluated.
     InvalidParam(String),
+    /// An `include` names a file that is neither a standard library nor
+    /// present next to the source.
+    MissingInclude(String),
 }
 
 impl std::fmt::Display for ParseError {
@@ -18,6 +21,10 @@ impl std::fmt::Display for ParseError {
             ParseError::UndeclaredQubit(name) => write!(f, "undeclared qubit register: {name}"),
             ParseError::UnknownGate(name) => write!(f, "unknown gate: {name}"),
             ParseError::InvalidParam(expr) => write!(f, "invalid parameter expression: {expr}"),
+            ParseError::MissingInclude(f_) => write!(
+                f,
+                "cannot find included file {f_:?} next to the circuit"
+            ),
         }
     }
 }
