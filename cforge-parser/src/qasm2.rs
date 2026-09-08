@@ -52,8 +52,46 @@ fn collect_user_gates(ast: &[qasm::AstNode]) -> UserGateMap {
 ///
 /// `search_dir` is the directory used to resolve `include` statements (pass
 /// `std::env::current_dir().unwrap()` when there are none).
+/// Includes whose contents this parser already knows. `qelib1.inc` is the
+/// OpenQASM 2 standard library: nobody ships the file, everybody writes the
+/// line, and every gate it declares is in our gate table already.
+const IMPLICIT_INCLUDES: &[&str] = &["qelib1.inc", "stdgates.inc"];
+
+/// Drops includes we already implement and rejects ones we cannot find.
+///
+/// The underlying `qasm` crate calls `panic!` on an include it cannot open, so
+/// a file starting with the standard `include "qelib1.inc";` — which is to say
+/// almost every OpenQASM 2 file in existence — would abort the process instead
+/// of returning an error.
+fn resolve_includes(source: &str, search_dir: &Path) -> Result<String, ParseError> {
+    let mut out = Vec::with_capacity(source.lines().count());
+    for line in source.lines() {
+        let trimmed = line.trim_start();
+        if !trimmed.starts_with("include") {
+            out.push(line);
+            continue;
+        }
+        let name = trimmed
+            .trim_start_matches("include")
+            .trim()
+            .trim_end_matches(';')
+            .trim()
+            .trim_matches('"');
+        if IMPLICIT_INCLUDES.contains(&name) {
+            continue;
+        }
+        if search_dir.join(name).is_file() {
+            out.push(line);
+        } else {
+            return Err(ParseError::MissingInclude(name.to_string()));
+        }
+    }
+    Ok(out.join("\n"))
+}
+
 pub fn parse_qasm2(source: &str, search_dir: &Path) -> Result<Circuit, ParseError> {
-    let processed = qasm::process(source, search_dir);
+    let source = resolve_includes(source, search_dir)?;
+    let processed = qasm::process(&source, search_dir);
     let mut tokens = qasm::lex(&processed);
     let ast = qasm::parse(&mut tokens).map_err(|e| ParseError::SyntaxError(format!("{e:?}")))?;
 
@@ -324,6 +362,28 @@ cx q[0],q[1];
 measure q[0] -> c[0];
 measure q[1] -> c[1];
 "#;
+
+    /// Almost every OpenQASM 2 file in the world opens with this line, and
+    /// nobody ships the file it names. The underlying `qasm` crate panics on
+    /// an include it cannot open, so this must be handled before it gets there.
+    #[test]
+    fn standard_library_include_is_implicit() {
+        let src = "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[2];\nh q[0];\ncx q[0],q[1];\n";
+        let c = parse_qasm2(src, Path::new("/nonexistent")).expect("qelib1.inc is implicit");
+        assert_eq!(c.num_qubits(), 2);
+        assert_eq!(c.operations.len(), 2);
+    }
+
+    /// A missing include that is not a standard library is a real mistake and
+    /// has to be reported as one, rather than dropped or panicked on.
+    #[test]
+    fn missing_include_is_an_error_not_a_panic() {
+        let src = "OPENQASM 2.0;\ninclude \"nope.inc\";\nqreg q[1];\nh q[0];\n";
+        match parse_qasm2(src, Path::new("/nonexistent")) {
+            Err(ParseError::MissingInclude(name)) => assert_eq!(name, "nope.inc"),
+            other => panic!("expected MissingInclude, got {other:?}"),
+        }
+    }
 
     #[test]
     fn bell_state_qasm2() {
