@@ -39,12 +39,15 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Build benchmark examples
+      - name: Build the CLI and the benchmark examples
         run: |
-          cargo build --example benchmark_suite  -p cforge-cli
-          cargo build --example compare_grover   -p cforge-cli
-          cargo build --example quantum_volume   -p cforge-cli
-          cargo build --example normalize_qaoa   -p cforge-cli
+          cargo build --release -p cforge-cli
+          cargo build --example compare_grover -p cforge-cli
+          cargo build --example normalize_qaoa -p cforge-cli
+          # quantum_volume is the one example that needs the q1tsim backend, and
+          # q1tsim is a dylib: linking it into the CLI leaves a binary that
+          # cannot find its shared objects at run time, so it stays opt-in.
+          cargo build --example quantum_volume -p cforge-cli --features q1tsim
 
       - name: Smoke — Grover search (cross-backend fidelity)
         run: |
@@ -58,13 +61,25 @@ jobs:
 
       - name: Smoke — Quantum Volume (all 4 backends, HOG threshold)
         run: |
-          cargo run --example quantum_volume -p cforge-cli 2>&1 | tee qv.log
+          cargo run --example quantum_volume -p cforge-cli --features q1tsim 2>&1 | tee qv.log
           grep -q "2^5=32" qv.log
 
-      - name: Smoke — Full benchmark suite
+      # The gate the book documents, run against this repository itself.
+      # `cforge bench` exits 1 when a benchmark fails, so the step fails with it
+      # and no grep is load-bearing.
+      - name: Gate — Full benchmark suite
         run: |
-          cargo run --example benchmark_suite -p cforge-cli 2>&1 | tee bench.log
-          grep -q "All benchmarks passed" bench.log
+          ./target/release/cforge bench --backends statevector,quantrs2 2>&1 | tee bench.log
+          ./target/release/cforge bench --backends statevector,quantrs2 \
+            --format json > fidelity-report.json
+
+      - name: Upload fidelity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fidelity-report
+          path: fidelity-report.json
+          retention-days: 30
 
       - name: Upload benchmark logs
         if: always()
