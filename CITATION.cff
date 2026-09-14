@@ -13,6 +13,8 @@ authors:
     city: Porto Velho
     country: BR
 repository-code: 'https://github.com/cleitonaugusto/CleitonForge'
+version: 0.4.0
+date-released: '2026-09-09'
 abstract: >-
   A differential fuzzer for quantum compilers, and a measurement of what its
   oracles can actually detect. A negative result in differential testing has no
