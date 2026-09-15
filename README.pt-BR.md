@@ -362,6 +362,33 @@ cargo test --workspace
 cargo clippy --workspace
 ```
 
+## Os livros
+
+Dois livros saíram deste trabalho. Não são documentação — para isso existem o
+README e o `cforge --help`. São a forma longa: como a ferramenta foi construída
+e o que as medições de fato dizem.
+
+**Quantum Computing for Rust Developers** constrói tudo do zero em Rust. Um
+simulador de vetor de estado até 25 qubits, um parser de OpenQASM 2 e 3 que dá
+conta de circuitos exportados de hardware real, Grover e QAOA verificados em vez
+de assumidos, e o fuzzer em si: gerador, oráculo, redutor e triagem. O capítulo
+sobre encontrar falhas em compiladores reais usa os números de issue citados
+acima, inclusive aquele em que errei a causa raiz e fui corrigido em público. As
+campanhas que voltaram limpas também estão lá, junto do mutation testing que diz
+o que elas teriam sido capazes de pegar.
+
+- [Amazon](https://www.amazon.com/dp/B0HHNQZBD3) — impresso e Kindle
+- [Leanpub](https://leanpub.com/quantum-rust-developers) — PDF e EPUB
+
+**Quantum Circuit Benchmarking in Rust** é o curto. É o relato da convenção de
+sinal do `Rz` em que quatro simuladores Rust não concordaram, e de por que um
+benchmark pontuado por contagem de medições não enxerga essa classe de falha.
+
+- [Leanpub](https://leanpub.com/quantum-rust-benchmarking) — PDF e EPUB
+
+Se você leu algum e foi útil, uma avaliação honesta é o que mais ajuda. Nenhum
+dos dois tem editora por trás.
+
 ## Patrocínio
 
 CleitonForge é desenvolvido e mantido por um pesquisador independente.
