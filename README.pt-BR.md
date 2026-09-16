@@ -3,20 +3,39 @@
 [English](README.md) | **[Português]**
 
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/cleitonaugusto?label=Apoiar&logo=GitHub&color=ea4aaa)](https://github.com/sponsors/cleitonaugusto)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22307398.svg)](https://doi.org/10.5281/zenodo.22307398)
+[![Artigo](https://img.shields.io/badge/artigo-10.5281%2Fzenodo.22802524-blue)](https://doi.org/10.5281/zenodo.22802524)
 [![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
 
-**CleitonForge** é um fuzzer diferencial para compiladores e simuladores
-quânticos, escrito em Rust. Ele gera circuitos aleatórios, roda cada um em mais
-de uma implementação e reporta os casos em que elas discordam. Quando acha um,
-encolhe o circuito até a menor versão que ainda falha. O binário CLI se chama
-`cforge`.
+**CleitonForge** mede o que um teste é capaz de detectar, e usa isso para achar
+falhas em compiladores e simuladores quânticos. Escrito em Rust; o binário CLI
+se chama `cforge`.
 
-Ele achou um bug de corretude no transpiler do Qiskit:
-[issue #16594](https://github.com/Qiskit/qiskit/issues/16594). O passe
+A ordem é o que importa. A maioria das ferramentas reporta o que achou. Esta
+mede antes o que **poderia** ter achado, injetando falhas de propósito e
+contando quais delas o oráculo pega. Uma campanha que não reporta nada só vale a
+leitura se você souber o que ela teria pegado, e uma que reporta alguma coisa só
+merece confiança se você souber o que ela deixa passar.
+
+Duas coisas saíram disso até agora.
+
+Um bug de corretude no transpiler do Qiskit,
+[issue #16594](https://github.com/Qiskit/qiskit/issues/16594): o passe
 `CommutativeCancellation` cancelava `sxdg sxdg sx`, que é um X, até sobrar um
 circuito vazio, do nível 2 de otimização para cima. Sem erro, sem aviso, e o
 resultado medido muda. Um mantenedor do core confirmou e a correção saiu no
 Qiskit 2.5.1.
+
+E um resultado sobre correção quântica de erros, publicado como preprint com
+DOI, [10.5281/zenodo.22802524](https://doi.org/10.5281/zenodo.22802524): os
+oráculos baseados em detector, com que transformações de circuito em QEC
+costumam ser verificadas, não são fracos e sim **vazios** no regime em que um
+passe de compilador precisa ser validado. Sobre 335 mutantes que
+comprovadamente mudam o que o circuito computa, eles não detectam nenhum. Dois
+controles negativos, equivalentes em toda tentativa e sem nenhum falso
+positivo, são o que dá crédito a esse número.
+
+O fuzzer diferencial descrito abaixo é como a medição é feita.
 
 ---
 
