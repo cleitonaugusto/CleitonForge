@@ -1,0 +1,407 @@
+{
+  "shots": 40000,
+  "resolution": 0.008,
+  "trials_per_cell": 50,
+  "rows": [
+    {
+      "n_data": 3,
+      "rounds": 2,
+      "mutation": "drop dead gate (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 2,
+      "mutation": "drop a CX",
+      "applied": 50,
+      "equivalent": 16,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 34,
+          "raw": 0.68,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 2,
+      "mutation": "drop the control of a CX",
+      "applied": 50,
+      "equivalent": 14,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 36,
+          "raw": 0.72,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 2,
+      "mutation": "insert a deterministic Pauli (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 4,
+      "mutation": "drop dead gate (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 4,
+      "mutation": "drop a CX",
+      "applied": 50,
+      "equivalent": 7,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 43,
+          "raw": 0.86,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 4,
+      "mutation": "drop the control of a CX",
+      "applied": 50,
+      "equivalent": 11,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 39,
+          "raw": 0.78,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 3,
+      "rounds": 4,
+      "mutation": "insert a deterministic Pauli (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 2,
+      "mutation": "drop dead gate (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 2,
+      "mutation": "drop a CX",
+      "applied": 50,
+      "equivalent": 7,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 43,
+          "raw": 0.86,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 2,
+      "mutation": "drop the control of a CX",
+      "applied": 50,
+      "equivalent": 3,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 47,
+          "raw": 0.94,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 2,
+      "mutation": "insert a deterministic Pauli (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 4,
+      "mutation": "drop dead gate (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 4,
+      "mutation": "drop a CX",
+      "applied": 50,
+      "equivalent": 4,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 46,
+          "raw": 0.92,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 4,
+      "mutation": "drop the control of a CX",
+      "applied": 50,
+      "equivalent": 3,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 47,
+          "raw": 0.94,
+          "power": 1.0
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": 0.0
+        }
+      }
+    },
+    {
+      "n_data": 5,
+      "rounds": 4,
+      "mutation": "insert a deterministic Pauli (equivalent, control)",
+      "applied": 50,
+      "equivalent": 50,
+      "false_positives": 0,
+      "oracles": {
+        "measurements": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "detectors": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        },
+        "dem": {
+          "detected": 0,
+          "raw": 0.0,
+          "power": null
+        }
+      }
+    }
+  ]
+}
