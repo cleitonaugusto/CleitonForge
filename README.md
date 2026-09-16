@@ -7,18 +7,34 @@
 [![Paper](https://img.shields.io/badge/paper-10.5281%2Fzenodo.22802524-blue)](https://doi.org/10.5281/zenodo.22802524)
 [![PyPI](https://img.shields.io/pypi/v/cleitonforge)](https://pypi.org/project/cleitonforge/)
 
-**CleitonForge** is a differential fuzzer for quantum compilers and simulators,
-written in Rust. It generates random circuits, runs each one through more than
-one implementation, and reports the cases where the implementations disagree.
-When it finds one, it shrinks the circuit down to the smallest version that
-still fails. The CLI binary is `cforge`.
+**CleitonForge** measures what a test is able to detect, and uses that to find
+faults in quantum compilers and simulators. Written in Rust; the CLI binary is
+`cforge`.
 
-It found a soundness bug in Qiskit's transpiler:
-[issue #16594](https://github.com/Qiskit/qiskit/issues/16594). The
+The order is the point. Most tools report what they found. This one first
+measures what it could have found, by injecting faults on purpose and counting
+which of them the oracle catches. A campaign that reports nothing is only worth
+reading if you know what it would have caught, and a campaign that reports
+something is only worth trusting if you know what it misses.
+
+Two things have come out of that so far.
+
+A soundness bug in Qiskit's transpiler,
+[issue #16594](https://github.com/Qiskit/qiskit/issues/16594): the
 `CommutativeCancellation` pass cancelled `sxdg sxdg sx`, which is an X, down to
 an empty circuit at optimization level 2 and above. No error, no warning, and
 the measured result changes. A core maintainer confirmed it and it was fixed in
 Qiskit 2.5.1.
+
+And a result about quantum error correction, written up as a preprint with a
+DOI, [10.5281/zenodo.22802524](https://doi.org/10.5281/zenodo.22802524): the
+detector-based oracles that circuit transformations in QEC are usually checked
+against are not weak but *empty* in the regime where a compiler pass has to be
+validated. Over 335 mutants that provably change what a circuit computes, they
+detect none. Two negative controls, equivalent on every trial with no false
+positive, are what give that number its credit.
+
+The differential fuzzer described below is how the measuring gets done.
 
 ---
 
