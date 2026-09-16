@@ -1,5 +1,7 @@
 # Detector-Based Oracles Are Empty Where QEC Compilers Must Be Validated
 
+**DOI: [10.5281/zenodo.22802524](https://doi.org/10.5281/zenodo.22802524)**
+
 Source and built PDF of the paper describing the measurements in
 [`../research/qec_oracle_power.py`](../research/qec_oracle_power.py).
 
