@@ -1,0 +1,262 @@
+\documentclass[twocolumn,10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{authblk}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!8},
+  captionpos=b
+}
+
+\newtheorem{proposition}{Proposition}
+
+\title{\textbf{Detector-Based Oracles Are Empty Where\\
+Quantum Error Correction Compilers\\
+Must Be Validated}}
+
+\author{Cleiton Augusto Correa Bezerra}
+\affil{Independent Researcher\\
+\texttt{augusto.cleiton@gmail.com}}
+\date{September 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A compiler pass over a quantum error correction circuit must preserve what the
+circuit computes. The artefacts a practitioner reaches for when reasoning about
+such a circuit---detector samples and the detector error model---are defined
+relative to the circuit's own noiseless execution. We argue that this
+self-reference makes them \emph{exactly} blind, rather than merely insensitive,
+in the regime where a pass has to be checked: before noise is added, which is
+also where the checking must happen if noise channels are not to survive the
+gates they describe. Across 335 mutants that provably change what a
+repetition-code memory circuit computes, detector sampling and detector error
+model comparison detect none. On a rotated surface code memory experiment,
+deleting every single-qubit gate leaves the detector error model byte-identical,
+29 lines and 24 detectors either way, while 21 of 33 measurement outcomes change
+by up to $0.50$. Two negative controls, each equivalent on every one of 200
+trials with no oracle raising a false positive, establish that the measurement
+is not an artefact of the mutation set. We give the measurement-record oracle
+that closes the gap and is exact for noiseless stabiliser circuits, and we report
+two negative results---one compiler test suite whose oracle detects every fault
+we could construct, and one transformation library that came back clean---because
+a method that only ever reports blindness is not a method anyone should trust.
+All code and data are public.
+\end{abstract}
+
+\section{Introduction}
+
+Quantum error correction has moved from demonstration to infrastructure, and
+with it has come a layer of compilers: tools that lower a logical computation
+onto a concrete circuit of resets, Clifford gates and measurements. Deltakit,
+tqec and the transformation utilities inside Stim all perform rewrites that are
+supposed to leave the computation unchanged.
+
+The question this paper is about is narrow and practical. When such a rewrite is
+applied, how does anyone check that it was correct?
+
+The honest answer, in the projects we examined, is that the check varies widely
+in strength, and that the artefact most readily available to a QEC practitioner
+is the weakest of the options. That artefact is the detector: a parity of
+measurement outcomes, declared by the circuit, which a decoder consumes. Its
+aggregate form is the detector error model, which lists the error mechanisms a
+noise model induces and which detectors each one flips.
+
+Both are natural things to compare before and after a transformation. Both, we
+argue, cannot see the transformation at all in the regime that matters.
+
+\section{Why the blindness is structural}
+
+A detector is not reported as a raw parity. It is reported as a deviation from
+the value that parity takes when the circuit is executed without noise, and that
+reference value is computed \emph{from the circuit itself}.
+
+\begin{proposition}
+Let $C$ be a stabiliser circuit with no noise channels, and let $C'$ be any
+circuit obtained from $C$ by a transformation that leaves every detector
+deterministic. Then every detector of $C$ and every detector of $C'$ reads zero,
+each against its own reference, and no comparison of detector outcomes can
+distinguish $C$ from $C'$.
+\end{proposition}
+
+The proposition is immediate once the self-reference is stated, and that is the
+point: it is not a bound to be tightened by taking more shots. A detector-based
+oracle applied to a noiseless circuit is not weak. It is empty.
+
+The same argument reaches the detector error model. With no noise there are no
+error mechanisms, so the model reduces to the detector declaration structure,
+which a transformation that does not touch measurement records leaves alone.
+
+One might object that this is a pathology of the noiseless case, and that real
+circuits carry noise. The objection has the direction of the argument backwards.
+A compiler simplification has to run \emph{before} noise is added, since a noise
+channel attached to a gate that a later pass removes describes a gate that is no
+longer in the circuit. The noiseless circuit is therefore not a toy. It is
+exactly the object a pass is applied to, and exactly the object on which the
+pass has to be shown correct.
+
+\section{Method}
+
+We follow the mutation-testing discipline of reporting, for each oracle, not how
+many faults it caught but what fraction of the faults that mattered it could
+have caught.
+
+For every cell we report two numbers. The \emph{raw} rate is detections divided
+by mutants applied. The \emph{power} is detections divided by mutants that
+actually changed the circuit. The gap between them is the equivalent mutants:
+faults that produce a circuit indistinguishable from the original, which no
+correct oracle may flag and which counting as misses would understate every
+oracle in the table.
+
+Deciding which mutants are equivalent requires a reference oracle. On unitary
+circuits the operator serves, and is exact. A QEC circuit has resets and
+measurements, so it has no single unitary and that construction does not carry
+over. What replaces it here is the measurement record. Our circuits are
+noiseless and preserve the computational basis, so every measurement is
+deterministic and a single shot settles equivalence exactly rather than
+statistically. Where that property fails---a Hadamard before a measurement is
+enough to break it---the record is random and the reference must be a
+distribution over many shots, with a declared resolution. We flag this because
+we got it wrong once: an early version of a related experiment compared single
+shots on circuits containing Hadamards and produced 145 phantom divergences that
+were nothing but different random draws.
+
+\subsection{Negative controls}
+
+A study that cannot distinguish its own controls is measuring nothing. We
+therefore include two mutations that are equivalent by construction: removing a
+gate immediately before a reset of the same qubit, and inserting a Pauli between
+a measurement and the reset of that same ancilla. Both are dead by definition,
+and any oracle that reports a difference on them is reporting a fault that is
+not there.
+
+An earlier version of this study had no such control and no Pauli pattern in its
+circuits. Every qubit began in $|0\rangle$, nothing was noisy, and every
+measurement read zero whatever the mutation did, so all four mutations were
+reported as equivalent and the study said nothing at all.
+
+\section{Results}
+
+\subsection{Repetition-code memory}
+
+Table~\ref{tab:main} reports 200 trials per mutation on repetition-code memory
+at two widths and two round counts, with a random Pauli pattern applied after
+the initial reset so that the syndrome carries information.
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\toprule
+mutation & applied & equiv. & det. & DEM \\
+\midrule
+drop a dead gate \emph{(control)} & 200 & 200 & --- & --- \\
+drop a CX & 200 & 34 & 0/166 & 0/166 \\
+drop the control of a CX & 200 & 31 & 0/169 & 0/169 \\
+insert a Pauli \emph{(control)} & 200 & 200 & --- & --- \\
+\bottomrule
+\end{tabular}
+\caption{Detector sampling and detector error model comparison against mutations
+of a compiled QEC circuit. Entries are detections over mutants that changed the
+measurement record. Both controls are equivalent on every trial and no oracle
+raises a false positive on them.}
+\label{tab:main}
+\end{table}
+
+Over 335 mutants that provably change what the circuit computes, neither
+detector-based oracle detects one.
+
+\subsection{Rotated surface code}
+
+On a distance-three rotated planar code memory experiment over three rounds, 17
+qubits, compiled to a native gate set whose measurement is $M_X$ and whose reset
+is $R_X$, we compare the compiled circuit against a mutant that removes every
+single-qubit Clifford gate, all 65 of them.
+
+The two detector error models are byte-for-byte identical: 29 lines, 24
+detectors each. The measurement distributions differ in 21 of 33 positions, by
+up to $0.50$.
+
+A maximally destructive change to the unitary content of a surface code memory
+circuit is therefore invisible to the artefact most often used to reason about
+that circuit.
+
+\subsection{With noise, on a matched pair}
+
+The surface code comparison above is noiseless, and we do not extend it by
+adding noise, because the mutant contains fewer gates and any gate-attached
+noise model would then place a different number of channels on each side. That
+difference, rather than the mutation, would drive the result.
+
+On a single-qubit witness where the channel counts can be matched exactly---a
+circuit of four instructions, with three depolarising channels on each side and
+a deterministic $X$ inserted on one---the detector error models come out
+identical to the last digit, \texttt{error(0.0066666666666666133) D0} on both,
+and the detection rates over $2\times10^6$ shots agree to about $1.1\sigma$.
+Blindness to a deterministic Pauli therefore survives the addition of noise
+where the comparison can be made honestly.
+
+\section{What we did not find}
+
+Two negative results, reported because a method that only ever produces
+blindness would be worth nothing.
+
+\paragraph{tqec.} We examined the compilation test suite of \texttt{tqec}, a
+topological QEC compiler. Its correctness assertions are three integers: the
+code distance obtained from the shortest graphlike error of the noisy circuit,
+the detector count, and the observable count. We expected this to be weak. It is
+not. Across three classes of mutation it detected every mutant that changed the
+circuit's behaviour, 40 of 40 in each, correctly ignored an equivalent mutation,
+and raised no false positive on 25 identity insertions. The shortest graphlike
+error is a structural property, not a counter, and breaking the circuit destroys
+it. We report no defect.
+
+\paragraph{Stim transformations.} Across 400 random Clifford circuits with
+resets, measurements and repeat blocks, \texttt{flattened()}, string round-trip,
+\texttt{without\_noise()} and concatenation all preserved the measurement
+distribution. Deliberately broken transformations were caught 84 times out of
+200 and 117 out of 156, so the clean result stands under partial and declared
+sensitivity rather than under an unexamined one.
+
+\section{What to use instead}
+
+The oracle that works is the one the proposition does not reach: the measurement
+record itself, compared between the two circuits rather than each against its
+own reference. For a noiseless stabiliser circuit that preserves the
+computational basis it is exact at one shot. Where the circuit is not
+deterministic it becomes a distribution comparison with a declared resolution,
+which is weaker but still strictly above anything detector-based.
+
+This is cheap. It requires no decoder, no noise model, and no error budget. Its
+only cost is that it must be done before noise is added, which is where the pass
+belongs anyway.
+
+\section{Reproducibility}
+
+All code is public in the CleitonForge repository. The study of
+Section~4.1 is \texttt{research/qec\_oracle\_power.py} and writes
+\texttt{qec\_oracle\_power.json}. The Stim campaign of Section~5 is
+\texttt{tools/fuzz\_stim\_transforms.py} and carries its own power measurement.
+Versions: Stim 1.16.0, tqec 0.2.0.
+
+\begin{thebibliography}{9}
+\bibitem{gidney2021} C.~Gidney, \emph{Stim: a fast stabilizer circuit
+simulator}, Quantum 5, 497 (2021).
+\bibitem{cleitonforge} C.~A.~C.~Bezerra, \emph{CleitonForge}, \\
+\url{https://github.com/cleitonaugusto/CleitonForge}
+\bibitem{deltakit} Riverlane, \emph{Deltakit}, \\
+\url{https://github.com/Deltakit/deltakit}
+\bibitem{tqec} \emph{tqec: design automation for topological quantum error
+correction}, \url{https://github.com/tqec/tqec}
+\end{thebibliography}
+
+\end{document}
