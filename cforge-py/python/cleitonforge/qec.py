@@ -110,8 +110,27 @@ def flows_differ(before, after) -> bool:
     return not flows_equivalent(before, after)[0]
 
 
-def dem_equal(before, after) -> bool:
-    """Whether the two circuits have the same detector error model.
+def _mechanisms(dem: stim.DetectorErrorModel) -> dict:
+    """Error mechanisms of a DEM, keyed by the detectors and observables they flip.
+
+    Detector coordinates and the order of the lines are left out, since a
+    decoder does not depend on them. Mechanisms with the same symptoms are
+    merged into one, with the probability that an odd number of them fires.
+    """
+    merged = {}
+    for ins in dem.flattened():
+        if ins.type != "error":
+            continue
+        key = frozenset(str(t) for t in ins.targets_copy())
+        p = ins.args_copy()[0]
+        q = merged.get(key, 0.0)
+        merged[key] = q + p - 2 * q * p
+    return merged
+
+
+def dem_equal(before, after, *, tolerance: float = 1e-9) -> bool:
+    """Whether the two circuits have the same detector error model, as a decoder
+    sees it: the same detectors, observables and error mechanisms.
 
     This is the comparison commonly used to accept a pass. It is reported here
     because `check_pass` needs to show when it would have been fooled.
@@ -122,7 +141,10 @@ def dem_equal(before, after) -> bool:
         dem_b = to_stim(after).detector_error_model(decompose_errors=False)
     except ValueError:
         return False
-    return dem_a == dem_b
+    if (dem_a.num_detectors, dem_a.num_observables) != (dem_b.num_detectors, dem_b.num_observables):
+        return False
+    a, b = _mechanisms(dem_a), _mechanisms(dem_b)
+    return a.keys() == b.keys() and all(abs(a[k] - b[k]) <= tolerance for k in a)
 
 
 def dem_differs(before, after) -> bool:

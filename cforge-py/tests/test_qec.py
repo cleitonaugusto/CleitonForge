@@ -32,6 +32,17 @@ def test_a_circuit_is_equivalent_to_itself():
     assert verdict.equivalent and verdict.dem_equal and not verdict.dem_blind
 
 
+def test_dem_comparison_ignores_coordinates_and_line_order():
+    a = stim.Circuit("R 0\nX_ERROR(0.01) 0\nM 0\nDETECTOR(1, 0) rec[-1]")
+    b = stim.Circuit("R 0\nX_ERROR(0.01) 0\nM 0\nDETECTOR(7, 3) rec[-1]")
+    assert qec.dem_equal(a, b)
+    split = stim.Circuit("R 0\nX_ERROR(0.01) 0\nX_ERROR(0.02) 0\nM 0\nDETECTOR rec[-1]")
+    p = 0.01 + 0.02 - 2 * 0.01 * 0.02
+    merged = stim.Circuit(f"R 0\nX_ERROR({p}) 0\nM 0\nDETECTOR rec[-1]")
+    assert qec.dem_equal(split, merged)
+    assert not qec.dem_equal(a, merged)
+
+
 def test_removing_a_gate_nobody_reads_is_equivalent():
     # A basis change left before a reset, the case of Deltakit/deltakit#286.
     before = stim.Circuit("R 0\nH 0\nM 0\nH 0\nR 0\nM 0")
