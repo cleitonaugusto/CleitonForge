@@ -80,7 +80,8 @@ qec.oracle_power(my_check, circuits)   # my_check(before, after) -> bool
 ```
 
 The smallest case is in `qec.witness()`: four instructions and a noise channel.
-The analysis is in the paper,
+The numbers are in [doi:10.5281/zenodo.24517526](https://doi.org/10.5281/zenodo.24517526),
+and why detector-based checks are blind here in
 [doi:10.5281/zenodo.22802524](https://doi.org/10.5281/zenodo.22802524).
 
 ---
