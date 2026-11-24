@@ -1,0 +1,251 @@
+{
+ "trials": 50,
+ "noise": {
+  "after_clifford_depolarization": 0.001,
+  "before_measure_flip_probability": 0.001,
+  "after_reset_flip_probability": 0.001
+ },
+ "stim": "1.16.0",
+ "rows": [
+  {
+   "circuit": "surface_code:rotated_memory_z d3",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d3",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 49,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d3",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d3",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 48,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d3",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d3",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d3",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d3",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d3",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 0,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 0
+  },
+  {
+   "circuit": "repetition_code:memory d3",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d3",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d3",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 39,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d5",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d5",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d5",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_z d5",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d5",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d5",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d5",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "surface_code:rotated_memory_x d5",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 50,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d5",
+   "mutation": "drop a two-qubit gate",
+   "applied": 50,
+   "changed": 0,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 0
+  },
+  {
+   "circuit": "repetition_code:memory d5",
+   "mutation": "drop the control of a CX",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d5",
+   "mutation": "X before a measurement",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 0,
+   "detectors": 0,
+   "flows": 50
+  },
+  {
+   "circuit": "repetition_code:memory d5",
+   "mutation": "wrong measurement basis",
+   "applied": 50,
+   "changed": 50,
+   "independent_agrees": 50,
+   "dem": 50,
+   "detectors": 48,
+   "flows": 50
+  }
+ ]
+}

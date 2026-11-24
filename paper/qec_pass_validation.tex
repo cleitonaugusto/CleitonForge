@@ -1,0 +1,198 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{authblk}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!8},
+  columns=fullflexible
+}
+
+\title{\textbf{Equal Detector Error Models Do Not Make a QEC Compiler Pass Correct}}
+\author{Cleiton Augusto Correa Bezerra}
+\affil{Independent Researcher\\
+\texttt{augusto.cleiton@gmail.com}}
+\date{November 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Comparing detector error models (DEMs) before and after a pass has been
+proposed as a way to verify passes of a quantum error correction compiler. We
+show a pass that inserts one deterministic Pauli and leaves the DEM identical
+while changing what the circuit computes. On rotated surface codes of distance 3
+and 5 this mutation goes unreported by the DEM comparison in all 200 trials,
+and by self-referential detector sampling in all 200. A check on the circuit's
+stabiliser flows reports all 200. The blindness also runs the other way: in a
+repetition code, dropping a parity-check CX leaves the noiseless circuit
+unchanged, so the flows accept it, while the DEM reports it in 100 of 100
+trials. Neither check replaces the other. We package both as
+\texttt{cleitonforge.qec} and run it over the circuit passes of Deltakit's two
+compilers. Over 480 before-and-after pairs it finds no pass that changes a
+circuit. It did find one defect, in our own DEM comparison.
+\end{abstract}
+
+\section{The claim}
+
+A pass over an error-correction circuit should preserve two things: what the
+circuit computes, and how its errors show up in the detectors. A recent preprint
+gives a quasilinear decision procedure for DEM equivalence and proposes it for
+this job, saying that such checks ``can be used to verify compiler
+passes''~\cite{rennela2026}. It asks for nothing to be checked besides the DEM.
+It notes that two equivalent circuits may produce different DEMs. It does not
+consider the opposite case: two circuits that differ but produce the same DEM.
+
+That case exists. Our earlier paper explains why: detectors and DEMs are defined
+relative to the circuit's own noiseless execution~\cite{bezerra2026}. A
+deterministic Pauli moves the measurement outcomes and that reference
+together, so no error mechanism changes. The smallest instance:
+
+\begin{lstlisting}[columns=fixed]
+R 0                          R 0
+X_ERROR(0.01) 0              X_ERROR(0.01) 0
+M 0                          M 0
+                             X 0
+M 0                          M 0
+DETECTOR rec[-1] rec[-2]     DETECTOR rec[-1] rec[-2]
+\end{lstlisting}
+
+On the right, the detector fires on every shot. Its DEM is identical to the one
+on the left. So any procedure that compares only DEMs accepts this pass, however
+exact it is. This is not an error in the decision procedure. It is a limit of
+what a DEM records.
+
+\section{The check}
+
+\texttt{cleitonforge.qec} compares two circuits through their stabiliser flows,
+in both directions, using Stim~\cite{gidney2021}: every flow generator of each
+circuit must be a flow of the other. Noise is removed first, so the check is
+about what the circuit computes. By default a reset is appended on every qubit,
+since a memory experiment discards the final state. Without it, removing a
+basis change left after the last measurement would be reported as a change,
+which it is not.
+
+Next to that it compares the DEMs as a decoder sees them. It checks detector and
+observable counts, and the error mechanisms keyed by the symptoms they flip.
+Mechanisms with the same symptoms are merged. Coordinates and line order are
+ignored. A verdict carries both results and names the two disagreements:
+\texttt{dem\_blind} (DEM equal, circuit changed) and \texttt{faults\_changed}
+(circuit equal, DEM changed). The second is not always a bug, since some passes
+change the DEM on purpose. It is always worth a look.
+
+\begin{lstlisting}[language=Python]
+from cleitonforge import qec   # pip install "cleitonforge[qec]"
+v = qec.check_pass(before, after)  # stim.Circuit or deltakit Circuit
+v.equivalent, v.dem_equal, v.dem_blind, v.faults_changed, v.witness
+\end{lstlisting}
+
+\section{How much each check sees}
+
+We applied four mutations to Stim's generated circuits, 50 times each per
+circuit: rotated surface code memory in $Z$ and $X$, and repetition code memory,
+each at distance 3 and 5 with as many rounds. Noise was $10^{-3}$ after Clifford
+gates, after resets and before measurements. A mutant counts as changed when
+the flows say so. Because the flows are also one of the checks being measured,
+we confirmed every verdict independently, without flows: the mutant's noiseless
+shots, decoded with the original's detectors and observable, fire a detector or
+flip the observable exactly when the flows report a change. The two agreed in
+1200 of 1200 mutants.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llrrrr}
+\toprule
+code & mutation & changed & DEM & detectors & flows \\
+\midrule
+surface & drop a two-qubit gate & 200 & 200 & 200 & 200 \\
+surface & drop the control of a CX & 200 & 200 & 199 & 200 \\
+surface & wrong measurement basis & 200 & 200 & 198 & 200 \\
+surface & \textbf{X before a measurement} & 200 & \textbf{0} & \textbf{0} & 200 \\
+repetition & drop the control of a CX & 100 & 100 & 0 & 100 \\
+repetition & wrong measurement basis & 100 & 100 & 87 & 100 \\
+repetition & \textbf{X before a measurement} & 100 & \textbf{0} & \textbf{0} & 100 \\
+\bottomrule
+\end{tabular}
+\caption{Changed mutants each check reports. ``Detectors'' samples each circuit
+against its own reference, as a detector sampler does. The flows column is
+100\% by construction; the independent decode is what supports it.}
+\end{table}
+
+The fourth mutation, dropping a two-qubit gate, never changed a repetition code:
+0 of 100. Every qubit there starts in $|0\rangle$ and a CX between such qubits
+does nothing to the noiseless state. The independent decode agrees. But the DEM
+differed in all 100 of those mutants, because a reset error the dropped CX used
+to carry into an ancilla now reaches fewer detectors. This is the
+\texttt{faults\_changed} case. The circuit computes the same thing, but its
+errors show up differently, and a decoder built for the original would be
+wrong about them. A flows check alone accepts it.
+
+So the two checks fail on disjoint mutations. The DEM misses deterministic
+Paulis; the flows miss changes that only matter under noise. A pass is
+validated by both or by neither.
+
+\section{Deltakit's passes}
+
+We ran the check over the circuit passes of Riverlane's
+Deltakit~\cite{deltakit}, in both of its compilers.
+
+\paragraph{deltakit-explorer.} We compiled rotated and unrotated planar code
+memories, $d=3$, in $Z$ and $X$, to three native gate sets. Then we checked
+\texttt{compile\_circuit\_to\_native\_gates}, \texttt{remove\_identities},
+\texttt{merge\_layers} (with and without breaking repeat blocks) and the new
+\texttt{remove\_dead\_unitaries}. All 72 pairs are equivalent.
+\texttt{remove\_dead\_unitaries} removes 20 gates over the 12 compiled circuits.
+
+\paragraph{deltakit-compile.} Each pass ran between the Stim import and export
+pipelines. The round trip alone, with no pass, is equivalent with an equal DEM
+on every input. We used two sets of inputs: Stim's generated surface and
+repetition codes at $d=3$ (24 passes, 72 pairs), and the 12 explorer
+compilations with and without added noise (24 inputs, 14 passes, 336 pairs).
+All 408 are equivalent, with equal DEMs. Three passes could not be
+run on these inputs. One belongs at the Stim level and needs
+\texttt{serialise-circuit} after it; at that level it was equivalent on the circuits we tried. One needs
+arguments we did not supply. One declares that it does not support loops yet.
+
+\paragraph{The defect we found.} The first run, with no pass at all, reported
+the DEM as changed on every circuit. The import and export rewrite detector
+coordinates, and our DEM comparison was textual. That was our defect, not
+Deltakit's: a decoder ignores coordinates. It is fixed in 0.6.1, and it is the
+reason the comparison now works on mechanisms.
+
+\section{Limits}
+
+Distances are 3 and 5, and all circuits are memory experiments; there is no
+lattice surgery or adaptive circuit here. The four mutations are a small, fixed
+set. The flows check needs Clifford circuits, which Stim requires anyway.
+Finding no problem in Deltakit's passes on these inputs does not show that the
+passes are correct in general.
+
+\section{Reproducibility}
+
+The tool is \texttt{cleitonforge} on PyPI, from 0.6.2. The table comes from
+\texttt{research/qec\_pass\_validation.py} in the repository~\cite{cleitonforge},
+with Stim 1.16 and seeded mutations. Its output is committed next to it.
+
+\begin{thebibliography}{9}
+\bibitem{rennela2026} M.~Rennela, \emph{Quasilinear Equivalence Checking for
+Detector Error Models}, arXiv:2606.14677 (2026).
+\bibitem{bezerra2026} C.~A.~C.~Bezerra, \emph{Detector-Based Oracles Are Empty
+Where Quantum Error Correction Compilers Must Be Validated} (2026),
+\href{https://doi.org/10.5281/zenodo.22802524}{doi:10.5281/zenodo.22802524}.
+\bibitem{gidney2021} C.~Gidney, \emph{Stim: a fast stabilizer circuit
+simulator}, Quantum 5, 497 (2021).
+\bibitem{deltakit} Riverlane, \emph{Deltakit},
+\url{https://github.com/Deltakit}.
+\bibitem{cleitonforge} C.~A.~C.~Bezerra, \emph{CleitonForge},
+\url{https://github.com/cleitonaugusto/CleitonForge}.
+\end{thebibliography}
+
+\end{document}
