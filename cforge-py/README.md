@@ -62,8 +62,18 @@ distance-3 rotated surface code, 3 rounds, 20 mutants of each kind:
 | **X before a measurement** | **0/20** | 20/20 |
 
 The flows are also the reference that decides which mutants changed the
-circuit, so their column is 100% by construction. The figure that matters is
-the DEM's zero. Pass your own test as the oracle to see what it misses:
+circuit, so their column is 100% by construction. Every one of those mutants was
+also confirmed changed without the flows, by decoding its noiseless measurements
+with the original circuit's detectors. The figure that matters is the DEM's zero.
+
+The blindness runs the other way too. In a repetition code every qubit starts
+in |0>, so a parity-check CX does nothing to the noiseless state: dropping one
+leaves the circuit computing the same thing, and the flows call it equivalent,
+correctly. But a data error that CX used to detect now goes unseen, and the DEM
+changes. `check_pass` reports this as `faults_changed`. Neither check replaces
+the other, which is why it runs both.
+
+Pass your own test as the oracle to see what it misses:
 
 ```python
 qec.oracle_power(my_check, circuits)   # my_check(before, after) -> bool

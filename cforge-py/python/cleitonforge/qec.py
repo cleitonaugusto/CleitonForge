@@ -16,7 +16,12 @@ the DEM comparison next to it so the blind spot is visible instead of silent:
     verdict.equivalent   # the flows of the two circuits match, both ways
     verdict.dem_equal    # what a DEM comparison would have said
     verdict.dem_blind    # DEM equal although the circuit changed
+    verdict.faults_changed  # circuit equal, but the DEM changed
     verdict.witness      # a flow one circuit has and the other lacks
+
+The two checks see different things, so neither replaces the other. The flows
+miss a change to how errors are detected when the noiseless circuit is the
+same; the DEM misses a deterministic Pauli. `check_pass` reports both.
 
 It also measures how much a given check can see, by applying mutations that are
 known to change a circuit and counting which ones the check reports:
@@ -165,7 +170,17 @@ class Verdict:
         """The DEM did not change, but the circuit did."""
         return self.dem_equal and not self.equivalent
 
+    @property
+    def faults_changed(self) -> bool:
+        """The circuit computes the same thing, but its errors are detected
+        differently: the DEM changed. A noiseless check cannot see this, for
+        example a parity-check CX that acts trivially on the noiseless state.
+        Some passes change the DEM on purpose; this one needs a look."""
+        return self.equivalent and not self.dem_equal
+
     def __str__(self) -> str:
+        if self.faults_changed:
+            return "equivalent as a circuit, but the DEM changed: errors are detected differently"
         if self.equivalent:
             return "equivalent"
         note = " (the DEM comparison misses this)" if self.dem_blind else ""

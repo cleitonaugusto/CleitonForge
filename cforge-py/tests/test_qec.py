@@ -26,6 +26,30 @@ def test_witness_is_missed_by_the_dem_and_caught_by_the_flows():
     assert verdict.witness is not None
 
 
+def test_a_dropped_parity_check_is_caught_by_the_dem_not_the_flows():
+    # Every qubit of a repetition code memory starts in |0>, so a CX between
+    # them does nothing to the noiseless state. Dropping one leaves the circuit
+    # computing the same thing, but a data error it used to detect now goes
+    # unseen. The flows cannot tell; the DEM can.
+    c = stim.Circuit.generated(
+        "repetition_code:memory",
+        distance=3,
+        rounds=3,
+        after_clifford_depolarization=0.001,
+        after_reset_flip_probability=0.001,
+    ).flattened()
+    i = next(i for i in range(len(c)) if c[i].name == "CX")
+    dropped = stim.Circuit()
+    for j in range(len(c)):
+        if j != i:
+            dropped.append(c[j])
+    verdict = qec.check_pass(c, dropped)
+    assert verdict.equivalent
+    assert verdict.faults_changed
+    assert not verdict.dem_blind
+    assert "DEM changed" in str(verdict)
+
+
 def test_a_circuit_is_equivalent_to_itself():
     c = surface_code()
     verdict = qec.check_pass(c, c.copy())
