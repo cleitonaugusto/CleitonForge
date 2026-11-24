@@ -716,6 +716,7 @@ fn conventions(backend: &str) -> PyResult<Vec<PyCheckResult>> {
 // ── Module ────────────────────────────────────────────────────────────────────
 
 #[pymodule]
+#[pyo3(name = "_native")]
 fn cleitonforge(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyCircuit>()?;
     m.add_class::<PyRunResult>()?;

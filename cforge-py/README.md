@@ -26,6 +26,55 @@ No Rust toolchain required — pre-built wheels for Linux, macOS and Windows.
 
 ---
 
+## Validating QEC compiler passes
+
+```bash
+pip install "cleitonforge[qec]"
+```
+
+A pass that rewrites an error-correction circuit is often accepted because the
+detector error model (DEM) is the same before and after. That comparison cannot
+see a deterministic Pauli inserted by the pass: the measurement outcomes and the
+detector reference move together, so the DEM is identical while the circuit
+computes something else. `cleitonforge.qec` checks the circuit itself, through
+its stabiliser flows in both directions, and says when a DEM check would have
+been fooled.
+
+```python
+from cleitonforge import qec
+
+verdict = qec.check_pass(before, after)   # stim.Circuit, or deltakit_circuit.Circuit
+verdict.equivalent    # flows match both ways
+verdict.dem_equal     # what a DEM comparison says
+verdict.dem_blind     # DEM equal although the circuit changed
+verdict.witness       # a flow only one of the two circuits has
+```
+
+It also measures how much a check can see. `oracle_power` applies mutations that
+change a circuit and counts how many of them a given oracle reports. On a
+distance-3 rotated surface code, 3 rounds, 20 mutants of each kind:
+
+| mutation | DEM comparison | flows |
+|---|---|---|
+| drop a two-qubit gate | 20/20 | 20/20 |
+| drop the control of a CX | 20/20 | 20/20 |
+| wrong measurement basis | 20/20 | 20/20 |
+| **X before a measurement** | **0/20** | 20/20 |
+
+The flows are also the reference that decides which mutants changed the
+circuit, so their column is 100% by construction. The figure that matters is
+the DEM's zero. Pass your own test as the oracle to see what it misses:
+
+```python
+qec.oracle_power(my_check, circuits)   # my_check(before, after) -> bool
+```
+
+The smallest case is in `qec.witness()`: four instructions and a noise channel.
+The analysis is in the paper,
+[doi:10.5281/zenodo.22802524](https://doi.org/10.5281/zenodo.22802524).
+
+---
+
 ## Quick start
 
 ### Build and run a circuit
